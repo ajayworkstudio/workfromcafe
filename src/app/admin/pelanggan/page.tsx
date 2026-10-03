@@ -91,7 +91,7 @@ export default async function Subscribers({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <PageHeader title="Pelanggan" description="Langganan dari pembayaran Midtrans dan akses yang kamu berikan manual." />
+      <PageHeader title="Pelanggan" description="Konfirmasi pembayaran QRIS dan kelola akses premium." />
       <Flash ok={sp.ok} err={sp.err} />
 
       {!!pending.length && (

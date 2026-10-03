@@ -58,7 +58,9 @@ update public.profiles set role = 'admin' where email = 'email-kamu@gmail.com';
 ```
 Muat ulang — menu **Admin** muncul di header.
 
-### 4. Midtrans
+### 4. Midtrans (opsional, saat ini tidak dipakai)
+Tombol Midtrans sudah dihapus dari halaman Harga; pembayaran memakai QRIS manual + konfirmasi WhatsApp. Kode webhook masih ada kalau nanti ingin dipakai lagi.
+
 1. Daftar di [dashboard.midtrans.com](https://dashboard.midtrans.com), pilih environment **Sandbox**.
 2. **Settings → Access Keys** → salin Server Key & Client Key ke `.env.local`.
 3. **Settings → Payment → Notification URL**: `https://domainkamu.com/api/midtrans/notification`

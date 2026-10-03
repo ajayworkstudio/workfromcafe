@@ -5,9 +5,7 @@ import { rupiah } from "@/lib/utils";
 import { getPlans, getSettings } from "@/lib/settings";
 import { createManualPayment } from "@/app/bayar/actions";
 import SubmitButton from "@/components/admin/SubmitButton";
-import { SNAP_JS } from "@/lib/midtrans";
 import Icon from "@/components/Icon";
-import CheckoutButton from "./CheckoutButton";
 import type { Plan } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Langganan" };
@@ -27,7 +25,7 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
     <div className="mx-auto max-w-4xl px-4 py-12">
       <div className="text-center">
         <h1 className="text-4xl font-extrabold md:text-5xl">Harga langganan</h1>
-        <p className="mt-2 text-muted">Bayar pakai QRIS, GoPay, ShopeePay, OVO, DANA, atau transfer bank.</p>
+        <p className="mt-2 text-muted">Bayar lewat QRIS pakai DANA, GoPay, OVO, ShopeePay, atau m-banking.</p>
         {viewer.isPremium && (
           <p className="mt-4 inline-block rounded-full bg-ok/10 px-4 py-2 text-sm text-ok">
             Kamu sudah premium sampai {new Date(viewer.premiumUntil!).toLocaleDateString("id-ID")}. Bayar lagi = masa aktif ditambah.
@@ -55,15 +53,15 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
               </ul>
               <div className="mt-6">
                 {viewer.user ? (
-                  <>
-                    <CheckoutButton plan={key} snapJs={SNAP_JS} clientKey={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ?? ""} highlight={highlight} />
-                    {manual && (
-                      <form action={createManualPayment} className="mt-2">
-                        <input type="hidden" name="plan" value={key} />
-                        <SubmitButton className="btn-ghost w-full">Bayar via QRIS {settings.qris_name}, konfirmasi WhatsApp</SubmitButton>
-                      </form>
-                    )}
-                  </>
+                  manual ? (
+                    <form action={createManualPayment}>
+                      <input type="hidden" name="plan" value={key} />
+                      <SubmitButton className={`${highlight ? "btn-primary" : "btn-dark"} w-full`}>Langganan sekarang</SubmitButton>
+                      <p className="mt-2 text-center text-xs text-muted">Bayar via QRIS, lalu konfirmasi lewat WhatsApp</p>
+                    </form>
+                  ) : (
+                    <p className="rounded-xl bg-tint p-3 text-center text-sm text-muted">Pendaftaran langganan sedang ditutup sementara.</p>
+                  )
                 ) : (
                   <Link href="/masuk?next=/harga" className="btn-dark w-full">Masuk untuk berlangganan</Link>
                 )}

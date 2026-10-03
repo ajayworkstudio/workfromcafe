@@ -15,7 +15,7 @@ async function saveSettings(formData: FormData) {
   const keys = ["price_monthly", "price_yearly", "free_unlock_limit_per_month"] as const;
   const rows: { key: string; value: string }[] = keys.map((key) => ({ key, value: String(Math.max(0, Math.round(Number(formData.get(key)) || 0))) }));
   if (Number(rows[0].value) < 1000 || Number(rows[1].value) < 1000)
-    redirect(`/admin/pengaturan?err=${encodeURIComponent("Harga minimal Rp1.000 (batas Midtrans).")}`);
+    redirect(`/admin/pengaturan?err=${encodeURIComponent("Harga minimal Rp1.000.")}`);
   const wa = normalizeWa(String(formData.get("whatsapp_number") || ""));
   if (wa && !/^62\d{8,13}$/.test(wa)) redirect(`/admin/pengaturan?err=${encodeURIComponent("Nomor WhatsApp tidak valid. Contoh: 081339646353")}`);
   rows.push(
@@ -58,7 +58,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <p className="-mt-2 text-sm text-muted">Pelanggan scan QRIS, transfer dengan kode unik, lalu konfirmasi ke WhatsApp. Kamu setujui di menu Pelanggan.</p>
           <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-line px-4 py-3 has-[:checked]:border-brand has-[:checked]:bg-brand-soft">
             <input type="checkbox" name="manual_payment_enabled" defaultChecked={s.manual_payment_enabled} className="h-4 w-4 accent-brand" />
-            <span><span className="block text-sm font-semibold">Tampilkan opsi bayar via QRIS</span><span className="block text-xs text-muted">Muncul di halaman Harga di bawah tombol Midtrans</span></span>
+            <span><span className="block text-sm font-semibold">Terima langganan baru</span><span className="block text-xs text-muted">Kalau dimatikan, tombol langganan di halaman Harga ditutup sementara</span></span>
           </label>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
