@@ -18,7 +18,27 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { themeColor: "#6b4226", width: "device-width", initialScale: 1 };
 
+const REQUIRED_ENV = {
+  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // Kalau env belum diisi, tampilkan daftar yang kurang (hanya nama, tanpa nilai) alih-alih error kosong.
+  const missing = Object.entries(REQUIRED_ENV).filter(([, v]) => !v?.trim()).map(([k]) => k);
+  if (missing.length) {
+    return (
+      <html lang="id">
+        <body style={{ fontFamily: "system-ui, sans-serif", padding: 32, maxWidth: 640, margin: "0 auto", lineHeight: 1.6 }}>
+          <h1>Konfigurasi belum lengkap</h1>
+          <p>Environment variable berikut belum terbaca di server:</p>
+          <ul>{missing.map((m) => <li key={m}><code>{m}</code></li>)}</ul>
+          <p>Isi di Vercel → Settings → Environment Variables (centang Production), lalu Redeploy.</p>
+        </body>
+      </html>
+    );
+  }
   return (
     <html lang="id">
       <head>
