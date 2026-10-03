@@ -14,6 +14,9 @@ function GoogleLogo() {
   );
 }
 
+/** Ubah ke true kalau login Google sudah diaktifkan di Supabase. */
+const GOOGLE_LOGIN_ENABLED = false;
+
 export default function LoginForm({ next }: { next: string }) {
   const supabase = createClient();
   const router = useRouter();
@@ -59,6 +62,8 @@ export default function LoginForm({ next }: { next: string }) {
 
   return (
     <div className="mt-8">
+      {GOOGLE_LOGIN_ENABLED && (
+        <>
       <button onClick={google} disabled={googleLoading}
         className="btn w-full border border-line bg-surface !py-3 text-[15px] hover:border-mist hover:bg-tint">
         <GoogleLogo />
@@ -68,6 +73,8 @@ export default function LoginForm({ next }: { next: string }) {
       <div className="my-6 flex items-center gap-3 text-sm text-muted">
         <span className="h-px flex-1 bg-line" />atau pakai email<span className="h-px flex-1 bg-line" />
       </div>
+        </>
+      )}
 
       <form onSubmit={submit} className="space-y-3">
         {mode === "daftar" && (
