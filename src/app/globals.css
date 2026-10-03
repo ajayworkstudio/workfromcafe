@@ -15,11 +15,13 @@
   --color-brand: #6b4226;
   --color-brand-dark: #4e2f1a;
   --color-brand-soft: #f2e6db;
+  --color-tan: #d19f7d;
   --color-gold: #e0a045;
   --color-ok: #3e8e5e;
 
   --font-display: "Bricolage Grotesque", system-ui, sans-serif;
   --font-sans: "Geist", system-ui, sans-serif;
+  --font-logo: "Montserrat", system-ui, sans-serif;
 
   --radius-photo: 1.25rem;
 }

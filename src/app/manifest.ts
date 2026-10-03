@@ -3,12 +3,12 @@ import { APP_NAME } from "@/lib/utils";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: `${APP_NAME} — Kurasi Kafe Jawa Tengah`,
+    name: `${APP_NAME} — Kafe untuk kerja di Jawa Tengah`,
     short_name: APP_NAME,
     description: "Koleksi kafe pilihan di Jawa Tengah dan menu yang wajib dicoba.",
     start_url: "/",
     display: "standalone",
-    background_color: "#f6f2ee",
+    background_color: "#ffffff",
     theme_color: "#6b4226",
     lang: "id",
     icons: [

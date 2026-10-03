@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getViewer } from "@/lib/auth";
-import { APP_NAME } from "@/lib/utils";
 import Icon from "./Icon";
+import Wordmark from "./Wordmark";
 
 export default async function Header() {
   const v = await getViewer();
@@ -11,9 +11,8 @@ export default async function Header() {
     <>
     <header className="sticky top-0 z-40 border-b border-line/80 bg-canvas/85 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4">
-        <Link href="/" className="flex items-center gap-2 font-display text-xl font-extrabold tracking-tight">
-          <span className="grid h-8 w-8 place-items-center rounded-xl bg-brand text-white"><Icon name="cup" className="h-[18px] w-[18px]" /></span>
-          {APP_NAME}
+        <Link href="/" className="flex items-center" aria-label="WorkFromCafe, beranda">
+          <Wordmark />
         </Link>
         <nav className="hidden items-center gap-1 text-sm font-medium text-muted md:flex">
           <Link href="/kafe" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Jelajah</Link>

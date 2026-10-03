@@ -1,4 +1,4 @@
-# Ngopi Jateng ☕
+# WorkFromCafe ☕
 
 Kurasi kafe pribadi di kota-kota Jawa Tengah, lengkap dengan menu rekomendasi, dengan model langganan.
 Bisa dibuka di browser dan di-install di HP (PWA).

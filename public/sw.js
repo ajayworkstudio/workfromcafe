@@ -1,5 +1,5 @@
 // Service worker sederhana: cache aset statis + fallback offline.
-const CACHE = "ngopi-v1";
+const CACHE = "wfc-v2";
 const OFFLINE_URL = "/offline.html";
 
 self.addEventListener("install", (e) => {

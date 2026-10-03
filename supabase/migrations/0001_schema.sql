@@ -1,5 +1,5 @@
 -- =====================================================================
---  Ngopi Jateng — skema database
+--  WorkFromCafe — skema database
 --  Jalankan di Supabase: SQL Editor → paste seluruh file → Run
 -- =====================================================================
 

@@ -1,6 +1,6 @@
 import type { Cafe, DayKey, OpeningHours } from "./types";
 
-export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Ngopi Jateng";
+export const APP_NAME = "WorkFromCafe";
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 export const rupiah = (n: number | null | undefined) =>
