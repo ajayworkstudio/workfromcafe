@@ -8,7 +8,7 @@ import { getSettings } from "@/lib/settings";
 import Icon from "@/components/Icon";
 import { FavoriteButton, UnlockButton, VisitedButton } from "@/components/ActionButtons";
 import type { Cafe, CafeDetails, MenuItem } from "@/lib/types";
-import { CAFE_LIST_SELECT, DAYS, SITE_URL, coverUrl, isOpenNow, priceLabel, rupiah } from "@/lib/utils";
+import { CAFE_LIST_SELECT, DAYS, formatSlot, SITE_URL, coverUrl, isOpenNow, priceLabel, rupiah } from "@/lib/utils";
 
 type P = Promise<{ slug: string }>;
 
@@ -209,7 +209,7 @@ export default async function CafeDetailPage({ params }: { params: P }) {
                   return (
                     <tr key={key} className={isToday ? "font-semibold text-ink" : "text-muted"}>
                       <td className="py-1">{label}{isToday && <span className="ml-1.5 text-xs font-medium text-brand">hari ini</span>}</td>
-                      <td className="py-1 text-right tabular-nums">{h ? `${h[0]}–${h[1]}` : "Tutup"}</td>
+                      <td className="py-1 text-right tabular-nums">{formatSlot(h)}</td>
                     </tr>
                   );
                 })}

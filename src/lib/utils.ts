@@ -42,13 +42,24 @@ function nowWIB() {
   return { day, time: `${hh}:${get("minute")}` };
 }
 
+export const isAllDay = (slot: [string, string] | null | undefined) =>
+  !!slot && slot[0] === "00:00" && (slot[1] === "24:00" || slot[1] === "23:59");
+
+export const formatSlot = (slot: [string, string] | null | undefined) =>
+  !slot ? "Tutup" : isAllDay(slot) ? "24 jam" : `${slot[0]}–${slot[1]}`;
+
 export function isOpenNow(hours: OpeningHours | null | undefined): boolean | null {
   if (!hours || Object.keys(hours).length === 0) return null;
   const { day, time } = nowWIB();
+  const order: DayKey[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+  const prev = hours[order[(order.indexOf(day) + 6) % 7]];
+  // Masih buka dari jadwal kemarin yang lewat tengah malam (mis. Jumat 18:00–02:00, sekarang Sabtu 01:00)
+  if (prev && !isAllDay(prev) && prev[1] <= prev[0] && time < prev[1]) return true;
   const slot = hours[day];
   if (!slot) return false;
+  if (isAllDay(slot)) return true;
   const [open, close] = slot;
-  if (close <= open) return time >= open || time < close; // lewat tengah malam
+  if (close <= open) return time >= open; // buka sampai lewat tengah malam
   return time >= open && time < close;
 }
 

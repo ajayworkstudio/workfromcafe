@@ -17,10 +17,9 @@ export async function saveCafe(formData: FormData) {
 
   const hours: OpeningHours = {};
   for (const { key } of DAYS) {
-    const closed = formData.get(`closed_${key}`) === "on";
-    const o = str(formData, `open_${key}`);
-    const c = str(formData, `close_${key}`);
-    hours[key] = closed || !o || !c ? null : [o, c];
+    const v = str(formData, `hours_${key}`); // "closed" | "HH:MM-HH:MM"
+    const m = v?.match(/^(\d{2}:\d{2})-(\d{2}:\d{2})$/);
+    hours[key] = m ? [m[1], m[2]] : null;
   }
 
   const cafe = {

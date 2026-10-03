@@ -1,8 +1,9 @@
 import { saveCafe } from "@/app/admin/kafe/actions";
 import type { Cafe, CafeDetails, City, Tag } from "@/lib/types";
-import { DAYS, PRICE_RANGES } from "@/lib/utils";
+import { PRICE_RANGES } from "@/lib/utils";
 import SubmitButton from "./SubmitButton";
 import CoordinateInput from "./CoordinateInput";
+import OpeningHoursInput from "./OpeningHoursInput";
 
 function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
   return (
@@ -17,7 +18,6 @@ function Section({ title, description, children }: { title: string; description?
 export default function CafeForm({
   cafe, details, cities, tags, selectedTagIds,
 }: { cafe?: Cafe; details?: CafeDetails | null; cities: City[]; tags: Tag[]; selectedTagIds: string[] }) {
-  const h = cafe?.opening_hours ?? {};
   return (
     <form action={saveCafe} className="space-y-5">
       {cafe && <input type="hidden" name="id" value={cafe.id} />}
@@ -87,22 +87,7 @@ export default function CafeForm({
       </Section>
 
       <Section title="Jam buka" description="Status buka/tutup di aplikasi dihitung dari sini (WIB).">
-        <div className="space-y-2">
-          {DAYS.map(({ key, label }) => {
-            const slot = h[key];
-            return (
-              <div key={key} className="flex flex-wrap items-center gap-2 text-sm">
-                <span className="w-16 font-medium">{label}</span>
-                <input type="time" name={`open_${key}`} aria-label={`${label} buka`} defaultValue={slot?.[0] ?? "08:00"} className="input !w-32" />
-                <span className="text-muted">sampai</span>
-                <input type="time" name={`close_${key}`} aria-label={`${label} tutup`} defaultValue={slot?.[1] ?? "22:00"} className="input !w-32" />
-                <label className="ml-1 flex items-center gap-1.5 text-muted">
-                  <input type="checkbox" name={`closed_${key}`} defaultChecked={cafe ? slot === null : false} className="h-4 w-4 accent-brand" /> Tutup
-                </label>
-              </div>
-            );
-          })}
-        </div>
+        <OpeningHoursInput hours={cafe?.opening_hours} isNew={!cafe} />
       </Section>
 
       <div className="sticky bottom-20 z-10 flex justify-end rounded-2xl border border-line bg-surface/95 p-3 shadow-lg backdrop-blur md:bottom-4">
