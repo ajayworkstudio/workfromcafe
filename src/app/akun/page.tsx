@@ -43,7 +43,10 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           <h1 className="font-display text-3xl font-bold">Halo, {viewer.name ?? "kamu"}</h1>
           <p className="text-sm text-muted">{viewer.user.email}</p>
         </div>
-        <form action={logout}><button className="btn-ghost">Keluar</button></form>
+        <div className="flex gap-2">
+          {viewer.isAdmin && <Link href="/admin" className="btn-primary">Panel admin</Link>}
+          <form action={logout}><button className="btn-ghost">Keluar</button></form>
+        </div>
       </div>
 
       <div className="card mt-6 flex flex-wrap items-center gap-4 p-5">
