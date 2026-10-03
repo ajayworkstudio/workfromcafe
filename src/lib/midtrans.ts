@@ -8,7 +8,7 @@ export const SNAP_JS = isProd
   ? "https://app.midtrans.com/snap/snap.js"
   : "https://app.sandbox.midtrans.com/snap/snap.js";
 
-const authHeader = () => "Basic " + Buffer.from(`${process.env.MIDTRANS_SERVER_KEY}:`).toString("base64");
+const authHeader = () => "Basic " + Buffer.from(`${(process.env.MIDTRANS_SERVER_KEY ?? "").trim()}:`).toString("base64");
 
 export async function createSnapTransaction(payload: Record<string, unknown>) {
   const res = await fetch(SNAP_API, {
@@ -19,6 +19,8 @@ export async function createSnapTransaction(payload: Record<string, unknown>) {
   const json = await res.json().catch(() => ({}));
   if (!res.ok) {
     const key = process.env.MIDTRANS_SERVER_KEY ?? "";
+    // Info diagnosa di terminal (key disamarkan, tidak pernah dikirim ke browser)
+    console.error(`[midtrans] ${res.status} mode=${isProd ? "production" : "sandbox"} endpoint=${SNAP_API} key=${key.slice(0, 13)}… panjang=${key.length}${key !== key.trim() ? " (ADA SPASI di awal/akhir)" : ""}`, json);
     if (!key || key.endsWith("xxxx")) throw new Error("Server key Midtrans belum diisi di .env.local (MIDTRANS_SERVER_KEY).");
     if (res.status === 401) throw new Error("Server key Midtrans ditolak. Pastikan key disalin dari dashboard yang sesuai: Sandbox (dashboard.sandbox.midtrans.com) dengan MIDTRANS_IS_PRODUCTION=false, atau Production dengan MIDTRANS_IS_PRODUCTION=true.");
     throw new Error(json?.error_messages?.join(", ") || `Gagal membuat transaksi Midtrans (kode ${res.status}).`);
