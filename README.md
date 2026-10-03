@@ -1,0 +1,96 @@
+# Ngopi Jateng ☕
+
+Kurasi kafe pribadi di kota-kota Jawa Tengah, lengkap dengan menu rekomendasi, dengan model langganan.
+Bisa dibuka di browser dan di-install di HP (PWA).
+
+**Stack:** Next.js 15 (App Router) · TypeScript · Tailwind CSS v4 · Supabase (Postgres, Auth, Storage, RLS) · Midtrans Snap · Leaflet/OpenStreetMap · Vercel
+
+---
+
+## Cara kerja akses
+
+| Peran | Yang bisa dilihat |
+|---|---|
+| Pengunjung (belum login) | Daftar kafe, foto, alamat, jam buka, ulasan singkat |
+| Member gratis | + favorit, tandai "sudah ke sini", **buka 3 kafe penuh per bulan** |
+| Pelanggan premium | Semua ulasan lengkap, tips, menu rekomendasi, peta |
+| Admin (kamu) | Dashboard: kelola kafe, foto, menu, kota, lihat pelanggan & pendapatan |
+
+Pembatasan dijalankan di **database (Row Level Security)**, bukan sekadar disembunyikan di tampilan — jadi tidak bisa diakali lewat browser. Batas kafe gratis diatur di tabel `app_settings` (`free_unlock_limit_per_month`).
+
+---
+
+## Setup di Windows + VS Code
+
+### 1. Install
+```bash
+npm install
+copy .env.example .env.local
+```
+
+### 2. Supabase
+1. Buat project di [supabase.com](https://supabase.com) (region Singapore).
+2. **SQL Editor** → jalankan isi `supabase/migrations/0001_schema.sql`, lalu `0002_seed.sql`.
+3. **Project Settings → API** → salin URL, `anon` key, dan `service_role` key ke `.env.local`.
+4. **Authentication → URL Configuration**
+   - Site URL: `http://localhost:3000` (nanti ganti ke domain produksi)
+   - Redirect URLs: tambahkan `http://localhost:3000/auth/callback` dan `https://domainkamu.com/auth/callback`
+5. (Opsional) **Authentication → Providers → Google** untuk login Google.
+
+### 3. Jadikan akunmu admin
+Jalankan `npm run dev`, buka http://localhost:3000/masuk, daftar. Lalu di SQL Editor:
+```sql
+update public.profiles set role = 'admin' where email = 'email-kamu@gmail.com';
+```
+Muat ulang — menu **Admin** muncul di header.
+
+### 4. Midtrans
+1. Daftar di [dashboard.midtrans.com](https://dashboard.midtrans.com), pilih environment **Sandbox**.
+2. **Settings → Access Keys** → salin Server Key & Client Key ke `.env.local`.
+3. **Settings → Payment → Notification URL**: `https://domainkamu.com/api/midtrans/notification`
+   (untuk tes lokal, pakai [ngrok](https://ngrok.com): `ngrok http 3000` lalu pakai URL ngrok-nya).
+4. Uji bayar pakai [simulator sandbox](https://simulator.sandbox.midtrans.com).
+5. Untuk produksi: lengkapi verifikasi bisnis di Midtrans, ganti key ke Production, set `MIDTRANS_IS_PRODUCTION=true`.
+
+### 5. Jalankan
+```bash
+npm run dev
+```
+
+---
+
+## Deploy ke Vercel
+1. Push ke GitHub, import di [vercel.com](https://vercel.com).
+2. Isi semua variabel dari `.env.local` di **Settings → Environment Variables**
+   (ubah `NEXT_PUBLIC_SITE_URL` ke domain produksi, isi `CRON_SECRET`).
+3. Cron harian (`vercel.json`) otomatis menandai langganan yang habis dan mengirim email pengingat H-3
+   (aktif kalau `RESEND_API_KEY` diisi).
+
+---
+
+## Alur pembayaran
+```
+Pilih paket → /api/midtrans/checkout (harga dari server, catat payments=pending)
+           → popup Midtrans Snap (QRIS, e-wallet, VA)
+           → Midtrans memanggil /api/midtrans/notification
+           → verifikasi signature SHA512 + cek nominal
+           → payments=paid, buat baris subscriptions (diperpanjang dari tanggal akhir kalau masih aktif)
+```
+
+## Struktur folder
+```
+supabase/migrations/   skema, RLS, data awal kota Jawa Tengah + 5 kafe contoh
+src/app/               halaman (beranda, kafe, kota, peta, harga, akun, masuk, admin)
+src/app/api/           checkout & webhook Midtrans, cron pengingat
+src/components/        komponen UI, peta, editor admin (foto & menu)
+src/lib/               klien Supabase, Midtrans, helper, tipe data
+public/                ikon PWA, service worker, halaman offline
+```
+
+## Menambah kota/provinsi baru
+Admin → **Kota** → tambah kota (isi provinsi & koordinat). Kota otomatis aktif begitu ada kafe yang ditayangkan di sana.
+
+## Catatan
+- 5 kafe di data awal adalah **contoh fiktif** — hapus lewat Admin → Kafe setelah mengisi kafe asli.
+- Foto otomatis dikompres ke WebP sebelum diunggah.
+- Harga paket diatur lewat `PRICE_MONTHLY` dan `PRICE_YEARLY`.

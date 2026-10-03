@@ -1,0 +1,67 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { getViewer } from "@/lib/auth";
+import { PLANS, rupiah } from "@/lib/utils";
+import { SNAP_JS } from "@/lib/midtrans";
+import CheckoutButton from "./CheckoutButton";
+import type { Plan } from "@/lib/types";
+
+export const metadata: Metadata = { title: "Langganan" };
+
+const PERKS = [
+  "Ulasan lengkap semua kafe",
+  "Menu rekomendasi + harga + catatan",
+  "Tips tempat duduk & jam terbaik",
+  "Peta semua kafe Jawa Tengah",
+  "Kafe baru setiap bulan",
+];
+
+export default async function PricingPage() {
+  const viewer = await getViewer();
+  return (
+    <div className="mx-auto max-w-4xl px-4 py-12">
+      <div className="text-center">
+        <h1 className="font-display text-4xl font-bold">Langganan</h1>
+        <p className="mt-2 text-bean/70">Bayar pakai QRIS, GoPay, ShopeePay, OVO, DANA, atau transfer bank.</p>
+        {viewer.isPremium && (
+          <p className="mt-4 inline-block rounded-full bg-leaf/10 px-4 py-2 text-sm text-leaf">
+            Kamu sudah premium sampai {new Date(viewer.premiumUntil!).toLocaleDateString("id-ID")}. Bayar lagi = masa aktif ditambah.
+          </p>
+        )}
+      </div>
+
+      <div className="mt-10 grid gap-5 md:grid-cols-2">
+        {(Object.keys(PLANS) as Plan[]).map((key) => {
+          const p = PLANS[key];
+          const highlight = key === "yearly";
+          return (
+            <div key={key} className={`card flex flex-col p-6 ${highlight ? "!border-terra ring-2 ring-terra/20" : ""}`}>
+              {highlight && <span className="mb-2 self-start rounded-full bg-terra px-3 py-1 text-xs font-bold text-white">Paling hemat</span>}
+              <h2 className="font-display text-2xl font-bold">{p.label}</h2>
+              <p className="mt-2">
+                <span className="font-display text-4xl font-bold">{rupiah(p.price)}</span>
+                <span className="text-bean/60"> / {p.months === 1 ? "bulan" : "tahun"}</span>
+              </p>
+              <p className="mt-1 text-sm text-bean/70">{p.note}</p>
+              <ul className="mt-5 flex-1 space-y-2 text-sm">
+                {PERKS.map((x) => <li key={x}>✓ {x}</li>)}
+              </ul>
+              <div className="mt-6">
+                {viewer.user ? (
+                  <CheckoutButton plan={key} snapJs={SNAP_JS} clientKey={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ?? ""} highlight={highlight} />
+                ) : (
+                  <Link href="/masuk?next=/harga" className="btn-dark w-full">Masuk untuk berlangganan</Link>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="card mt-8 p-5 text-sm text-bean/80">
+        <p className="font-semibold text-roast">Belum mau langganan?</p>
+        <p className="mt-1">Daftar gratis dan buka beberapa kafe secara penuh setiap bulan.</p>
+      </div>
+    </div>
+  );
+}

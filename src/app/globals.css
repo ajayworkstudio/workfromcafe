@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+@theme {
+  --color-crema: #f7f1e8;
+  --color-paper: #fffaf3;
+  --color-roast: #2b1d14;
+  --color-bean: #5a3e2b;
+  --color-latte: #c9a983;
+  --color-foam: #ece2d3;
+  --color-terra: #c2552d;
+  --color-terra-dark: #a2441f;
+  --color-leaf: #4f6b3a;
+  --font-display: "Fraunces", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+}
+
+html { -webkit-tap-highlight-color: transparent; }
+body {
+  background: var(--color-crema);
+  color: var(--color-roast);
+  font-family: var(--font-sans);
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition active:scale-[.98] disabled:opacity-50;
+}
+@utility btn-primary { @apply btn bg-terra text-white hover:bg-terra-dark; }
+@utility btn-dark { @apply btn bg-roast text-crema hover:bg-bean; }
+@utility btn-ghost { @apply btn border border-roast/15 bg-paper hover:bg-foam; }
+
+@utility input {
+  @apply w-full rounded-xl border border-roast/15 bg-paper px-3.5 py-2.5 text-sm outline-none focus:border-terra focus:ring-2 focus:ring-terra/20;
+}
+@utility label { @apply mb-1 block text-xs font-semibold uppercase tracking-wide text-bean/80; }
+@utility chip { @apply inline-flex items-center rounded-full border border-roast/10 bg-paper px-3 py-1 text-xs font-medium text-bean; }
+@utility card { @apply rounded-2xl border border-roast/10 bg-paper; }
+
+.leaflet-container { font-family: var(--font-sans); }
