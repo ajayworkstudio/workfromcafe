@@ -13,11 +13,11 @@ export default function CafeMap({ cafes }: { cafes: MapCafe[] }) {
       />
       {cafes.map((c) => (
         <CircleMarker key={c.slug} center={[c.lat, c.lng]} radius={9}
-          pathOptions={{ color: "#fffaf3", weight: 2, fillColor: "#c2552d", fillOpacity: 1 }}>
+          pathOptions={{ color: "#ffffff", weight: 2, fillColor: "#1d5c49", fillOpacity: 1 }}>
           <Popup>
             <strong>{c.name}</strong><br />
-            {c.city}{c.rating != null ? ` · ★ ${c.rating}` : ""}<br />
-            <a href={`/kafe/${c.slug}`}>Lihat detail →</a>
+            {c.city}{c.rating != null ? `, rating ${c.rating}` : ""}<br />
+            <a href={`/kafe/${c.slug}`}>Lihat kafe</a>
           </Popup>
         </CircleMarker>
       ))}

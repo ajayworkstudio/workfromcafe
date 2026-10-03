@@ -33,14 +33,14 @@ export default async function CitiesAdmin() {
   const { data } = await supabase.from("cities").select("*").order("province").order("name");
   return (
     <div className="grid gap-6 md:grid-cols-[1fr_300px]">
-      <div className="card divide-y divide-roast/10">
+      <div className="card divide-y divide-ink/10">
         {(data as City[] | null)?.map((c) => (
           <form key={c.id} action={toggleCity} className="flex items-center justify-between gap-3 p-3">
             <input type="hidden" name="id" value={c.id} />
             <input type="hidden" name="active" value={String(!c.is_active)} />
             <div>
               <p className="font-semibold">{c.name}</p>
-              <p className="text-xs text-bean/60">{c.province}</p>
+              <p className="text-xs text-muted/60">{c.province}</p>
             </div>
             <button className={c.is_active ? "btn-dark !py-1.5" : "btn-ghost !py-1.5"}>{c.is_active ? "Aktif" : "Nonaktif"}</button>
           </form>
@@ -55,7 +55,7 @@ export default async function CitiesAdmin() {
           <input name="lng" required placeholder="Lng" className="input" />
         </div>
         <button className="btn-dark w-full">Tambah</button>
-        <p className="text-xs text-bean/60">Kota baru mulai nonaktif; aktifkan setelah ada kafenya.</p>
+        <p className="text-xs text-muted/60">Kota baru mulai nonaktif; aktifkan setelah ada kafenya.</p>
       </form>
     </div>
   );

@@ -6,10 +6,14 @@ export const metadata: Metadata = { title: "Masuk" };
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; error?: string }> }) {
   const { next, error } = await searchParams;
   return (
-    <div className="mx-auto max-w-sm px-4 py-14">
-      <h1 className="font-display text-3xl font-bold">Masuk</h1>
-      <p className="mt-1 text-sm text-bean/70">Simpan kafe favorit dan buka ulasan lengkap.</p>
-      {error && <p className="mt-4 rounded-xl bg-terra/10 p-3 text-sm text-terra-dark">Gagal masuk, coba lagi.</p>}
+    <div className="mx-auto grid min-h-[calc(100dvh-4rem)] max-w-md content-center px-4 py-12">
+      <h1 className="text-4xl font-extrabold">Masuk</h1>
+      <p className="mt-2 text-muted">Simpan kafe favorit dan buka 3 ulasan lengkap gratis setiap bulan.</p>
+      {error && (
+        <p role="alert" className="mt-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+          Login tidak berhasil. Coba lagi, atau pakai cara masuk yang lain.
+        </p>
+      )}
       <LoginForm next={next?.startsWith("/") ? next : "/"} />
     </div>
   );

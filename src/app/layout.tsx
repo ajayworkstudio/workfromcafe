@@ -7,7 +7,7 @@ import { APP_NAME, SITE_URL } from "@/lib/utils";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: `${APP_NAME} — Kurasi Kafe Jawa Tengah`, template: `%s · ${APP_NAME}` },
+  title: { default: `${APP_NAME} — Kurasi Kafe Jawa Tengah`, template: `%s | ${APP_NAME}` },
   description:
     "Koleksi kafe pilihan di Semarang, Solo, Purwokerto, Magelang dan kota lain di Jawa Tengah, lengkap dengan menu yang wajib dicoba.",
   manifest: "/manifest.webmanifest",
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   openGraph: { type: "website", locale: "id_ID", siteName: APP_NAME },
 };
 
-export const viewport: Viewport = { themeColor: "#e9f8f7", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#1d5c49", width: "device-width", initialScale: 1 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -26,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
-          href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Geist:wght@400..700&display=swap"
           rel="stylesheet"
         />
       </head>

@@ -19,10 +19,10 @@ export default async function Subscribers() {
   return (
     <div className="card overflow-x-auto">
       <table className="w-full text-sm">
-        <thead className="text-left text-xs uppercase text-bean/60">
+        <thead className="text-left text-xs font-medium text-muted">
           <tr><th className="p-3">Nama</th><th className="p-3">Email</th><th className="p-3">Paket</th><th className="p-3">Berlaku sampai</th><th className="p-3">Status</th></tr>
         </thead>
-        <tbody className="divide-y divide-roast/10">
+        <tbody className="divide-y divide-ink/10">
           {(data ?? []).map((s) => {
             const p = byId.get(s.user_id);
             const active = s.status === "active" && new Date(s.end_date) > now;
@@ -32,13 +32,13 @@ export default async function Subscribers() {
                 <td className="p-3">{p?.email ?? "-"}</td>
                 <td className="p-3">{s.plan === "yearly" ? "Tahunan" : "Bulanan"}</td>
                 <td className="p-3">{new Date(s.end_date).toLocaleDateString("id-ID")}</td>
-                <td className="p-3"><span className={`chip ${active ? "!text-leaf" : ""}`}>{active ? "aktif" : "berakhir"}</span></td>
+                <td className="p-3"><span className={`chip ${active ? "!text-ok" : ""}`}>{active ? "aktif" : "berakhir"}</span></td>
               </tr>
             );
           })}
         </tbody>
       </table>
-      {!data?.length && <p className="p-4 text-bean/60">Belum ada pelanggan.</p>}
+      {!data?.length && <p className="p-4 text-muted/60">Belum ada pelanggan.</p>}
     </div>
   );
 }

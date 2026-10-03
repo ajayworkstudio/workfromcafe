@@ -29,9 +29,9 @@ export default async function EditCafe({ params, searchParams }: { params: Promi
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-2xl font-bold">{cafe.name}</h1>
-        <Link href={`/kafe/${cafe.slug}`} className="btn-ghost !py-1.5" target="_blank">Lihat halaman ↗</Link>
+        <Link href={`/kafe/${cafe.slug}`} className="btn-ghost !py-1.5" target="_blank">Lihat halaman</Link>
       </div>
-      {tersimpan && <p className="rounded-xl bg-leaf/10 p-3 text-sm text-leaf">Tersimpan.</p>}
+      {tersimpan && <p className="rounded-xl bg-ok/10 p-3 text-sm text-ok">Tersimpan.</p>}
 
       <PhotoManager cafeId={cafe.id} initial={(photos as Photo[]) ?? []} />
       <MenuEditor cafeId={cafe.id} initial={(menu as MenuItem[]) ?? []} />
@@ -43,11 +43,11 @@ export default async function EditCafe({ params, searchParams }: { params: Promi
         selectedTagIds={(cafeTags ?? []).map((t) => t.tag_id)}
       />
 
-      <form action={deleteCafe} className="card border-terra/30 p-5">
+      <form action={deleteCafe} className="card border-brand/30 p-5">
         <input type="hidden" name="id" value={cafe.id} />
         <p className="font-semibold">Hapus kafe</p>
-        <p className="mb-3 text-sm text-bean/70">Foto, menu, dan favorit pengguna untuk kafe ini ikut terhapus.</p>
-        <SubmitButton className="btn border border-terra text-terra hover:bg-terra hover:text-white">Hapus permanen</SubmitButton>
+        <p className="mb-3 text-sm text-muted/70">Foto, menu, dan favorit pengguna untuk kafe ini ikut terhapus.</p>
+        <SubmitButton className="btn border border-brand text-brand hover:bg-brand hover:text-white">Hapus permanen</SubmitButton>
       </form>
     </div>
   );

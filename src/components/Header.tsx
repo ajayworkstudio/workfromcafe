@@ -1,40 +1,56 @@
 import Link from "next/link";
 import { getViewer } from "@/lib/auth";
 import { APP_NAME } from "@/lib/utils";
+import Icon from "./Icon";
 
 export default async function Header() {
   const v = await getViewer();
+  const initial = (v.name ?? v.user?.email ?? "?").charAt(0).toUpperCase();
+
   return (
-    <header className="sticky top-0 z-40 border-b border-roast/10 bg-crema/90 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4">
-        <Link href="/" className="flex items-center gap-2 font-display text-lg font-bold">
-          <span className="grid h-8 w-8 place-items-center rounded-full bg-roast text-sm text-crema">☕</span>
+    <>
+    <header className="sticky top-0 z-40 border-b border-line/80 bg-canvas/85 backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4">
+        <Link href="/" className="flex items-center gap-2 font-display text-xl font-extrabold tracking-tight">
+          <span className="grid h-8 w-8 place-items-center rounded-xl bg-brand text-white"><Icon name="cup" className="h-[18px] w-[18px]" /></span>
           {APP_NAME}
         </Link>
-        <nav className="ml-auto hidden items-center gap-5 text-sm font-medium md:flex">
-          <Link href="/kafe" className="hover:text-terra">Jelajah</Link>
-          <Link href="/peta" className="hover:text-terra">Peta</Link>
-          {!v.isPremium && <Link href="/harga" className="hover:text-terra">Langganan</Link>}
-          {v.isAdmin && <Link href="/admin" className="hover:text-terra">Admin</Link>}
+        <nav className="hidden items-center gap-1 text-sm font-medium text-muted md:flex">
+          <Link href="/kafe" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Jelajah</Link>
+          <Link href="/peta" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Peta</Link>
+          {!v.isPremium && <Link href="/harga" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Harga</Link>}
+          {v.isAdmin && <Link href="/admin" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Admin</Link>}
         </nav>
-        <div className="ml-auto md:ml-0">
+        <div className="ml-auto flex items-center gap-2">
           {v.user ? (
-            <Link href="/akun" className="btn-ghost !py-1.5">
-              {v.isPremium && <span className="text-terra">★</span>}
-              {v.name?.split(" ")[0] ?? "Akun"}
+            <Link href="/akun" className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 text-sm font-medium hover:bg-tint">
+              <span className="relative grid h-8 w-8 place-items-center rounded-full bg-ink text-sm font-semibold text-white">
+                {initial}
+                {v.isPremium && <span className="absolute -bottom-0.5 -right-0.5 grid h-4 w-4 place-items-center rounded-full bg-gold text-ink ring-2 ring-canvas"><Icon name="star" filled className="h-2.5 w-2.5" /></span>}
+              </span>
+              <span className="hidden sm:inline">{v.name?.split(" ")[0] ?? "Akun"}</span>
             </Link>
           ) : (
-            <Link href="/masuk" className="btn-dark !py-1.5">Masuk</Link>
+            <Link href="/masuk" className="btn-dark !py-2">Masuk</Link>
           )}
         </div>
       </div>
-      {/* Navigasi bawah untuk HP */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-roast/10 bg-paper/95 pb-[env(safe-area-inset-bottom)] text-center text-[11px] font-semibold backdrop-blur md:hidden">
-        <Link href="/" className="py-2.5"><div className="text-lg">⌂</div>Beranda</Link>
-        <Link href="/kafe" className="py-2.5"><div className="text-lg">☕</div>Jelajah</Link>
-        <Link href="/peta" className="py-2.5"><div className="text-lg">⌖</div>Peta</Link>
-        <Link href={v.user ? "/akun" : "/masuk"} className="py-2.5"><div className="text-lg">◉</div>Akun</Link>
-      </nav>
     </header>
+
+      {/* Navigasi bawah untuk HP — di luar <header> karena backdrop-blur membuat position:fixed ikut header */}
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] text-[11px] font-medium text-muted backdrop-blur-xl md:hidden">
+        {[
+          { href: "/", icon: "home", label: "Beranda" },
+          { href: "/kafe", icon: "search", label: "Jelajah" },
+          { href: "/peta", icon: "map", label: "Peta" },
+          { href: v.user ? "/akun" : "/masuk", icon: "user", label: "Akun" },
+        ].map((i) => (
+          <Link key={i.label} href={i.href} className="flex flex-col items-center gap-1 py-2.5 hover:text-ink">
+            <Icon name={i.icon} className="h-[22px] w-[22px]" />
+            {i.label}
+          </Link>
+        ))}
+      </nav>
+    </>
   );
 }

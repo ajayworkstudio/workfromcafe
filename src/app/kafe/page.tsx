@@ -47,7 +47,7 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
   return (
     <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 md:grid-cols-[260px_1fr]">
       <aside>
-        <form className="card sticky top-20 space-y-5 p-4">
+        <form className="sticky top-24 space-y-5 md:pr-2">
           <div>
             <label className="label">Cari</label>
             <input name="q" defaultValue={sp.q} placeholder="Nama, area…" className="input" />
@@ -69,7 +69,7 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
           <TagGroup title="Suasana" tags={vibe} selected={selectedTags} />
           <TagGroup title="Fasilitas" tags={facility} selected={selectedTags} />
           <label className="flex items-center gap-2 text-sm font-medium">
-            <input type="checkbox" name="buka" value="1" defaultChecked={sp.buka === "1"} className="accent-terra" />
+            <input type="checkbox" name="buka" value="1" defaultChecked={sp.buka === "1"} className="accent-brand" />
             Buka sekarang
           </label>
           <div className="flex gap-2">
@@ -80,12 +80,12 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
       </aside>
 
       <section>
-        <h1 className="font-display text-3xl font-bold">Jelajah kafe</h1>
-        <p className="mt-1 text-sm text-bean/70">{cafes.length} kafe ditemukan</p>
-        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <h1 className="text-4xl font-extrabold">Jelajah kafe</h1>
+        <p className="mt-1 text-muted">{cafes.length} kafe cocok</p>
+        <div className="mt-6 grid gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
           {cafes.map((c) => <CafeCard key={c.id} cafe={c} />)}
         </div>
-        {!cafes.length && <p className="card mt-6 p-8 text-center text-bean/70">Belum ada kafe yang cocok dengan filter ini.</p>}
+        {!cafes.length && <p className="mt-6 rounded-2xl bg-tint p-8 text-center text-muted">Tidak ada kafe yang cocok. Coba kurangi filternya.</p>}
       </section>
     </div>
   );
@@ -99,7 +99,7 @@ function TagGroup({ title, tags, selected }: { title: string; tags: Tag[]; selec
         {tags.map((t) => (
           <label key={t.id} className="cursor-pointer">
             <input type="checkbox" name="tag" value={t.name} defaultChecked={selected.includes(t.name)} className="peer sr-only" />
-            <span className="chip peer-checked:border-terra peer-checked:bg-terra peer-checked:text-white">{t.name}</span>
+            <span className="chip transition-colors hover:text-ink peer-checked:bg-brand peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand">{t.name}</span>
           </label>
         ))}
       </div>

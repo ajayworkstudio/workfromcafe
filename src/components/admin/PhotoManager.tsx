@@ -66,15 +66,15 @@ export default function PhotoManager({ cafeId, initial }: { cafeId: string; init
           <input type="file" accept="image/*" multiple hidden disabled={busy} onChange={(e) => upload(e.target.files)} />
         </label>
       </div>
-      {err && <p className="mt-2 text-sm text-terra-dark">{err}</p>}
+      {err && <p className="mt-2 text-sm text-brand-dark">{err}</p>}
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {photos.map((p) => (
-          <div key={p.id} className="group relative aspect-square overflow-hidden rounded-xl bg-foam">
+          <div key={p.id} className="group relative aspect-square overflow-hidden rounded-xl bg-tint">
             <Image src={p.url} alt="" fill sizes="200px" className="object-cover" />
-            {p.is_cover && <span className="absolute left-2 top-2 rounded-full bg-terra px-2 py-0.5 text-[10px] font-bold text-white">SAMPUL</span>}
-            <div className="absolute inset-x-0 bottom-0 flex gap-1 bg-roast/70 p-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100">
-              {!p.is_cover && <button onClick={() => setCover(p.id)} className="flex-1 rounded bg-crema px-1 py-1 text-[11px] font-semibold">Jadikan sampul</button>}
-              <button onClick={() => remove(p)} className="rounded bg-terra px-2 py-1 text-[11px] font-semibold text-white">Hapus</button>
+            {p.is_cover && <span className="absolute left-2 top-2 rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold text-white">SAMPUL</span>}
+            <div className="absolute inset-x-0 bottom-0 flex gap-1 bg-ink/70 p-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100">
+              {!p.is_cover && <button onClick={() => setCover(p.id)} className="flex-1 rounded bg-canvas px-1 py-1 text-[11px] font-semibold">Jadikan sampul</button>}
+              <button onClick={() => remove(p)} className="rounded bg-brand px-2 py-1 text-[11px] font-semibold text-white">Hapus</button>
             </div>
           </div>
         ))}
