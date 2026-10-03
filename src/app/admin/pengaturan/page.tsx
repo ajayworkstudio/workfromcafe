@@ -2,7 +2,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
-import { getSettings } from "@/lib/settings";
+import { getSettings, normalizeWa } from "@/lib/settings";
+import QrisUploader from "@/components/admin/QrisUploader";
 import PageHeader from "@/components/admin/PageHeader";
 import Flash from "@/components/admin/Flash";
 import SubmitButton from "@/components/admin/SubmitButton";
@@ -12,9 +13,17 @@ async function saveSettings(formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
   const keys = ["price_monthly", "price_yearly", "free_unlock_limit_per_month"] as const;
-  const rows = keys.map((key) => ({ key, value: String(Math.max(0, Math.round(Number(formData.get(key)) || 0))) }));
+  const rows: { key: string; value: string }[] = keys.map((key) => ({ key, value: String(Math.max(0, Math.round(Number(formData.get(key)) || 0))) }));
   if (Number(rows[0].value) < 1000 || Number(rows[1].value) < 1000)
     redirect(`/admin/pengaturan?err=${encodeURIComponent("Harga minimal Rp1.000 (batas Midtrans).")}`);
+  const wa = normalizeWa(String(formData.get("whatsapp_number") || ""));
+  if (wa && !/^62\d{8,13}$/.test(wa)) redirect(`/admin/pengaturan?err=${encodeURIComponent("Nomor WhatsApp tidak valid. Contoh: 081339646353")}`);
+  rows.push(
+    { key: "manual_payment_enabled", value: formData.get("manual_payment_enabled") === "on" ? "true" : "false" },
+    { key: "whatsapp_number", value: wa },
+    { key: "qris_name", value: String(formData.get("qris_name") || "DANA Bisnis").trim().slice(0, 40) },
+    { key: "qris_image_url", value: String(formData.get("qris_image_url") || "") },
+  );
   const { error } = await supabase.from("app_settings").upsert(rows);
   revalidatePath("/", "layout");
   redirect(error ? `/admin/pengaturan?err=${encodeURIComponent(error.message)}` : `/admin/pengaturan?ok=${encodeURIComponent("Pengaturan disimpan. Langsung berlaku untuk pembayaran berikutnya.")}`);
@@ -42,6 +51,25 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             <input id="free_unlock_limit_per_month" name="free_unlock_limit_per_month" type="number" min={0} max={50} defaultValue={s.free_unlock_limit_per_month} className="input" />
           </div>
           <p className="text-sm text-muted">Jumlah kafe yang bisa dibuka penuh oleh member tanpa langganan. Isi 0 untuk mematikan.</p>
+        </section>
+        <section className="card space-y-4 p-5 md:p-6">
+          <h2 className="text-lg font-bold">Pembayaran manual lewat QRIS</h2>
+          <p className="-mt-2 text-sm text-muted">Pelanggan scan QRIS, transfer dengan kode unik, lalu konfirmasi ke WhatsApp. Kamu setujui di menu Pelanggan.</p>
+          <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-line px-4 py-3 has-[:checked]:border-brand has-[:checked]:bg-brand-soft">
+            <input type="checkbox" name="manual_payment_enabled" defaultChecked={s.manual_payment_enabled} className="h-4 w-4 accent-brand" />
+            <span><span className="block text-sm font-semibold">Tampilkan opsi bayar via QRIS</span><span className="block text-xs text-muted">Muncul di halaman Harga di bawah tombol Midtrans</span></span>
+          </label>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="whatsapp_number" className="label">Nomor WhatsApp konfirmasi</label>
+              <input id="whatsapp_number" name="whatsapp_number" inputMode="tel" defaultValue={s.whatsapp_number.replace(/^62/, "0")} className="input" />
+            </div>
+            <div>
+              <label htmlFor="qris_name" className="label">Nama QRIS</label>
+              <input id="qris_name" name="qris_name" defaultValue={s.qris_name} placeholder="DANA Bisnis" className="input" />
+            </div>
+          </div>
+          <QrisUploader initial={s.qris_image_url} />
         </section>
         <SubmitButton>Simpan pengaturan</SubmitButton>
       </form>

@@ -86,7 +86,10 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
             {payments.map((p) => (
               <div key={p.id} className="flex justify-between gap-3 p-4 text-sm">
                 <span>{PLAN_META[p.plan as keyof typeof PLAN_META]?.label}, {new Date(p.created_at).toLocaleDateString("id-ID")}</span>
-                <span className="font-semibold">{rupiah(p.amount)} ({p.status})</span>
+                <span className="flex items-center gap-2 font-semibold">
+                  {rupiah(p.amount)} ({p.status === "pending" ? "menunggu" : p.status === "paid" ? "lunas" : p.status})
+                  {p.method === "manual" && p.status === "pending" && <Link href={`/bayar/${p.order_id}`} className="text-brand hover:underline">Lihat instruksi</Link>}
+                </span>
               </div>
             ))}
           </div>

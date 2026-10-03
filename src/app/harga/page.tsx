@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getViewer } from "@/lib/auth";
 import { rupiah } from "@/lib/utils";
-import { getPlans } from "@/lib/settings";
+import { getPlans, getSettings } from "@/lib/settings";
+import { createManualPayment } from "@/app/bayar/actions";
+import SubmitButton from "@/components/admin/SubmitButton";
 import { SNAP_JS } from "@/lib/midtrans";
 import Icon from "@/components/Icon";
 import CheckoutButton from "./CheckoutButton";
@@ -18,8 +20,9 @@ const PERKS = [
   "Kafe baru setiap bulan",
 ];
 
-export default async function PricingPage() {
-  const [viewer, PLANS] = await Promise.all([getViewer(), getPlans()]);
+export default async function PricingPage({ searchParams }: { searchParams: Promise<{ err?: string }> }) {
+  const [viewer, PLANS, settings, { err }] = await Promise.all([getViewer(), getPlans(), getSettings(), searchParams]);
+  const manual = settings.manual_payment_enabled;
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
       <div className="text-center">
@@ -31,6 +34,8 @@ export default async function PricingPage() {
           </p>
         )}
       </div>
+
+      {err && <p role="alert" className="mx-auto mt-6 max-w-md rounded-xl border border-red-200 bg-red-50 p-3 text-center text-sm text-red-800">{err}</p>}
 
       <div className="mt-10 grid gap-5 md:grid-cols-2">
         {(Object.keys(PLANS) as Plan[]).map((key) => {
@@ -50,7 +55,15 @@ export default async function PricingPage() {
               </ul>
               <div className="mt-6">
                 {viewer.user ? (
-                  <CheckoutButton plan={key} snapJs={SNAP_JS} clientKey={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ?? ""} highlight={highlight} />
+                  <>
+                    <CheckoutButton plan={key} snapJs={SNAP_JS} clientKey={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ?? ""} highlight={highlight} />
+                    {manual && (
+                      <form action={createManualPayment} className="mt-2">
+                        <input type="hidden" name="plan" value={key} />
+                        <SubmitButton className="btn-ghost w-full">Bayar via QRIS {settings.qris_name}, konfirmasi WhatsApp</SubmitButton>
+                      </form>
+                    )}
+                  </>
                 ) : (
                   <Link href="/masuk?next=/harga" className="btn-dark w-full">Masuk untuk berlangganan</Link>
                 )}

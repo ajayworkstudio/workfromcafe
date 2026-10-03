@@ -30,7 +30,7 @@ copy .env.example .env.local
 
 ### 2. Supabase
 1. Buat project di [supabase.com](https://supabase.com) (region Singapore).
-2. **SQL Editor** → jalankan berurutan: `0001_schema.sql`, `0002_seed.sql`, lalu `0003_optimasi_admin.sql`, lalu `0004_kisaran_harga.sql` (semua di folder `supabase/migrations`).
+2. **SQL Editor** → jalankan berurutan: `0001_schema.sql`, `0002_seed.sql`, lalu `0003_optimasi_admin.sql`, `0004_kisaran_harga.sql`, lalu `0005_bayar_manual.sql` (semua di folder `supabase/migrations`).
    Sudah menjalankan 0001 dan 0002 sebelumnya? Cukup jalankan `0003_optimasi_admin.sql`.
 3. **Project Settings → API** → salin URL, `anon` key, dan `service_role` key ke `.env.local`.
 4. **Authentication → URL Configuration**
@@ -93,6 +93,12 @@ Semua konten diurus dari aplikasi, tanpa menyentuh kode:
 | Tag | Tambah, ganti nama, hapus tag suasana & fasilitas |
 | Pelanggan | Daftar pelanggan aktif & riwayat, beri akses premium manual, hentikan akses |
 | Pengaturan | Harga bulanan/tahunan, jumlah kafe gratis per bulan |
+
+## Pembayaran manual lewat QRIS (DANA Bisnis, dll.)
+1. Admin → Pengaturan: unggah gambar QRIS, isi nomor WhatsApp, centang "Tampilkan opsi bayar via QRIS".
+2. Di halaman Harga muncul tombol "Bayar via QRIS". Pelanggan mendapat tagihan dengan **kode unik 3 digit** (mis. Rp25.123) supaya mudah dicocokkan di mutasi.
+3. Pelanggan bayar, lalu tekan "Konfirmasi lewat WhatsApp" (pesan berisi kode tagihan, paket, nominal, dan email terisi otomatis).
+4. Admin → Pelanggan → "Menunggu konfirmasi": cocokkan nominal dengan mutasi, klik **Setujui**. Premium langsung aktif.
 
 ## Alur pembayaran
 ```

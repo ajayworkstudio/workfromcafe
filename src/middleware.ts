@@ -23,7 +23,7 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   // Halaman yang wajib login
-  if (!user && (path.startsWith("/akun") || path.startsWith("/admin"))) {
+  if (!user && (path.startsWith("/akun") || path.startsWith("/admin") || path.startsWith("/bayar"))) {
     const url = request.nextUrl.clone();
     url.pathname = "/masuk";
     url.searchParams.set("next", path);

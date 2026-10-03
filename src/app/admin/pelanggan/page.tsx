@@ -8,6 +8,7 @@ import SubmitButton from "@/components/admin/SubmitButton";
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import Icon from "@/components/Icon";
 import { rupiah } from "@/lib/utils";
+import { activateFromPayment } from "@/lib/subscription";
 
 /** Beri akses premium manual (hadiah, kerja sama, uji coba). Ditulis lewat service role karena tabel langganan read-only untuk pengguna. */
 async function grantPremium(formData: FormData) {
@@ -35,6 +36,27 @@ async function grantPremium(formData: FormData) {
     : `/admin/pelanggan?ok=${encodeURIComponent(`${profile!.name ?? email} premium sampai ${end.toLocaleDateString("id-ID", { dateStyle: "long" })}.`)}`);
 }
 
+async function approveManual(formData: FormData) {
+  "use server";
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { data: payment } = await admin.from("payments").select("id,user_id,plan,amount,order_id,status")
+    .eq("id", String(formData.get("id"))).eq("method", "manual").maybeSingle();
+  if (!payment || payment.status !== "pending") redirect(`/admin/pelanggan?err=${encodeURIComponent("Tagihan sudah diproses sebelumnya.")}`);
+  const end = await activateFromPayment(admin, payment!);
+  revalidatePath("/admin", "layout");
+  redirect(`/admin/pelanggan?ok=${encodeURIComponent(`Pembayaran ${payment!.order_id} disetujui. Premium aktif sampai ${end.toLocaleDateString("id-ID", { dateStyle: "long" })}.`)}`);
+}
+
+async function rejectManual(formData: FormData) {
+  "use server";
+  await requireAdmin();
+  const admin = createAdminClient();
+  await admin.from("payments").update({ status: "failed" }).eq("id", String(formData.get("id"))).eq("method", "manual").eq("status", "pending");
+  revalidatePath("/admin", "layout");
+  redirect(`/admin/pelanggan?ok=${encodeURIComponent("Tagihan ditolak.")}`);
+}
+
 async function stopSubscription(formData: FormData) {
   "use server";
   await requireAdmin();
@@ -53,10 +75,14 @@ export default async function Subscribers({ searchParams }: { searchParams: Prom
 
   let query = supabase.from("subscriptions").select("id,plan,status,start_date,end_date,amount,user_id,midtrans_order_id").order("end_date", { ascending: false }).limit(300);
   if (sp.tampil !== "semua") query = query.eq("status", "active").gt("end_date", nowIso);
-  const { data } = await query;
+  const [{ data }, { data: pendingData }] = await Promise.all([
+    query,
+    supabase.from("payments").select("id,order_id,plan,amount,created_at,user_id").eq("method", "manual").eq("status", "pending").order("created_at", { ascending: false }),
+  ]);
   const subs = (data ?? []) as Sub[];
+  const pending = (pendingData ?? []) as { id: string; order_id: string; plan: string; amount: number; created_at: string; user_id: string }[];
 
-  const ids = [...new Set(subs.map((s) => s.user_id))];
+  const ids = [...new Set([...subs.map((s) => s.user_id), ...pending.map((p) => p.user_id)])];
   const { data: profiles } = ids.length ? await supabase.from("profiles").select("id,name,email").in("id", ids) : { data: [] };
   const byId = new Map((profiles ?? []).map((p) => [p.id, p as { id: string; name: string | null; email: string | null }]));
   const q = sp.q?.toLowerCase();
@@ -67,6 +93,38 @@ export default async function Subscribers({ searchParams }: { searchParams: Prom
     <>
       <PageHeader title="Pelanggan" description="Langganan dari pembayaran Midtrans dan akses yang kamu berikan manual." />
       <Flash ok={sp.ok} err={sp.err} />
+
+      {!!pending.length && (
+        <section className="mb-8">
+          <h2 className="mb-1 text-lg font-bold">Menunggu konfirmasi ({pending.length})</h2>
+          <p className="mb-3 text-sm text-muted">Pembayaran manual lewat QRIS. Cocokkan nominal (termasuk 3 digit kode unik) dengan mutasi sebelum menyetujui.</p>
+          <div className="card divide-y divide-line border-gold/50">
+            {pending.map((p) => {
+              const u = byId.get(p.user_id);
+              return (
+                <div key={p.id} className="flex flex-wrap items-center gap-3 p-3 pl-4">
+                  <div className="min-w-0 flex-1 basis-48">
+                    <p className="font-semibold">{u?.name ?? "Tanpa nama"} <span className="font-normal text-muted">{u?.email}</span></p>
+                    <p className="text-sm text-muted">{p.order_id} · {p.plan === "yearly" ? "Tahunan" : "Bulanan"} · {new Date(p.created_at).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}</p>
+                  </div>
+                  <p className="font-display text-xl font-bold tabular-nums">{rupiah(p.amount)}</p>
+                  <div className="flex gap-1">
+                    <form action={rejectManual}>
+                      <input type="hidden" name="id" value={p.id} />
+                      <ConfirmButton message={`Tolak tagihan ${p.order_id}?`} className="btn-ghost !px-3 !py-1.5 text-sm text-red-700">Tolak</ConfirmButton>
+                    </form>
+                    <form action={approveManual}>
+                      <input type="hidden" name="id" value={p.id} />
+                      <ConfirmButton message={`Sudah cek mutasi ${rupiah(p.amount)} masuk? Premium ${u?.name ?? u?.email} akan langsung aktif.`}
+                        className="btn-primary !px-4 !py-1.5 text-sm" pendingText="Mengaktifkan…">Setujui</ConfirmButton>
+                    </form>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <div>

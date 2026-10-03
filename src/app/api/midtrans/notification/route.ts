@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { verifySignature } from "@/lib/midtrans";
-import { PLAN_META } from "@/lib/settings";
-import type { Plan } from "@/lib/types";
+import { activateFromPayment } from "@/lib/subscription";
 
 type Notif = {
   order_id: string;
@@ -37,32 +36,7 @@ export async function POST(req: Request) {
 
   if (paid) {
     if (payment.status === "paid") return NextResponse.json({ ok: true }); // idempoten
-    await admin.from("payments").update({ status: "paid", raw_payload: n }).eq("id", payment.id);
-
-    // Perpanjang dari tanggal akhir langganan aktif (kalau ada), selain itu mulai sekarang.
-    const { data: current } = await admin
-      .from("subscriptions")
-      .select("end_date")
-      .eq("user_id", payment.user_id)
-      .eq("status", "active")
-      .gt("end_date", new Date().toISOString())
-      .order("end_date", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    const start = current ? new Date(current.end_date) : new Date();
-    const end = new Date(start);
-    end.setMonth(end.getMonth() + PLAN_META[payment.plan as Plan].months);
-
-    await admin.from("subscriptions").insert({
-      user_id: payment.user_id,
-      plan: payment.plan,
-      status: "active",
-      start_date: start.toISOString(),
-      end_date: end.toISOString(),
-      midtrans_order_id: n.order_id,
-      amount: payment.amount,
-    });
+    await activateFromPayment(admin, payment, n);
   } else if (failed) {
     await admin.from("payments").update({ status: s === "expire" ? "expired" : "failed", raw_payload: n }).eq("id", payment.id);
   } else {

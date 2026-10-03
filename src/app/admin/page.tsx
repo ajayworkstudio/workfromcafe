@@ -10,9 +10,10 @@ const STATUS: Record<string, string> = { paid: "Lunas", pending: "Menunggu", fai
 
 export default async function AdminHome() {
   const supabase = await createClient();
-  const [{ data: stats }, { data: recent }] = await Promise.all([
+  const [{ data: stats }, { data: recent }, { count: pendingManual }] = await Promise.all([
     supabase.rpc("admin_stats"),
     supabase.from("payments").select("order_id,plan,amount,status,created_at").order("created_at", { ascending: false }).limit(8),
+    supabase.from("payments").select("id", { count: "exact", head: true }).eq("method", "manual").eq("status", "pending"),
   ]);
   const s = (stats ?? {}) as Stats;
 
@@ -20,6 +21,13 @@ export default async function AdminHome() {
     <>
       <PageHeader title="Ringkasan" description="Kondisi aplikasi hari ini."
         action={<Link href="/admin/kafe/baru" className="btn-primary"><Icon name="plus" className="h-4 w-4" />Tambah kafe</Link>} />
+
+      {!!pendingManual && (
+        <Link href="/admin/pelanggan" className="mb-5 flex items-center justify-between gap-3 rounded-2xl border border-gold/60 bg-gold/10 px-5 py-4 hover:bg-gold/20">
+          <span><span className="font-semibold">{pendingManual} pembayaran QRIS menunggu konfirmasi.</span> <span className="text-muted">Cek mutasi lalu setujui.</span></span>
+          <span className="btn-dark !py-1.5 text-sm">Lihat</span>
+        </Link>
+      )}
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-2xl bg-ink p-5 text-white">
