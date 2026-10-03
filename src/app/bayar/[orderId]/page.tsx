@@ -77,7 +77,10 @@ export default async function ManualPaymentPage({ params }: { params: Promise<{ 
         <figure className="mt-5 rounded-2xl border border-line bg-white p-4 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={settings.qris_image_url} alt={`QRIS ${settings.qris_name}`} className="mx-auto w-full max-w-[320px]" />
-          <figcaption className="mt-2 text-sm text-muted">QRIS {settings.qris_name}. Bisa dibayar dengan DANA, GoPay, OVO, ShopeePay, atau m-banking.</figcaption>
+          <figcaption className="mt-2 text-sm text-muted">
+            {settings.qris_merchant_name && <span className="block font-semibold text-ink">Penerima: {settings.qris_merchant_name}</span>}
+            Bisa dibayar dengan DANA, GoPay, OVO, ShopeePay, atau m-banking.
+          </figcaption>
         </figure>
       ) : (
         <p className="mt-5 rounded-2xl bg-tint p-4 text-sm text-muted">Gambar QRIS belum diunggah admin. Hubungi kami lewat WhatsApp untuk instruksi pembayaran.</p>
@@ -85,7 +88,7 @@ export default async function ManualPaymentPage({ params }: { params: Promise<{ 
 
       <ol className="mt-6 space-y-3 text-sm">
         {[
-          "Scan QRIS di atas dengan aplikasi pembayaran apa saja.",
+          settings.qris_merchant_name ? `Scan QRIS di atas. Pastikan nama penerima yang muncul ${settings.qris_merchant_name}.` : "Scan QRIS di atas dengan aplikasi pembayaran apa saja.",
           `Masukkan nominal persis ${rupiah(p.amount)}, lalu bayar.`,
           "Simpan screenshot bukti pembayaran.",
           "Tekan tombol di bawah untuk kirim konfirmasi lewat WhatsApp, lalu lampirkan screenshot-nya.",

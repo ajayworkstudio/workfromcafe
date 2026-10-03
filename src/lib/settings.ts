@@ -10,6 +10,7 @@ export type Settings = {
   whatsapp_number: string;
   qris_image_url: string;
   qris_name: string;
+  qris_merchant_name: string;
 };
 
 /** Pengaturan dari tabel app_settings (bisa diubah di Admin → Pengaturan). Fallback ke .env. */
@@ -24,8 +25,9 @@ export const getSettings = cache(async (): Promise<Settings> => {
     free_unlock_limit_per_month: num("free_unlock_limit_per_month", 3),
     manual_payment_enabled: (m.get("manual_payment_enabled") ?? "true") === "true",
     whatsapp_number: m.get("whatsapp_number") || "6281339646353",
-    qris_image_url: m.get("qris_image_url") || "",
+    qris_image_url: m.get("qris_image_url") || "/qris.png",
     qris_name: m.get("qris_name") || "DANA Bisnis",
+    qris_merchant_name: m.get("qris_merchant_name") ?? "Sinar Sunrise",
   };
 });
 

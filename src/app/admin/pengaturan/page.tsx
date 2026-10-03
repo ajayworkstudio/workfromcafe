@@ -22,6 +22,7 @@ async function saveSettings(formData: FormData) {
     { key: "manual_payment_enabled", value: formData.get("manual_payment_enabled") === "on" ? "true" : "false" },
     { key: "whatsapp_number", value: wa },
     { key: "qris_name", value: String(formData.get("qris_name") || "DANA Bisnis").trim().slice(0, 40) },
+    { key: "qris_merchant_name", value: String(formData.get("qris_merchant_name") || "").trim().slice(0, 60) },
     { key: "qris_image_url", value: String(formData.get("qris_image_url") || "") },
   );
   const { error } = await supabase.from("app_settings").upsert(rows);
@@ -68,6 +69,11 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
               <label htmlFor="qris_name" className="label">Nama QRIS</label>
               <input id="qris_name" name="qris_name" defaultValue={s.qris_name} placeholder="DANA Bisnis" className="input" />
             </div>
+          </div>
+          <div>
+            <label htmlFor="qris_merchant_name" className="label">Nama penerima di QRIS</label>
+            <input id="qris_merchant_name" name="qris_merchant_name" defaultValue={s.qris_merchant_name} placeholder="Nama yang tertulis di QRIS" className="input" />
+            <p className="mt-1.5 text-xs text-muted">Ditampilkan ke pelanggan supaya mereka yakin membayar ke tujuan yang benar.</p>
           </div>
           <QrisUploader initial={s.qris_image_url} />
         </section>

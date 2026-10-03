@@ -13,3 +13,8 @@ insert into public.app_settings (key, value) values
   ('qris_image_url', ''),
   ('qris_name', 'DANA Bisnis')
 on conflict (key) do nothing;
+
+insert into public.app_settings (key, value) values ('qris_merchant_name', 'Sinar Sunrise')
+on conflict (key) do nothing;
+-- QRIS bawaan ada di /qris.png (folder public). Kosongkan baris qris_image_url supaya memakai gambar itu.
+update public.app_settings set value = '/qris.png' where key = 'qris_image_url' and value = '';
