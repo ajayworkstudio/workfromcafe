@@ -30,7 +30,7 @@ copy .env.example .env.local
 
 ### 2. Supabase
 1. Buat project di [supabase.com](https://supabase.com) (region Singapore).
-2. **SQL Editor** → jalankan berurutan: `0001_schema.sql`, `0002_seed.sql`, lalu `0003_optimasi_admin.sql` (semua di folder `supabase/migrations`).
+2. **SQL Editor** → jalankan berurutan: `0001_schema.sql`, `0002_seed.sql`, lalu `0003_optimasi_admin.sql`, lalu `0004_kisaran_harga.sql` (semua di folder `supabase/migrations`).
    Sudah menjalankan 0001 dan 0002 sebelumnya? Cukup jalankan `0003_optimasi_admin.sql`.
 3. **Project Settings → API** → salin URL, `anon` key, dan `service_role` key ke `.env.local`.
 4. **Authentication → URL Configuration**

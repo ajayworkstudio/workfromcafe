@@ -3,7 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import CafeCard from "@/components/CafeCard";
 import type { Cafe, City, Tag } from "@/lib/types";
-import { CAFE_LIST_SELECT, isOpenNow, priceLabel } from "@/lib/utils";
+import { CAFE_LIST_SELECT, PRICE_RANGES, isOpenNow } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Jelajah kafe" };
 
@@ -28,7 +28,7 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
     const city = (cities as City[] | null)?.find((c) => c.slug === sp.kota);
     if (city) query = query.eq("city_id", city.id);
   }
-  if (sp.harga) query = query.lte("price_range", Number(sp.harga));
+  if (sp.harga) query = query.eq("price_range", Number(sp.harga));
 
   const { data } = await query;
   let cafes = (data as Cafe[] | null) ?? [];
@@ -60,10 +60,10 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
             </select>
           </div>
           <div>
-            <label className="label">Harga maksimal</label>
+            <label className="label">Kisaran harga</label>
             <select name="harga" defaultValue={sp.harga ?? ""} className="input">
               <option value="">Semua</option>
-              {[1, 2, 3, 4].map((p) => <option key={p} value={p}>{priceLabel(p)}</option>)}
+              {PRICE_RANGES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
             </select>
           </div>
           <TagGroup title="Suasana" tags={vibe} selected={selectedTags} />

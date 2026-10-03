@@ -1,6 +1,6 @@
 import { saveCafe } from "@/app/admin/kafe/actions";
 import type { Cafe, CafeDetails, City, Tag } from "@/lib/types";
-import { DAYS, priceLabel } from "@/lib/utils";
+import { DAYS, PRICE_RANGES } from "@/lib/utils";
 import SubmitButton from "./SubmitButton";
 import CoordinateInput from "./CoordinateInput";
 
@@ -33,12 +33,9 @@ export default function CafeForm({
           </div>
           <div><label htmlFor="area" className="label">Area atau kecamatan</label><input id="area" name="area" defaultValue={cafe?.area ?? ""} placeholder="Tembalang" className="input" /></div>
           <div>
-            <label htmlFor="price_range" className="label">Kisaran harga</label>
+            <label htmlFor="price_range" className="label">Kisaran harga per orang</label>
             <select id="price_range" name="price_range" defaultValue={cafe?.price_range ?? 2} className="input">
-              <option value={1}>{priceLabel(1)}, di bawah 20 ribu</option>
-              <option value={2}>{priceLabel(2)}, 20–40 ribu</option>
-              <option value={3}>{priceLabel(3)}, 40–70 ribu</option>
-              <option value={4}>{priceLabel(4)}, di atas 70 ribu</option>
+              {PRICE_RANGES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
             </select>
           </div>
           <div className="md:col-span-2"><label htmlFor="address" className="label">Alamat</label><input id="address" name="address" defaultValue={cafe?.address ?? ""} className="input" /></div>

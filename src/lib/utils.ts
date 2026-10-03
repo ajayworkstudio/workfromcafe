@@ -6,7 +6,16 @@ export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:30
 export const rupiah = (n: number | null | undefined) =>
   n == null ? "-" : new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
 
-export const priceLabel = (p: number) => "Rp".repeat(Math.max(1, Math.min(4, p)));
+/** Kisaran harga per orang. Nilai 1–5 disimpan di kolom cafes.price_range. */
+export const PRICE_RANGES: { value: number; label: string }[] = [
+  { value: 1, label: "Rp10K–30K" },
+  { value: 2, label: "Rp20K–40K" },
+  { value: 3, label: "Rp30K–50K" },
+  { value: 4, label: "Rp40K–60K" },
+  { value: 5, label: "Rp60K ke atas" },
+];
+
+export const priceLabel = (p: number) => PRICE_RANGES.find((r) => r.value === p)?.label ?? "-";
 
 export const DAYS: { key: DayKey; label: string }[] = [
   { key: "mon", label: "Senin" },
