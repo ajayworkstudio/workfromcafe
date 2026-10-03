@@ -16,8 +16,13 @@ export async function createSnapTransaction(payload: Record<string, unknown>) {
     headers: { "Content-Type": "application/json", Accept: "application/json", Authorization: authHeader() },
     body: JSON.stringify(payload),
   });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json?.error_messages?.join(", ") || "Gagal membuat transaksi Midtrans");
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const key = process.env.MIDTRANS_SERVER_KEY ?? "";
+    if (!key || key.includes("xxxx")) throw new Error("Server key Midtrans belum diisi di .env.local (MIDTRANS_SERVER_KEY).");
+    if (res.status === 401) throw new Error("Server key Midtrans ditolak. Pastikan memakai key Sandbox (SB-Mid-server-…) dan MIDTRANS_IS_PRODUCTION=false.");
+    throw new Error(json?.error_messages?.join(", ") || `Gagal membuat transaksi Midtrans (kode ${res.status}).`);
+  }
   return json as { token: string; redirect_url: string };
 }
 
