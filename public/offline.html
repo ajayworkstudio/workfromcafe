@@ -1,5 +1,17 @@
 <!doctype html>
 <html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Offline</title>
-<style>body{font-family:system-ui,sans-serif;background:#f7f1e8;color:#2b1d14;display:grid;place-items:center;min-height:100vh;margin:0;text-align:center;padding:24px}</style>
-</head><body><div><p style="font-size:56px;margin:0">☕</p><h1>Kamu sedang offline</h1><p>Sambungkan internet lalu coba lagi.</p></div></body></html>
+<title>Offline · WorkFromCafe</title>
+<style>
+  body{font-family:system-ui,sans-serif;background:#f6f2ee;color:#1f1612;display:grid;place-items:center;min-height:100vh;margin:0;text-align:center;padding:24px}
+  h1{margin:.4em 0 .2em} p{color:#6f625a;margin:0 0 1.4em}
+  button,a{font:inherit;font-weight:600;border:0;border-radius:999px;padding:12px 22px;cursor:pointer;text-decoration:none;display:inline-block;margin:4px}
+  button{background:#6b4226;color:#fff} a{background:#fff;color:#1f1612;border:1px solid #e6dcd4}
+</style></head>
+<body><div>
+  <h1>Kamu sedang offline</h1>
+  <p>Sambungkan internet, lalu coba lagi.</p>
+  <button onclick="location.reload()">Coba lagi</button>
+  <a href="/">Ke beranda</a>
+</div>
+<script>window.addEventListener("online",function(){location.reload()})</script>
+</body></html>

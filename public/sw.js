@@ -1,5 +1,6 @@
-// Service worker sederhana: cache aset statis + fallback offline.
-const CACHE = "wfc-v2";
+// Service worker WorkFromCafe: cache aset statis + halaman offline.
+// Proses login (/auth, /masuk, ?code=) dan API tidak pernah disentuh supaya redirect login tidak terganggu.
+const CACHE = "wfc-v3";
 const OFFLINE_URL = "/offline.html";
 
 self.addEventListener("install", (e) => {
@@ -16,21 +17,29 @@ self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
+  if (url.origin !== location.origin) return;
+
+  // Jangan tangani alur login & API sama sekali
+  if (url.pathname.startsWith("/auth") || url.pathname.startsWith("/masuk") || url.pathname.startsWith("/api") || url.searchParams.has("code")) return;
 
   // Aset statis Next.js & ikon: cache-first
-  if (url.origin === location.origin && (url.pathname.startsWith("/_next/static") || url.pathname.startsWith("/icons"))) {
+  if (url.pathname.startsWith("/_next/static") || url.pathname.startsWith("/icons")) {
     e.respondWith(
       caches.match(req).then((hit) => hit || fetch(req).then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(req, copy));
+        if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); }
         return res;
       }))
     );
     return;
   }
 
-  // Halaman: network-first, fallback offline
+  // Halaman: selalu ke jaringan; halaman offline hanya kalau HP benar-benar tidak ada koneksi
   if (req.mode === "navigate") {
-    e.respondWith(fetch(req).catch(() => caches.match(OFFLINE_URL)));
+    e.respondWith(
+      fetch(req).catch(async (err) => {
+        if (self.navigator && self.navigator.onLine === false) return caches.match(OFFLINE_URL);
+        throw err;
+      })
+    );
   }
 });
