@@ -5,10 +5,13 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
   : "localhost";
 
 const nextConfig: NextConfig = {
+  experimental: { serverActions: { bodySizeLimit: "5mb" } },
+  serverExternalPackages: ["read-excel-file"],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: supabaseHost },
-      { protocol: "https", hostname: "images.unsplash.com" },
+      // Foto dari link di spreadsheet bisa dari domain mana saja
+      { protocol: "https", hostname: "**" },
     ],
   },
   async headers() {

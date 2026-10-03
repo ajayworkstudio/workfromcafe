@@ -9,6 +9,7 @@ import ConfirmButton from "@/components/admin/ConfirmButton";
 import Icon from "@/components/Icon";
 import { rupiah } from "@/lib/utils";
 import { activateFromPayment } from "@/lib/subscription";
+import { planLabel } from "@/lib/settings";
 
 /** Beri akses premium manual (hadiah, kerja sama, uji coba). Ditulis lewat service role karena tabel langganan read-only untuk pengguna. */
 async function grantPremium(formData: FormData) {
@@ -149,7 +150,7 @@ export default async function Subscribers({ searchParams }: { searchParams: Prom
                     <p className="truncate text-sm text-muted">{p?.email}</p>
                   </div>
                   <div className="text-sm sm:text-right">
-                    <p>{s.plan === "yearly" ? "Tahunan" : "Bulanan"} · {s.midtrans_order_id ? rupiah(s.amount) : "Manual"}</p>
+                    <p>{planLabel(s.plan)}{s.plan !== "trial" && <> · {s.midtrans_order_id ? rupiah(s.amount) : "Manual"}</>}</p>
                     <p className={active && daysLeft <= 7 ? "font-medium text-[#9a5b00]" : "text-muted"}>
                       {active ? `Sampai ${new Date(s.end_date).toLocaleDateString("id-ID", { dateStyle: "medium" })}${daysLeft <= 7 ? ` (${daysLeft} hari lagi)` : ""}`
                         : s.status === "cancelled" ? "Dihentikan" : "Berakhir"}

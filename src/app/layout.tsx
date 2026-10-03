@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import TrialBanner from "@/components/TrialBanner";
 import RegisterSW from "@/components/RegisterSW";
 import { APP_NAME, SITE_URL } from "@/lib/utils";
 
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="flex min-h-dvh flex-col antialiased">
         <Header />
+        <TrialBanner />
         <main className="flex-1">{children}</main>
         <Footer />
         <RegisterSW />

@@ -11,6 +11,9 @@ export type Settings = {
   qris_image_url: string;
   qris_name: string;
   qris_merchant_name: string;
+  trial_days: number;
+  sheet_url: string;
+  sheet_last_sync: string;
 };
 
 /** Pengaturan dari tabel app_settings (bisa diubah di Admin → Pengaturan). Fallback ke .env. */
@@ -28,6 +31,9 @@ export const getSettings = cache(async (): Promise<Settings> => {
     qris_image_url: m.get("qris_image_url") || "/qris.png",
     qris_name: m.get("qris_name") || "DANA Bisnis",
     qris_merchant_name: m.get("qris_merchant_name") ?? "Sinar Sunrise",
+    trial_days: num("trial_days", 7),
+    sheet_url: m.get("sheet_url") || "",
+    sheet_last_sync: m.get("sheet_last_sync") || "",
   };
 });
 
@@ -35,6 +41,8 @@ export const PLAN_META: Record<Plan, { label: string; months: number }> = {
   monthly: { label: "Bulanan", months: 1 },
   yearly: { label: "Tahunan", months: 12 },
 };
+
+export const planLabel = (p: string) => (p === "trial" ? "Trial gratis" : p === "yearly" ? "Tahunan" : "Bulanan");
 
 export async function getPlans() {
   const s = await getSettings();

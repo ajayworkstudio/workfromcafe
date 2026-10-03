@@ -1,20 +1,6 @@
 "use client";
 import { useState } from "react";
-
-/** Ambil koordinat dari link Google Maps yang ditempel, supaya tidak perlu salin angka manual. */
-function parseCoords(text: string): [number, number] | null {
-  const patterns = [
-    /!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/, // posisi pin persis
-    /@(-?\d+\.\d+),(-?\d+\.\d+)/, // tengah peta
-    /[?&](?:q|query|ll|destination)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/,
-    /^\s*(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)\s*$/, // "-6.99, 110.42"
-  ];
-  for (const re of patterns) {
-    const m = text.match(re);
-    if (m) return [Number(m[1]), Number(m[2])];
-  }
-  return null;
-}
+import { parseCoords } from "@/lib/coords";
 
 export default function CoordinateInput({ lat, lng }: { lat?: number | null; lng?: number | null }) {
   const [la, setLa] = useState(lat?.toString() ?? "");

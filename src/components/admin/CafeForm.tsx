@@ -40,6 +40,15 @@ export default function CafeForm({
           </div>
           <div className="md:col-span-2"><label htmlFor="address" className="label">Alamat</label><input id="address" name="address" defaultValue={cafe?.address ?? ""} className="input" /></div>
           <CoordinateInput lat={cafe?.lat} lng={cafe?.lng} />
+          <div>
+            <label htmlFor="menu_url" className="label">Link buku menu</label>
+            <input id="menu_url" name="menu_url" type="url" defaultValue={cafe?.menu_url ?? ""} placeholder="https://…" className="input" />
+            <p className="mt-1 text-xs text-muted">Muncul sebagai tombol &quot;Lihat menu&quot; untuk semua pengunjung.</p>
+          </div>
+          <div>
+            <label htmlFor="instagram" className="label">Instagram</label>
+            <input id="instagram" name="instagram" defaultValue={cafe?.instagram ?? ""} placeholder="namakafe (tanpa @)" className="input" />
+          </div>
           <div className="md:col-span-2">
             <label htmlFor="short_review" className="label">Ulasan singkat</label>
             <textarea id="short_review" name="short_review" rows={2} maxLength={200} defaultValue={cafe?.short_review ?? ""}

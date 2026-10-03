@@ -33,6 +33,8 @@ export async function saveCafe(formData: FormData) {
     price_range: Number(formData.get("price_range") || 2),
     my_rating: num("my_rating"),
     short_review: str(formData, "short_review"),
+    menu_url: str(formData, "menu_url"),
+    instagram: str(formData, "instagram")?.replace(/^@/, "").replace(/^https?:\/\/(www\.)?instagram\.com\//, "").replace(/\/.*$/, "") ?? null,
     is_featured: formData.get("is_featured") === "on",
     is_published: formData.get("is_published") === "on",
     visited_at: str(formData, "visited_at"),

@@ -30,7 +30,7 @@ copy .env.example .env.local
 
 ### 2. Supabase
 1. Buat project di [supabase.com](https://supabase.com) (region Singapore).
-2. **SQL Editor** → jalankan berurutan: `0001_schema.sql`, `0002_seed.sql`, lalu `0003_optimasi_admin.sql`, `0004_kisaran_harga.sql`, lalu `0005_bayar_manual.sql` (semua di folder `supabase/migrations`).
+2. **SQL Editor** → jalankan berurutan: `0001_schema.sql`, `0002_seed.sql`, lalu `0003_optimasi_admin.sql`, `0004_kisaran_harga.sql`, `0005_bayar_manual.sql`, lalu `0006_trial_menu_sheet.sql` (semua di folder `supabase/migrations`).
    Sudah menjalankan 0001 dan 0002 sebelumnya? Cukup jalankan `0003_optimasi_admin.sql`.
 3. **Project Settings → API** → salin URL, `anon` key, dan `service_role` key ke `.env.local`.
 4. **Authentication → URL Configuration**
@@ -95,6 +95,12 @@ Semua konten diurus dari aplikasi, tanpa menyentuh kode:
 | Tag | Tambah, ganti nama, hapus tag suasana & fasilitas |
 | Pelanggan | Daftar pelanggan aktif & riwayat, beri akses premium manual, hentikan akses |
 | Pengaturan | Harga bulanan/tahunan, jumlah kafe gratis per bulan |
+
+## Kelola kafe lewat spreadsheet
+Admin → **Spreadsheet**: download template, isi di Google Sheets (bagikan "Siapa saja yang memiliki link"), tempel link-nya, lalu **Sinkronkan sekarang**. Setelah itu sinkron berjalan otomatis setiap hari lewat cron. Bisa juga upload file .xlsx langsung. Sel kosong tidak menimpa data yang sudah ada, dan kafe yang tidak ada di spreadsheet tidak dihapus.
+
+## Trial gratis
+Akun baru otomatis mendapat akses penuh selama `trial_days` hari (default 7, ubah di Admin → Pengaturan; 0 = mati).
 
 ## Pembayaran manual lewat QRIS (DANA Bisnis, dll.)
 1. Admin → Pengaturan: unggah gambar QRIS, isi nomor WhatsApp, centang "Tampilkan opsi bayar via QRIS".

@@ -17,10 +17,10 @@ function GoogleLogo() {
 /** Ubah ke true kalau login Google sudah diaktifkan di Supabase. */
 const GOOGLE_LOGIN_ENABLED = false;
 
-export default function LoginForm({ next }: { next: string }) {
+export default function LoginForm({ next, initialMode = "login" }: { next: string; initialMode?: "login" | "daftar" }) {
   const supabase = createClient();
   const router = useRouter();
-  const [mode, setMode] = useState<"login" | "daftar">("login");
+  const [mode, setMode] = useState<"login" | "daftar">(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");

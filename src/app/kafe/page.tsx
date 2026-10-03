@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import CafeCard from "@/components/CafeCard";
+import NearbyGrid from "@/components/NearbyGrid";
 import type { Cafe, City, Tag } from "@/lib/types";
 import { CAFE_LIST_SELECT, PRICE_RANGES, isOpenNow } from "@/lib/utils";
 
@@ -82,9 +82,7 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
       <section>
         <h1 className="text-4xl font-extrabold">Jelajah kafe</h1>
         <p className="mt-1 text-muted">{cafes.length} kafe cocok</p>
-        <div className="mt-6 grid gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
-          {cafes.map((c) => <CafeCard key={c.id} cafe={c} />)}
-        </div>
+        <NearbyGrid cafes={cafes} />
         {!cafes.length && <p className="mt-6 rounded-2xl bg-tint p-8 text-center text-muted">Tidak ada kafe yang cocok. Coba kurangi filternya.</p>}
       </section>
     </div>

@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { APP_NAME, SITE_URL } from "@/lib/utils";
+import { syncFromUrlAndRecord } from "@/lib/sheetSync";
+
+export const maxDuration = 60;
 
 /**
  * Dijalankan harian oleh Vercel Cron (lihat vercel.json):
  * 1. Tandai langganan yang sudah lewat sebagai 'expired'
  * 2. Kirim email pengingat H-3 (jika RESEND_API_KEY diisi)
+ * 3. Sinkron kafe dari Google Sheets (jika link diisi di Admin → Spreadsheet)
  */
 export async function GET(req: Request) {
   if (req.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -55,5 +59,9 @@ export async function GET(req: Request) {
     await admin.from("subscriptions").update({ reminder_sent: true }).eq("id", sub.id);
   }
 
-  return NextResponse.json({ expired: expired ?? 0, reminders: sent });
+  // Sinkron spreadsheet harian (kalau link sudah disimpan di Admin → Spreadsheet)
+  const { data: sheet } = await admin.from("app_settings").select("value").eq("key", "sheet_url").maybeSingle();
+  const sync = sheet?.value ? await syncFromUrlAndRecord(admin, sheet.value, "cron") : null;
+
+  return NextResponse.json({ expired: expired ?? 0, reminders: sent, sheetSync: sync ? (sync.ok ? "ok" : sync.error) : "skip" });
 }

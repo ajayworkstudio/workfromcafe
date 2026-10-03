@@ -32,6 +32,8 @@ export type Cafe = {
   is_published: boolean;
   visited_at: string | null;
   created_at: string;
+  menu_url?: string | null;
+  instagram?: string | null;
   city?: City;
   photos?: Photo[];
   tags?: { tag: Tag }[];
@@ -56,3 +58,4 @@ export type CafeDetails = {
 };
 
 export type Plan = "monthly" | "yearly";
+export type SubPlan = Plan | "trial";

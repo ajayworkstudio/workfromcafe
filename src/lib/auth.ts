@@ -6,6 +6,8 @@ export type Viewer = {
   isAdmin: boolean;
   isPremium: boolean;
   premiumUntil: string | null;
+  /** Paket yang sedang aktif (paling lama berakhir): "trial" | "monthly" | "yearly" */
+  plan: string | null;
   name: string | null;
 };
 
@@ -13,13 +15,13 @@ export type Viewer = {
 export const getViewer = cache(async (): Promise<Viewer> => {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { user: null, isAdmin: false, isPremium: false, premiumUntil: null, name: null };
+  if (!user) return { user: null, isAdmin: false, isPremium: false, premiumUntil: null, plan: null, name: null };
 
   const [{ data: profile }, { data: sub }] = await Promise.all([
     supabase.from("profiles").select("role,name").eq("id", user.id).maybeSingle(),
     supabase
       .from("subscriptions")
-      .select("end_date")
+      .select("end_date,plan")
       .eq("user_id", user.id)
       .eq("status", "active")
       .gt("end_date", new Date().toISOString())
@@ -33,6 +35,7 @@ export const getViewer = cache(async (): Promise<Viewer> => {
     isAdmin: profile?.role === "admin",
     isPremium: !!sub,
     premiumUntil: sub?.end_date ?? null,
+    plan: sub?.plan ?? null,
     name: profile?.name ?? null,
   };
 });

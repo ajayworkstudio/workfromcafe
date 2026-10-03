@@ -33,6 +33,13 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
         )}
       </div>
 
+      {!viewer.user && settings.trial_days > 0 && (
+        <div className="mx-auto mt-8 flex max-w-2xl flex-wrap items-center justify-between gap-3 rounded-2xl bg-ink px-5 py-4 text-white">
+          <p><span className="font-semibold">Belum yakin?</span> <span className="text-white/70">Daftar dan pakai semua fitur gratis {settings.trial_days} hari.</span></p>
+          <Link href="/masuk?daftar=1" className="btn bg-white text-ink hover:bg-tint">Coba gratis</Link>
+        </div>
+      )}
+
       {err && <p role="alert" className="mx-auto mt-6 max-w-md rounded-xl border border-red-200 bg-red-50 p-3 text-center text-sm text-red-800">{err}</p>}
 
       <div className="mt-10 grid gap-5 md:grid-cols-2">

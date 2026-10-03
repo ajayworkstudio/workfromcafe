@@ -12,7 +12,7 @@ async function saveSettings(formData: FormData) {
   "use server";
   await requireAdmin();
   const supabase = await createClient();
-  const keys = ["price_monthly", "price_yearly", "free_unlock_limit_per_month"] as const;
+  const keys = ["price_monthly", "price_yearly", "free_unlock_limit_per_month", "trial_days"] as const;
   const rows: { key: string; value: string }[] = keys.map((key) => ({ key, value: String(Math.max(0, Math.round(Number(formData.get(key)) || 0))) }));
   if (Number(rows[0].value) < 1000 || Number(rows[1].value) < 1000)
     redirect(`/admin/pengaturan?err=${encodeURIComponent("Harga minimal Rp1.000.")}`);
@@ -52,6 +52,11 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             <input id="free_unlock_limit_per_month" name="free_unlock_limit_per_month" type="number" min={0} max={50} defaultValue={s.free_unlock_limit_per_month} className="input" />
           </div>
           <p className="text-sm text-muted">Jumlah kafe yang bisa dibuka penuh oleh member tanpa langganan. Isi 0 untuk mematikan.</p>
+          <div className="max-w-[200px]">
+            <label htmlFor="trial_days" className="label">Trial gratis (hari)</label>
+            <input id="trial_days" name="trial_days" type="number" min={0} max={60} defaultValue={s.trial_days} className="input" />
+          </div>
+          <p className="text-sm text-muted">Akun baru otomatis dapat akses penuh selama ini. Isi 0 untuk mematikan trial.</p>
         </section>
         <section className="card space-y-4 p-5 md:p-6">
           <h2 className="text-lg font-bold">Pembayaran manual lewat QRIS</h2>

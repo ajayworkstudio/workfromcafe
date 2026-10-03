@@ -54,12 +54,13 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           <>
             <div className="flex-1">
               <p className="label">Status</p>
-              <p className="font-display text-xl font-bold text-brand">Pelanggan premium</p>
+              <p className="font-display text-xl font-bold text-brand">{viewer.plan === "trial" ? "Trial gratis" : "Pelanggan premium"}</p>
               <p className="text-sm text-muted">
                 Aktif sampai {new Date(viewer.premiumUntil!).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                {viewer.plan === "trial" && ` (sisa ${Math.max(0, Math.ceil((new Date(viewer.premiumUntil!).getTime() - Date.now()) / 864e5))} hari)`}
               </p>
             </div>
-            <Link href="/harga" className="btn-ghost">Perpanjang</Link>
+            <Link href="/harga" className={viewer.plan === "trial" ? "btn-primary" : "btn-ghost"}>{viewer.plan === "trial" ? "Langganan sekarang" : "Perpanjang"}</Link>
           </>
         ) : (
           <>

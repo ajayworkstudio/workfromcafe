@@ -130,7 +130,15 @@ export default async function CafeDetailPage({ params }: { params: P }) {
           <div className="mt-6 flex flex-wrap gap-2">
             <FavoriteButton cafeId={cafe.id} slug={cafe.slug} active={!!fav.data} loggedIn={!!viewer.user} />
             <VisitedButton cafeId={cafe.id} slug={cafe.slug} active={!!visit.data} loggedIn={!!viewer.user} />
+            {cafe.menu_url && (
+              <a href={cafe.menu_url} target="_blank" rel="noopener" className="btn-primary"><Icon name="book" className="h-4 w-4" />Lihat menu</a>
+            )}
             <a href={mapsUrl} target="_blank" rel="noopener" className="btn-ghost"><Icon name="external" className="h-4 w-4" />Buka di Google Maps</a>
+            {cafe.instagram && (
+              <a href={`https://instagram.com/${cafe.instagram.replace(/^@/, "")}`} target="_blank" rel="noopener" className="btn-ghost" aria-label={`Instagram ${cafe.name}`}>
+                <Icon name="instagram" className="h-4 w-4" />@{cafe.instagram.replace(/^@/, "")}
+              </a>
+            )}
           </div>
 
           {/* ===== Konten premium ===== */}
@@ -178,11 +186,11 @@ export default async function CafeDetailPage({ params }: { params: P }) {
               <Icon name="lock" className="h-6 w-6 text-gold" />
               <h2 className="mt-4 text-2xl font-bold md:text-3xl">Ulasan lengkap dan menu yang layak dipesan</h2>
               <p className="mt-2 max-w-md text-white/70">
-                Termasuk meja terbaik untuk kerja dan jam paling sepi. Member gratis bisa membuka {settings.free_unlock_limit_per_month} kafe setiap bulan.
+                Termasuk meja terbaik untuk kerja dan jam paling sepi. {settings.trial_days > 0 && !viewer.user ? `Daftar sekarang dan coba gratis ${settings.trial_days} hari.` : `Member gratis bisa membuka ${settings.free_unlock_limit_per_month} kafe setiap bulan.`}
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
                 {!viewer.user ? (
-                  <Link href={`/masuk?next=/kafe/${cafe.slug}`} className="btn bg-white text-ink hover:bg-tint">Masuk untuk membuka</Link>
+                  <Link href={`/masuk?daftar=1&next=/kafe/${cafe.slug}`} className="btn bg-white text-ink hover:bg-tint">{settings.trial_days > 0 ? `Coba gratis ${settings.trial_days} hari` : "Daftar untuk membuka"}</Link>
                 ) : (left.data as number) > 0 ? (
                   <UnlockButton cafeId={cafe.id} slug={cafe.slug} left={left.data as number} />
                 ) : (

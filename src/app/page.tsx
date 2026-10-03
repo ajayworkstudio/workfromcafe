@@ -4,11 +4,15 @@ import CafeCard from "@/components/CafeCard";
 import Icon from "@/components/Icon";
 import type { Cafe, City } from "@/lib/types";
 import { CAFE_LIST_SELECT } from "@/lib/utils";
+import { getViewer } from "@/lib/auth";
+import { getSettings } from "@/lib/settings";
 
 export const revalidate = 300;
 
 export default async function Home() {
   const supabase = await createClient();
+  const [viewer, settings] = await Promise.all([getViewer(), getSettings()]);
+  const showTrial = !viewer.user && settings.trial_days > 0;
   const [{ data: cities }, { data: featured }, { data: latest }, { count }] = await Promise.all([
     supabase.from("cities").select("*").eq("is_active", true).order("name"),
     supabase.from("cafes").select(CAFE_LIST_SELECT).eq("is_featured", true).order("visited_at", { ascending: false }).limit(6),
@@ -32,6 +36,12 @@ export default async function Home() {
             <input name="q" aria-label="Cari kafe" placeholder="Cari nama kafe atau area" className="min-w-0 flex-1 bg-transparent py-2 text-base outline-none placeholder:text-muted" />
             <button className="btn-primary shrink-0">Cari</button>
           </form>
+          {showTrial && (
+            <p className="mt-5 flex flex-wrap items-center gap-3 text-sm">
+              <Link href="/masuk?daftar=1" className="btn-dark !py-2"><Icon name="gift" className="h-4 w-4" />Coba gratis {settings.trial_days} hari</Link>
+              <span className="text-muted">Daftar pakai email, tanpa bayar.</span>
+            </p>
+          )}
         </div>
 
         {!!cityList.length && (
@@ -74,7 +84,9 @@ export default async function Home() {
             </p>
           </div>
           <div className="md:text-right">
-            <Link href="/harga" className="btn bg-white text-brand hover:bg-brand-soft">Lihat harga langganan</Link>
+            {showTrial
+              ? <Link href="/masuk?daftar=1" className="btn bg-white text-brand hover:bg-brand-soft">Coba gratis {settings.trial_days} hari</Link>
+              : <Link href="/harga" className="btn bg-white text-brand hover:bg-brand-soft">Lihat harga langganan</Link>}
           </div>
         </div>
       </section>
