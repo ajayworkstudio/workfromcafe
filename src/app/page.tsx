@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import CafeCard from "@/components/CafeCard";
 import Icon from "@/components/Icon";
@@ -23,12 +24,20 @@ export default async function Home() {
 
   return (
     <>
-      <section className="mx-auto max-w-6xl px-4 pb-6 pt-12 md:pt-20">
-        <div className="hero-in max-w-3xl">
+      <section className="relative isolate overflow-hidden">
+        {/* Gambar latar + gradasi: di HP gambar di atas memudar ke bawah, di layar lebar gambar di kanan memudar ke kiri */}
+        <div className="absolute inset-x-0 top-0 -z-10 h-[300px] md:inset-y-0 md:left-[38%] md:right-0 md:h-auto" aria-hidden>
+          <Image src="/hero-cafe.webp" alt="" fill priority sizes="(max-width:768px) 100vw, 62vw" className="object-cover object-[38%_center]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-canvas/10 via-canvas/40 to-canvas md:bg-gradient-to-r md:from-canvas md:via-canvas/55 md:to-canvas/0" />
+          <div className="absolute inset-x-0 bottom-0 hidden h-32 bg-gradient-to-t from-canvas to-canvas/0 md:block" />
+        </div>
+
+        <div className="mx-auto max-w-6xl px-4 pb-6 pt-[210px] md:pb-16 md:pt-24">
+        <div className="hero-in max-w-2xl">
           <h1 className="text-[clamp(2.6rem,7vw,5.2rem)] font-extrabold leading-[0.95]">
             Kerja dari kafe mana hari ini?
           </h1>
-          <p className="mt-5 max-w-xl text-lg text-muted">
+          <p className="mt-5 max-w-xl text-lg text-ink/75">
             {count ?? 0} kafe di Jawa Tengah yang sudah aku coba sendiri. Lengkap dengan colokan, wifi, dan menu yang layak dipesan.
           </p>
           <form action="/kafe" className="mt-8 flex max-w-xl items-center gap-2 rounded-full border border-line bg-surface p-1.5 pl-5 shadow-[0_8px_30px_-12px_rgba(20,26,23,.18)] focus-within:border-brand">
@@ -48,12 +57,13 @@ export default async function Home() {
           <div className="mt-8 flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none]">
             {cityList.map((c) => (
               <Link key={c.id} href={`/kota/${c.slug}`}
-                className="shrink-0 rounded-full border border-line bg-surface px-4 py-2 text-sm font-medium transition-colors hover:border-brand hover:bg-brand hover:text-white">
+                className="shrink-0 rounded-full border border-line bg-surface/90 px-4 backdrop-blur py-2 text-sm font-medium transition-colors hover:border-brand hover:bg-brand hover:text-white">
                 {c.name}
               </Link>
             ))}
           </div>
         )}
+        </div>
       </section>
 
       {!!featured?.length && (
