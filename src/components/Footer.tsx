@@ -5,7 +5,7 @@ export default function Footer() {
   return (
     <footer className="mt-20 border-t border-line pb-24 pt-8 text-sm text-muted md:pb-10">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 md:flex-row md:items-center md:justify-between">
-        <p><Wordmark className="text-[13px]" />. Setiap kafe di sini sudah aku datangi sendiri.</p>
+        <p><Wordmark className="text-[13px]" />. Kurasi rekomendasi pilihan nyaman bekerja di Cafe.</p>
         <div className="flex gap-5">
           <Link href="/kafe" className="hover:text-ink">Semua kafe</Link>
           <Link href="/harga" className="hover:text-ink">Harga langganan</Link>
