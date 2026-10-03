@@ -31,13 +31,12 @@ export default async function CityPage({ params }: { params: P }) {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <p className="text-sm font-semibold uppercase tracking-widest text-terra">{city.province}</p>
-      <h1 className="mt-1 font-display text-4xl font-bold">Kafe di {city.name}</h1>
-      <p className="mt-2 text-bean/70">{cafes?.length ?? 0} kafe sudah dikunjungi</p>
-      <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <h1 className="text-4xl font-extrabold md:text-5xl">Kafe di {city.name}</h1>
+      <p className="mt-2 text-muted">{cafes?.length ?? 0} kafe yang sudah aku datangi di {city.name}, {city.province}.</p>
+      <div className="mt-8 grid gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
         {(cafes as Cafe[] | null)?.map((c) => <CafeCard key={c.id} cafe={c} />)}
       </div>
-      {!cafes?.length && <p className="card mt-6 p-8 text-center text-bean/70">Kafe di kota ini segera hadir.</p>}
+      {!cafes?.length && <p className="mt-6 rounded-2xl bg-tint p-8 text-center text-muted">Belum ada kafe di kota ini.</p>}
     </div>
   );
 }

@@ -3,7 +3,7 @@
 Kurasi kafe pribadi di kota-kota Jawa Tengah, lengkap dengan menu rekomendasi, dengan model langganan.
 Bisa dibuka di browser dan di-install di HP (PWA).
 
-**Stack:** Next.js 15 (App Router) · TypeScript · Tailwind CSS v4 · Supabase (Postgres, Auth, Storage, RLS) · Midtrans Snap · Leaflet/OpenStreetMap · Vercel
+**Stack:** Next.js 15 (App Router) · TypeScript · Tailwind CSS v4 · Bricolage Grotesque + Geist · Supabase (Postgres, Auth, Storage, RLS) · Midtrans Snap · Leaflet/OpenStreetMap · Vercel
 
 ---
 
@@ -35,7 +35,20 @@ copy .env.example .env.local
 4. **Authentication → URL Configuration**
    - Site URL: `http://localhost:3000` (nanti ganti ke domain produksi)
    - Redirect URLs: tambahkan `http://localhost:3000/auth/callback` dan `https://domainkamu.com/auth/callback`
-5. (Opsional) **Authentication → Providers → Google** untuk login Google.
+5. Login Google — lihat bagian **Login dengan Google** di bawah.
+
+### Login dengan Google
+1. Buka [Google Cloud Console](https://console.cloud.google.com) → buat project baru.
+2. **APIs & Services → OAuth consent screen** → pilih *External*, isi nama aplikasi, email dukungan, dan logo (opsional) → simpan. Tambahkan email kamu sebagai *Test user* selama status masih "Testing".
+3. **APIs & Services → Credentials → Create Credentials → OAuth client ID**
+   - Application type: **Web application**
+   - Authorized JavaScript origins: `http://localhost:3000` dan `https://domainkamu.vercel.app`
+   - Authorized redirect URIs: `https://<project-ref>.supabase.co/auth/v1/callback`
+     (salin persis dari Supabase → Authentication → Providers → Google → *Callback URL*)
+4. Salin **Client ID** dan **Client Secret** → tempel di Supabase **Authentication → Providers → Google** → aktifkan → Save.
+5. Saat siap dipakai umum, klik **Publish app** di OAuth consent screen supaya semua akun Google bisa login.
+
+Tidak ada variabel `.env` tambahan untuk Google — semuanya disimpan di Supabase.
 
 ### 3. Jadikan akunmu admin
 Jalankan `npm run dev`, buka http://localhost:3000/masuk, daftar. Lalu di SQL Editor:

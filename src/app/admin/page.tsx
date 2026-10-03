@@ -38,22 +38,22 @@ export default async function AdminHome() {
       <h2 className="mt-8 font-display text-xl font-bold">Transaksi terbaru</h2>
       <div className="card mt-3 overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="text-left text-xs uppercase text-bean/60">
+          <thead className="text-left text-xs font-medium text-muted">
             <tr><th className="p-3">Order</th><th className="p-3">Paket</th><th className="p-3">Nominal</th><th className="p-3">Status</th><th className="p-3">Tanggal</th></tr>
           </thead>
-          <tbody className="divide-y divide-roast/10">
+          <tbody className="divide-y divide-ink/10">
             {(recent.data ?? []).map((p) => (
               <tr key={p.order_id}>
                 <td className="p-3 font-mono text-xs">{p.order_id}</td>
                 <td className="p-3">{p.plan}</td>
                 <td className="p-3">{rupiah(p.amount)}</td>
-                <td className="p-3"><span className={`chip ${p.status === "paid" ? "!text-leaf" : ""}`}>{p.status}</span></td>
+                <td className="p-3"><span className={`chip ${p.status === "paid" ? "!text-ok" : ""}`}>{p.status}</span></td>
                 <td className="p-3">{new Date(p.created_at).toLocaleString("id-ID")}</td>
               </tr>
             ))}
           </tbody>
         </table>
-        {!recent.data?.length && <p className="p-4 text-bean/60">Belum ada transaksi.</p>}
+        {!recent.data?.length && <p className="p-4 text-muted/60">Belum ada transaksi.</p>}
       </div>
     </>
   );

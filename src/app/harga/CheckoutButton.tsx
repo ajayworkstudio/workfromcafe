@@ -47,7 +47,7 @@ export default function CheckoutButton({ plan, snapJs, clientKey, highlight }: {
       <button onClick={pay} disabled={loading} className={`${highlight ? "btn-primary" : "btn-dark"} w-full`}>
         {loading ? "Menyiapkan pembayaran…" : "Langganan sekarang"}
       </button>
-      {err && <p className="mt-2 text-sm text-terra-dark">{err}</p>}
+      {err && <p className="mt-2 text-sm text-brand-dark">{err}</p>}
     </>
   );
 }

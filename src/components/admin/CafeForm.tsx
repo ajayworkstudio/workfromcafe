@@ -27,7 +27,7 @@ export default function CafeForm({
           <div className="flex-1"><label className="label">Latitude</label><input name="lat" step="any" type="number" defaultValue={cafe?.lat ?? ""} className="input" /></div>
           <div className="flex-1"><label className="label">Longitude</label><input name="lng" step="any" type="number" defaultValue={cafe?.lng ?? ""} className="input" /></div>
         </div>
-        <p className="self-end text-xs text-bean/60">Tip: di Google Maps, klik kanan titik kafe lalu klik angka koordinat untuk menyalin.</p>
+        <p className="self-end text-xs text-muted/60">Tip: di Google Maps, klik kanan titik kafe lalu klik angka koordinat untuk menyalin.</p>
         <div>
           <label className="label">Kisaran harga</label>
           <select name="price_range" defaultValue={cafe?.price_range ?? 2} className="input">
@@ -37,14 +37,14 @@ export default function CafeForm({
         <div><label className="label">Rating aku (0–5)</label><input name="my_rating" type="number" step="0.1" min="0" max="5" defaultValue={cafe?.my_rating ?? ""} className="input" /></div>
         <div><label className="label">Tanggal kunjungan</label><input name="visited_at" type="date" defaultValue={cafe?.visited_at ?? ""} className="input" /></div>
         <div className="flex items-end gap-5 text-sm">
-          <label className="flex items-center gap-2"><input type="checkbox" name="is_featured" defaultChecked={cafe?.is_featured} className="accent-terra" /> Favorit pribadi</label>
-          <label className="flex items-center gap-2"><input type="checkbox" name="is_published" defaultChecked={cafe?.is_published ?? true} className="accent-terra" /> Tayang</label>
+          <label className="flex items-center gap-2"><input type="checkbox" name="is_featured" defaultChecked={cafe?.is_featured} className="accent-brand" /> Favorit pribadi</label>
+          <label className="flex items-center gap-2"><input type="checkbox" name="is_published" defaultChecked={cafe?.is_published ?? true} className="accent-brand" /> Tayang</label>
         </div>
         <div className="md:col-span-2"><label className="label">Ulasan singkat (cuplikan publik)</label><textarea name="short_review" rows={2} defaultValue={cafe?.short_review ?? ""} className="input" /></div>
       </section>
 
       <section className="card grid gap-4 p-5">
-        <h2 className="font-display text-lg font-bold">Konten premium 🔒</h2>
+        <h2 className="font-display text-lg font-bold">Konten khusus pelanggan</h2>
         <div><label className="label">Ulasan lengkap</label><textarea name="full_review" rows={6} defaultValue={details?.full_review ?? ""} className="input" /></div>
         <div className="grid gap-4 md:grid-cols-2">
           <div><label className="label">Tips</label><input name="tips" defaultValue={details?.tips ?? ""} className="input" /></div>
@@ -61,7 +61,7 @@ export default function CafeForm({
               {tags.filter((t) => t.type === type).map((t) => (
                 <label key={t.id} className="cursor-pointer">
                   <input type="checkbox" name="tags" value={t.id} defaultChecked={selectedTagIds.includes(t.id)} className="peer sr-only" />
-                  <span className="chip peer-checked:border-terra peer-checked:bg-terra peer-checked:text-white">{t.name}</span>
+                  <span className="chip peer-checked:bg-brand peer-checked:text-white">{t.name}</span>
                 </label>
               ))}
             </div>
@@ -80,8 +80,8 @@ export default function CafeForm({
                 <input type="time" name={`open_${key}`} defaultValue={slot?.[0] ?? "08:00"} className="input !w-32" />
                 <span>–</span>
                 <input type="time" name={`close_${key}`} defaultValue={slot?.[1] ?? "22:00"} className="input !w-32" />
-                <label className="flex items-center gap-1.5 text-bean/70">
-                  <input type="checkbox" name={`closed_${key}`} defaultChecked={cafe ? slot === null : false} className="accent-terra" /> Tutup
+                <label className="flex items-center gap-1.5 text-muted/70">
+                  <input type="checkbox" name={`closed_${key}`} defaultChecked={cafe ? slot === null : false} className="accent-brand" /> Tutup
                 </label>
               </div>
             );

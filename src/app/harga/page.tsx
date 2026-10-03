@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getViewer } from "@/lib/auth";
 import { PLANS, rupiah } from "@/lib/utils";
 import { SNAP_JS } from "@/lib/midtrans";
+import Icon from "@/components/Icon";
 import CheckoutButton from "./CheckoutButton";
 import type { Plan } from "@/lib/types";
 
@@ -21,10 +22,10 @@ export default async function PricingPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
       <div className="text-center">
-        <h1 className="font-display text-4xl font-bold">Langganan</h1>
-        <p className="mt-2 text-bean/70">Bayar pakai QRIS, GoPay, ShopeePay, OVO, DANA, atau transfer bank.</p>
+        <h1 className="text-4xl font-extrabold md:text-5xl">Harga langganan</h1>
+        <p className="mt-2 text-muted/70">Bayar pakai QRIS, GoPay, ShopeePay, OVO, DANA, atau transfer bank.</p>
         {viewer.isPremium && (
-          <p className="mt-4 inline-block rounded-full bg-leaf/10 px-4 py-2 text-sm text-leaf">
+          <p className="mt-4 inline-block rounded-full bg-ok/10 px-4 py-2 text-sm text-ok">
             Kamu sudah premium sampai {new Date(viewer.premiumUntil!).toLocaleDateString("id-ID")}. Bayar lagi = masa aktif ditambah.
           </p>
         )}
@@ -35,16 +36,16 @@ export default async function PricingPage() {
           const p = PLANS[key];
           const highlight = key === "yearly";
           return (
-            <div key={key} className={`card flex flex-col p-6 ${highlight ? "!border-terra ring-2 ring-terra/20" : ""}`}>
-              {highlight && <span className="mb-2 self-start rounded-full bg-terra px-3 py-1 text-xs font-bold text-white">Paling hemat</span>}
+            <div key={key} className={`card flex flex-col p-6 ${highlight ? "!border-brand ring-4 ring-brand/10" : ""}`}>
+              {highlight && <span className="mb-2 self-start rounded-full bg-gold/25 px-3 py-1 text-xs font-semibold text-[#8a5a00]">Paling hemat</span>}
               <h2 className="font-display text-2xl font-bold">{p.label}</h2>
               <p className="mt-2">
                 <span className="font-display text-4xl font-bold">{rupiah(p.price)}</span>
-                <span className="text-bean/60"> / {p.months === 1 ? "bulan" : "tahun"}</span>
+                <span className="text-muted/60"> / {p.months === 1 ? "bulan" : "tahun"}</span>
               </p>
-              <p className="mt-1 text-sm text-bean/70">{p.note}</p>
+              <p className="mt-1 text-sm text-muted/70">{p.note}</p>
               <ul className="mt-5 flex-1 space-y-2 text-sm">
-                {PERKS.map((x) => <li key={x}>✓ {x}</li>)}
+                {PERKS.map((x) => <li key={x} className="flex gap-2"><Icon name="check" className="h-5 w-5 shrink-0 text-brand" />{x}</li>)}
               </ul>
               <div className="mt-6">
                 {viewer.user ? (
@@ -58,8 +59,8 @@ export default async function PricingPage() {
         })}
       </div>
 
-      <div className="card mt-8 p-5 text-sm text-bean/80">
-        <p className="font-semibold text-roast">Belum mau langganan?</p>
+      <div className="card mt-8 p-5 text-sm text-muted/80">
+        <p className="font-semibold text-ink">Belum mau langganan?</p>
         <p className="mt-1">Daftar gratis dan buka beberapa kafe secara penuh setiap bulan.</p>
       </div>
     </div>

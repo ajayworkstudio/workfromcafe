@@ -3,12 +3,12 @@ import { APP_NAME } from "@/lib/utils";
 
 export default function Footer() {
   return (
-    <footer className="mt-16 border-t border-roast/10 pb-24 pt-8 text-sm text-bean/70 md:pb-8">
-      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 md:flex-row md:justify-between">
-        <p>© {new Date().getFullYear()} {APP_NAME}. Dikurasi langsung dari kunjungan pribadi.</p>
-        <div className="flex gap-4">
-          <Link href="/harga">Langganan</Link>
-          <Link href="/kafe">Semua kafe</Link>
+    <footer className="mt-20 border-t border-line pb-24 pt-8 text-sm text-muted md:pb-10">
+      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 md:flex-row md:items-center md:justify-between">
+        <p><span className="font-display font-bold text-ink">{APP_NAME}</span>. Setiap kafe di sini sudah aku datangi sendiri.</p>
+        <div className="flex gap-5">
+          <Link href="/kafe" className="hover:text-ink">Semua kafe</Link>
+          <Link href="/harga" className="hover:text-ink">Harga langganan</Link>
         </div>
       </div>
     </footer>
