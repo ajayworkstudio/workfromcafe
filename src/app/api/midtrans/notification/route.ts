@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { verifySignature } from "@/lib/midtrans";
-import { PLANS } from "@/lib/utils";
+import { PLAN_META } from "@/lib/settings";
 import type { Plan } from "@/lib/types";
 
 type Notif = {
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
 
     const start = current ? new Date(current.end_date) : new Date();
     const end = new Date(start);
-    end.setMonth(end.getMonth() + PLANS[payment.plan as Plan].months);
+    end.setMonth(end.getMonth() + PLAN_META[payment.plan as Plan].months);
 
     await admin.from("subscriptions").insert({
       user_id: payment.user_id,

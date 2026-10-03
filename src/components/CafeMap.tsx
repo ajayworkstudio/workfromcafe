@@ -13,7 +13,7 @@ export default function CafeMap({ cafes }: { cafes: MapCafe[] }) {
       />
       {cafes.map((c) => (
         <CircleMarker key={c.slug} center={[c.lat, c.lng]} radius={9}
-          pathOptions={{ color: "#ffffff", weight: 2, fillColor: "#1d5c49", fillOpacity: 1 }}>
+          pathOptions={{ color: "#ffffff", weight: 2, fillColor: "#6b4226", fillOpacity: 1 }}>
           <Popup>
             <strong>{c.name}</strong><br />
             {c.city}{c.rating != null ? `, rating ${c.rating}` : ""}<br />

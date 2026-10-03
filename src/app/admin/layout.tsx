@@ -1,21 +1,19 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getViewer } from "@/lib/auth";
+import AdminNav from "@/components/admin/AdminNav";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const v = await getViewer();
   if (!v.isAdmin) redirect("/");
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <div className="mb-6 flex flex-wrap items-center gap-2">
-        <span className="mr-2 font-display text-xl font-bold">Admin</span>
-        <Link href="/admin" className="btn-ghost !py-1.5">Ringkasan</Link>
-        <Link href="/admin/kafe" className="btn-ghost !py-1.5">Kafe</Link>
-        <Link href="/admin/kota" className="btn-ghost !py-1.5">Kota</Link>
-        <Link href="/admin/pelanggan" className="btn-ghost !py-1.5">Pelanggan</Link>
-        <Link href="/admin/kafe/baru" className="btn-primary !py-1.5 ml-auto">+ Kafe baru</Link>
-      </div>
-      {children}
+    <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-6 px-4 py-6 md:grid-cols-[200px_minmax(0,1fr)] md:gap-10 md:py-10">
+      <aside className="min-w-0 md:sticky md:top-24 md:self-start">
+        <p className="mb-3 hidden px-3 text-sm font-semibold text-muted md:block">Panel admin</p>
+        <AdminNav />
+      </aside>
+      <div className="min-w-0">{children}</div>
     </div>
   );
 }

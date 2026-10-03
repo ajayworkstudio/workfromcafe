@@ -5,7 +5,7 @@ export default function NotFound() {
     <div className="mx-auto max-w-md px-4 py-24 text-center">
       <p className="font-display text-7xl font-extrabold text-mist">404</p>
       <h1 className="mt-4 font-display text-3xl font-bold">Halaman tidak ditemukan</h1>
-      <p className="mt-2 text-muted/70">Alamat ini tidak ada atau kafenya sudah dihapus.</p>
+      <p className="mt-2 text-muted">Alamat ini tidak ada atau kafenya sudah dihapus.</p>
       <Link href="/kafe" className="btn-dark mt-6">Jelajah kafe lain</Link>
     </div>
   );

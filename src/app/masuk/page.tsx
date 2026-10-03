@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import LoginForm from "./LoginForm";
+import { getSettings } from "@/lib/settings";
 
 export const metadata: Metadata = { title: "Masuk" };
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; error?: string }> }) {
-  const { next, error } = await searchParams;
+  const [{ next, error }, settings] = await Promise.all([searchParams, getSettings()]);
   return (
     <div className="mx-auto grid min-h-[calc(100dvh-4rem)] max-w-md content-center px-4 py-12">
       <h1 className="text-4xl font-extrabold">Masuk</h1>
-      <p className="mt-2 text-muted">Simpan kafe favorit dan buka 3 ulasan lengkap gratis setiap bulan.</p>
+      <p className="mt-2 text-muted">Simpan kafe favorit dan buka {settings.free_unlock_limit_per_month} ulasan lengkap gratis setiap bulan.</p>
       {error && (
         <p role="alert" className="mt-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
           Login tidak berhasil. Coba lagi, atau pakai cara masuk yang lain.

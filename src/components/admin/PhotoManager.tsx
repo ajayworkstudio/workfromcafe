@@ -58,23 +58,27 @@ export default function PhotoManager({ cafeId, initial }: { cafeId: string; init
   }
 
   return (
-    <section className="card p-5">
-      <div className="flex items-center justify-between">
-        <h2 className="font-display text-lg font-bold">Foto ({photos.length})</h2>
-        <label className="btn-dark cursor-pointer !py-1.5">
+    <section className="card p-5 md:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-bold">Foto ({photos.length})</h2>
+          <p className="mt-0.5 text-sm text-muted">Foto sampul tampil di kartu kafe. Foto dikompres otomatis sebelum diunggah.</p>
+        </div>
+        <label className="btn-dark cursor-pointer">
           {busy ? "Mengunggah…" : "+ Unggah foto"}
           <input type="file" accept="image/*" multiple hidden disabled={busy} onChange={(e) => upload(e.target.files)} />
         </label>
       </div>
       {err && <p className="mt-2 text-sm text-brand-dark">{err}</p>}
+      {!photos.length && <p className="mt-4 rounded-xl border border-dashed border-line p-6 text-center text-sm text-muted">Belum ada foto. Unggah minimal satu sebagai sampul.</p>}
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {photos.map((p) => (
           <div key={p.id} className="group relative aspect-square overflow-hidden rounded-xl bg-tint">
             <Image src={p.url} alt="" fill sizes="200px" className="object-cover" />
-            {p.is_cover && <span className="absolute left-2 top-2 rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold text-white">SAMPUL</span>}
-            <div className="absolute inset-x-0 bottom-0 flex gap-1 bg-ink/70 p-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100">
-              {!p.is_cover && <button onClick={() => setCover(p.id)} className="flex-1 rounded bg-canvas px-1 py-1 text-[11px] font-semibold">Jadikan sampul</button>}
-              <button onClick={() => remove(p)} className="rounded bg-brand px-2 py-1 text-[11px] font-semibold text-white">Hapus</button>
+            {p.is_cover && <span className="absolute left-2 top-2 rounded-full bg-surface px-2 py-0.5 text-[11px] font-semibold">Sampul</span>}
+            <div className="absolute inset-x-0 bottom-0 flex gap-1 bg-ink/75 p-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100">
+              {!p.is_cover && <button onClick={() => setCover(p.id)} className="flex-1 rounded-lg bg-surface px-1 py-1 text-[11px] font-semibold">Jadikan sampul</button>}
+              <button onClick={() => remove(p)} className="rounded-lg bg-red-600 px-2 py-1 text-[11px] font-semibold text-white">Hapus</button>
             </div>
           </div>
         ))}

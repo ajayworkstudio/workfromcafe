@@ -15,7 +15,7 @@ export default async function MapPage() {
       <div className="mx-auto max-w-xl px-4 py-20 text-center">
         <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-brand-soft text-brand"><Icon name="map" className="h-7 w-7" /></div>
         <h1 className="mt-5 font-display text-3xl font-bold">Peta semua kafe</h1>
-        <p className="mt-2 text-muted/70">Lihat sebaran semua kafe di Jawa Tengah dalam satu peta. Fitur khusus pelanggan premium.</p>
+        <p className="mt-2 text-muted">Lihat sebaran semua kafe di Jawa Tengah dalam satu peta. Fitur khusus pelanggan premium.</p>
         <Link href="/harga" className="btn-primary mt-6">Lihat paket langganan</Link>
       </div>
     );

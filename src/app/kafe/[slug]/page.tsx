@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/auth";
+import { getSettings } from "@/lib/settings";
 import Icon from "@/components/Icon";
 import { FavoriteButton, UnlockButton, VisitedButton } from "@/components/ActionButtons";
 import type { Cafe, CafeDetails, MenuItem } from "@/lib/types";
@@ -37,7 +38,7 @@ export default async function CafeDetailPage({ params }: { params: P }) {
   if (!cafe) notFound();
 
   const supabase = await createClient();
-  const viewer = await getViewer();
+  const [viewer, settings] = await Promise.all([getViewer(), getSettings()]);
 
   // RLS yang menentukan: baris ini hanya kembali kalau pengguna berhak.
   const [{ data: details }, { data: menu }, fav, visit, left] = await Promise.all([
@@ -177,7 +178,7 @@ export default async function CafeDetailPage({ params }: { params: P }) {
               <Icon name="lock" className="h-6 w-6 text-gold" />
               <h2 className="mt-4 text-2xl font-bold md:text-3xl">Ulasan lengkap dan menu yang layak dipesan</h2>
               <p className="mt-2 max-w-md text-white/70">
-                Termasuk meja terbaik untuk kerja dan jam paling sepi. Member gratis bisa membuka 3 kafe setiap bulan.
+                Termasuk meja terbaik untuk kerja dan jam paling sepi. Member gratis bisa membuka {settings.free_unlock_limit_per_month} kafe setiap bulan.
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
                 {!viewer.user ? (

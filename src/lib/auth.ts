@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "./supabase/server";
 
 export type Viewer = {
@@ -8,8 +9,8 @@ export type Viewer = {
   name: string | null;
 };
 
-/** Info pengguna yang sedang melihat halaman (dipakai di banyak halaman). */
-export async function getViewer(): Promise<Viewer> {
+/** Info pengguna yang sedang melihat halaman. Di-cache per request supaya Header & halaman tidak query dua kali. */
+export const getViewer = cache(async (): Promise<Viewer> => {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { user: null, isAdmin: false, isPremium: false, premiumUntil: null, name: null };
@@ -34,4 +35,11 @@ export async function getViewer(): Promise<Viewer> {
     premiumUntil: sub?.end_date ?? null,
     name: profile?.name ?? null,
   };
+});
+
+/** Pastikan pemanggil admin (dipakai di server action admin). */
+export async function requireAdmin() {
+  const v = await getViewer();
+  if (!v.isAdmin) throw new Error("Hanya admin");
+  return v;
 }

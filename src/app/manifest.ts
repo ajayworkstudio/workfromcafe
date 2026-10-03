@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Koleksi kafe pilihan di Jawa Tengah dan menu yang wajib dicoba.",
     start_url: "/",
     display: "standalone",
-    background_color: "#f6f7f5",
-    theme_color: "#1d5c49",
+    background_color: "#f6f2ee",
+    theme_color: "#6b4226",
     lang: "id",
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },

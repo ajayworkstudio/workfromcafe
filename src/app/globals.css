@@ -1,22 +1,22 @@
 @import "tailwindcss";
 
 /*
-  Arah desain: "meja kerja di kafe" — terang, bersih, dingin seperti siang hari di dekat jendela.
-  Hijau pandan sebagai warna utama, karamel gula aren hanya untuk penanda penting (rating, wajib coba).
+  Arah desain: "espresso modern" — coklat kopi yang dalam sebagai warna utama,
+  latar netral hangat yang terang, dan karamel hanya untuk penanda penting (rating, wajib coba).
 */
 @theme {
-  --color-canvas: #f6f7f5;
+  --color-canvas: #f6f2ee;
   --color-surface: #ffffff;
-  --color-ink: #141a17;
-  --color-muted: #59625d;
-  --color-mist: #b8c3bd;
-  --color-tint: #e9eeeb;
-  --color-line: #dfe5e1;
-  --color-brand: #1d5c49;
-  --color-brand-dark: #144536;
-  --color-brand-soft: #dcebe4;
-  --color-gold: #f0ad2e;
-  --color-ok: #23935c;
+  --color-ink: #1f1612;
+  --color-muted: #6f625a;
+  --color-mist: #c9bbb0;
+  --color-tint: #efe7e1;
+  --color-line: #e6dcd4;
+  --color-brand: #6b4226;
+  --color-brand-dark: #4e2f1a;
+  --color-brand-soft: #f2e6db;
+  --color-gold: #e0a045;
+  --color-ok: #3e8e5e;
 
   --font-display: "Bricolage Grotesque", system-ui, sans-serif;
   --font-sans: "Geist", system-ui, sans-serif;

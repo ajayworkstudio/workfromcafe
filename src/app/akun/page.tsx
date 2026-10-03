@@ -5,7 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/auth";
 import CafeCard from "@/components/CafeCard";
 import type { Cafe } from "@/lib/types";
-import { CAFE_LIST_SELECT, PLANS, rupiah } from "@/lib/utils";
+import { CAFE_LIST_SELECT, rupiah } from "@/lib/utils";
+import { PLAN_META } from "@/lib/settings";
 
 export const metadata: Metadata = { title: "Akun saya" };
 
@@ -40,7 +41,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-bold">Halo, {viewer.name ?? "kamu"}</h1>
-          <p className="text-sm text-muted/70">{viewer.user.email}</p>
+          <p className="text-sm text-muted">{viewer.user.email}</p>
         </div>
         <form action={logout}><button className="btn-ghost">Keluar</button></form>
       </div>
@@ -51,7 +52,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
             <div className="flex-1">
               <p className="label">Status</p>
               <p className="font-display text-xl font-bold text-brand">Pelanggan premium</p>
-              <p className="text-sm text-muted/70">
+              <p className="text-sm text-muted">
                 Aktif sampai {new Date(viewer.premiumUntil!).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
               </p>
             </div>
@@ -62,7 +63,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
             <div className="flex-1">
               <p className="label">Status</p>
               <p className="font-display text-xl font-bold">Member gratis</p>
-              <p className="text-sm text-muted/70">Sisa buka kafe gratis bulan ini: {(left as number) ?? 0}</p>
+              <p className="text-sm text-muted">Sisa buka kafe gratis bulan ini: {(left as number) ?? 0}</p>
             </div>
             <Link href="/harga" className="btn-primary">Upgrade ke premium</Link>
           </>
@@ -73,7 +74,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {favCafes.map((c) => <CafeCard key={c.id} cafe={c} />)}
       </div>
-      {!favCafes.length && <p className="mt-3 text-muted/70">Belum ada. Tekan Simpan di halaman kafe untuk menyimpannya di sini.</p>}
+      {!favCafes.length && <p className="mt-3 text-muted">Belum ada. Tekan Simpan di halaman kafe untuk menyimpannya di sini.</p>}
 
       {!!payments?.length && (
         <>
@@ -81,7 +82,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           <div className="card mt-4 divide-y divide-ink/10">
             {payments.map((p) => (
               <div key={p.id} className="flex justify-between gap-3 p-4 text-sm">
-                <span>{PLANS[p.plan as keyof typeof PLANS]?.label}, {new Date(p.created_at).toLocaleDateString("id-ID")}</span>
+                <span>{PLAN_META[p.plan as keyof typeof PLAN_META]?.label}, {new Date(p.created_at).toLocaleDateString("id-ID")}</span>
                 <span className="font-semibold">{rupiah(p.amount)} ({p.status})</span>
               </div>
             ))}

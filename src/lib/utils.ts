@@ -1,22 +1,7 @@
-import type { Cafe, DayKey, OpeningHours, Plan } from "./types";
+import type { Cafe, DayKey, OpeningHours } from "./types";
 
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Ngopi Jateng";
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-
-export const PLANS: Record<Plan, { label: string; months: number; price: number; note: string }> = {
-  monthly: {
-    label: "Bulanan",
-    months: 1,
-    price: Number(process.env.PRICE_MONTHLY || 25000),
-    note: "Fleksibel, bisa berhenti kapan saja",
-  },
-  yearly: {
-    label: "Tahunan",
-    months: 12,
-    price: Number(process.env.PRICE_YEARLY || 250000),
-    note: "Hemat ~2 bulan",
-  },
-};
 
 export const rupiah = (n: number | null | undefined) =>
   n == null ? "-" : new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);

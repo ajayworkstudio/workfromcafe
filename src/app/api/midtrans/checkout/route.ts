@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { createSnapTransaction } from "@/lib/midtrans";
-import { APP_NAME, PLANS, SITE_URL } from "@/lib/utils";
+import { APP_NAME, SITE_URL } from "@/lib/utils";
+import { getPlans } from "@/lib/settings";
 import type { Plan } from "@/lib/types";
 
 export async function POST(req: Request) {
@@ -10,7 +11,8 @@ export async function POST(req: Request) {
   if (!user) return NextResponse.json({ error: "Silakan masuk dulu" }, { status: 401 });
 
   const { plan } = (await req.json()) as { plan: Plan };
-  const p = PLANS[plan];
+  const plans = await getPlans();
+  const p = plans[plan as keyof typeof plans];
   if (!p) return NextResponse.json({ error: "Paket tidak dikenal" }, { status: 400 });
 
   // Harga SELALU diambil dari server, bukan dari browser.

@@ -16,7 +16,7 @@ Bisa dibuka di browser dan di-install di HP (PWA).
 | Pelanggan premium | Semua ulasan lengkap, tips, menu rekomendasi, peta |
 | Admin (kamu) | Dashboard: kelola kafe, foto, menu, kota, lihat pelanggan & pendapatan |
 
-Pembatasan dijalankan di **database (Row Level Security)**, bukan sekadar disembunyikan di tampilan — jadi tidak bisa diakali lewat browser. Batas kafe gratis diatur di tabel `app_settings` (`free_unlock_limit_per_month`).
+Pembatasan dijalankan di **database (Row Level Security)**, bukan sekadar disembunyikan di tampilan — jadi tidak bisa diakali lewat browser. Harga paket dan batas kafe gratis diatur dari **Admin → Pengaturan**.
 
 ---
 
@@ -30,7 +30,8 @@ copy .env.example .env.local
 
 ### 2. Supabase
 1. Buat project di [supabase.com](https://supabase.com) (region Singapore).
-2. **SQL Editor** → jalankan isi `supabase/migrations/0001_schema.sql`, lalu `0002_seed.sql`.
+2. **SQL Editor** → jalankan berurutan: `0001_schema.sql`, `0002_seed.sql`, lalu `0003_optimasi_admin.sql` (semua di folder `supabase/migrations`).
+   Sudah menjalankan 0001 dan 0002 sebelumnya? Cukup jalankan `0003_optimasi_admin.sql`.
 3. **Project Settings → API** → salin URL, `anon` key, dan `service_role` key ke `.env.local`.
 4. **Authentication → URL Configuration**
    - Site URL: `http://localhost:3000` (nanti ganti ke domain produksi)
@@ -81,6 +82,18 @@ npm run dev
 
 ---
 
+## Panel admin (`/admin`)
+Semua konten diurus dari aplikasi, tanpa menyentuh kode:
+
+| Menu | Yang bisa dilakukan |
+|---|---|
+| Ringkasan | Pendapatan bulan ini, pelanggan aktif, langganan yang segera berakhir, transaksi terbaru |
+| Kafe | Cari & filter, tayangkan/sembunyikan, tandai favorit, tambah, edit, hapus. Edit mencakup foto (sampul, urutan, hapus), menu rekomendasi, info, tag, jam buka. Koordinat bisa diisi dengan menempel link Google Maps |
+| Kota | Tambah, edit, aktif/nonaktif, hapus (kalau tidak ada kafenya) |
+| Tag | Tambah, ganti nama, hapus tag suasana & fasilitas |
+| Pelanggan | Daftar pelanggan aktif & riwayat, beri akses premium manual, hentikan akses |
+| Pengaturan | Harga bulanan/tahunan, jumlah kafe gratis per bulan |
+
 ## Alur pembayaran
 ```
 Pilih paket → /api/midtrans/checkout (harga dari server, catat payments=pending)
@@ -106,4 +119,4 @@ Admin → **Kota** → tambah kota (isi provinsi & koordinat). Kota otomatis akt
 ## Catatan
 - 5 kafe di data awal adalah **contoh fiktif** — hapus lewat Admin → Kafe setelah mengisi kafe asli.
 - Foto otomatis dikompres ke WebP sebelum diunggah.
-- Harga paket diatur lewat `PRICE_MONTHLY` dan `PRICE_YEARLY`.
+- Harga paket diatur di **Admin → Pengaturan** (disimpan di tabel `app_settings`). `PRICE_MONTHLY`/`PRICE_YEARLY` di `.env` hanya cadangan kalau tabel belum berisi harga.

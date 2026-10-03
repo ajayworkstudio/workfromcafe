@@ -29,7 +29,7 @@ export default async function Home() {
           </p>
           <form action="/kafe" className="mt-8 flex max-w-xl items-center gap-2 rounded-full border border-line bg-surface p-1.5 pl-5 shadow-[0_8px_30px_-12px_rgba(20,26,23,.18)] focus-within:border-brand">
             <Icon name="search" className="h-5 w-5 shrink-0 text-muted" />
-            <input name="q" aria-label="Cari kafe" placeholder="Cari nama kafe atau area" className="min-w-0 flex-1 bg-transparent py-2 text-base outline-none placeholder:text-muted/70" />
+            <input name="q" aria-label="Cari kafe" placeholder="Cari nama kafe atau area" className="min-w-0 flex-1 bg-transparent py-2 text-base outline-none placeholder:text-muted" />
             <button className="btn-primary shrink-0">Cari</button>
           </form>
         </div>
