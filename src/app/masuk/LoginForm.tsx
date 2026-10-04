@@ -53,7 +53,7 @@ export default function LoginForm({ next, initialMode = "login" }: { next: strin
       else { router.push(next); router.refresh(); }
     } else {
       const { error } = await supabase.auth.signUp({
-        email, password, options: { emailRedirectTo: redirectTo(), data: { full_name: name } },
+        email, password, options: { emailRedirectTo: `${redirectTo()}&src=email`, data: { full_name: name } },
       });
       setMsg(error ? { type: "error", text: error.message } : { type: "info", text: `Link konfirmasi sudah dikirim ke ${email}. Buka email itu (cek juga folder Spam), lalu klik link-nya untuk mengaktifkan akun.` });
     }
