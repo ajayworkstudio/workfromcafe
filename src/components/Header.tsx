@@ -3,11 +3,11 @@ import { getViewer } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
 import Icon from "./Icon";
 import Wordmark from "./Wordmark";
+import Avatar from "./Avatar";
 
 export default async function Header() {
   const [v, settings] = await Promise.all([getViewer(), getSettings()]);
   const free = settings.free_mode;
-  const initial = (v.name ?? v.user?.email ?? "?").charAt(0).toUpperCase();
 
   return (
     <>
@@ -26,8 +26,8 @@ export default async function Header() {
         <div className="ml-auto flex items-center gap-2">
           {v.user ? (
             <Link href="/akun" className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 text-sm font-medium hover:bg-tint">
-              <span className="relative grid h-8 w-8 place-items-center rounded-full bg-ink text-sm font-semibold text-white">
-                {initial}
+              <span className="relative">
+                <Avatar url={v.avatarUrl} name={v.name ?? v.user.email} className="h-8 w-8 text-sm" />
                 {v.isPremium && !free && <span className="absolute -bottom-0.5 -right-0.5 grid h-4 w-4 place-items-center rounded-full bg-gold text-ink ring-2 ring-canvas"><Icon name="star" filled className="h-2.5 w-2.5" /></span>}
               </span>
               <span className="hidden sm:inline">{v.name?.split(" ")[0] ?? "Akun"}</span>

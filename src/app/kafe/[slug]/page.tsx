@@ -8,6 +8,7 @@ import { getSettings } from "@/lib/settings";
 import Icon from "@/components/Icon";
 import PhotoGallery from "@/components/PhotoGallery";
 import CafeScorecard from "@/components/CafeScorecard";
+import Avatar from "@/components/Avatar";
 import { averageScore } from "@/lib/review";
 import { FavoriteButton, UnlockButton, VisitedButton } from "@/components/ActionButtons";
 import type { Cafe, CafeDetails, MenuItem } from "@/lib/types";
@@ -55,6 +56,21 @@ export default async function CafeDetailPage({ params }: { params: P }) {
       : Promise.resolve({ data: null }),
     viewer.user ? supabase.rpc("free_unlocks_left") : Promise.resolve({ data: 0 }),
   ]);
+
+  // Profil author terbaru (nama, foto, bio); fallback ke data saat rekomendasi diterima
+  type AuthorCard = { name: string | null; avatar_url: string | null; bio: string | null; instagram: string | null };
+  let author: AuthorCard | null = null;
+  if (cafe.contributor_id || cafe.contributor_name) {
+    const { data: card } = cafe.contributor_id
+      ? await supabase.rpc("author_card", { p_id: cafe.contributor_id }).maybeSingle<AuthorCard>()
+      : { data: null };
+    author = {
+      name: card?.name || cafe.contributor_name || "Author",
+      avatar_url: card?.avatar_url ?? null,
+      bio: card?.bio ?? null,
+      instagram: card?.instagram || cafe.contributor_instagram || null,
+    };
+  }
 
   const d = details as CafeDetails | null;
   const items = (menu as MenuItem[] | null) ?? [];
@@ -218,18 +234,19 @@ export default async function CafeDetailPage({ params }: { params: P }) {
               </tbody>
             </table>
           </div>
-          {cafe.contributor_name && (
-            <div className="flex items-center gap-3 rounded-2xl bg-brand-soft p-4">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand font-semibold text-white">{cafe.contributor_name.charAt(0).toUpperCase()}</span>
-              <div className="min-w-0 text-sm">
-                <p className="text-muted">Direkomendasikan oleh</p>
-                <p className="truncate font-semibold">
-                  {cafe.contributor_name}
-                  {cafe.contributor_instagram && (
-                    <a href={`https://instagram.com/${cafe.contributor_instagram}`} target="_blank" rel="noopener" className="ml-1.5 font-normal text-brand hover:underline">@{cafe.contributor_instagram}</a>
+          {author && (
+            <div className="rounded-2xl bg-brand-soft p-4">
+              <div className="flex items-center gap-3">
+                <Avatar url={author.avatar_url} name={author.name} className="h-11 w-11 text-base" />
+                <div className="min-w-0 text-sm">
+                  <p className="text-muted">Direkomendasikan oleh</p>
+                  <p className="truncate font-semibold">{author.name}</p>
+                  {author.instagram && (
+                    <a href={`https://instagram.com/${author.instagram}`} target="_blank" rel="noopener" className="text-brand hover:underline">@{author.instagram}</a>
                   )}
-                </p>
+                </div>
               </div>
+              {author.bio && <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-ink/80">{author.bio}</p>}
             </div>
           )}
           {cafe.visited_at && (

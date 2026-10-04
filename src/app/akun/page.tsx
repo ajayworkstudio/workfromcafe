@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/auth";
 import CafeCard from "@/components/CafeCard";
 import Icon from "@/components/Icon";
+import ProfileEditor from "./ProfileEditor";
 import type { Cafe } from "@/lib/types";
 import { CAFE_LIST_SELECT, rupiah } from "@/lib/utils";
 import { PLAN_META, getSettings } from "@/lib/settings";
@@ -30,6 +31,15 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
     supabase.rpc("free_unlocks_left"),
   ]);
 
+  // Profil lengkap (bio & instagram ada setelah migrasi 0009)
+  let ready = true;
+  let { data: profile } = await supabase.from("profiles").select("name,avatar_url,bio,instagram").eq("id", viewer.user.id).maybeSingle();
+  if (!profile) {
+    const { data } = await supabase.from("profiles").select("name,avatar_url").eq("id", viewer.user.id).maybeSingle();
+    profile = data ? { ...data, bio: null, instagram: null } : { name: viewer.name, avatar_url: null, bio: null, instagram: null };
+    ready = false;
+  }
+
   const favCafes = ((favs ?? []) as unknown as { cafe: Cafe | null }[]).map((f) => f.cafe).filter(Boolean) as Cafe[];
 
   return (
@@ -44,15 +54,10 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           Terima kasih! Pembayaran sedang dikonfirmasi. Status langganan akan aktif otomatis dalam beberapa saat — muat ulang halaman ini.
         </p>
       )}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="font-display text-3xl font-bold">Halo, {viewer.name ?? "kamu"}</h1>
-          <p className="text-sm text-muted">{viewer.user.email}</p>
-        </div>
-        <div className="flex gap-2">
-          {viewer.isAdmin && <Link href="/admin" className="btn-primary">Panel admin</Link>}
-          <form action={logout}><button className="btn-ghost">Keluar</button></form>
-        </div>
+      <ProfileEditor userId={viewer.user.id} email={viewer.user.email} profile={profile} ready={ready} />
+      <div className="mt-3 flex justify-end gap-2">
+        {viewer.isAdmin && <Link href="/admin" className="btn-primary">Panel admin</Link>}
+        <form action={logout}><button className="btn-ghost">Keluar</button></form>
       </div>
 
       {!settings.free_mode && <div className="card mt-6 flex flex-wrap items-center gap-4 p-5">

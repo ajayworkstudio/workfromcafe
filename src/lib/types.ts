@@ -38,6 +38,7 @@ export type Cafe = {
   instagram?: string | null;
   scores?: Scores | null;
   amenities?: Amenities | null;
+  contributor_id?: string | null;
   contributor_name?: string | null;
   contributor_instagram?: string | null;
   city?: City;

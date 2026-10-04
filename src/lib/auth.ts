@@ -9,16 +9,17 @@ export type Viewer = {
   /** Paket yang sedang aktif (paling lama berakhir): "trial" | "monthly" | "yearly" */
   plan: string | null;
   name: string | null;
+  avatarUrl: string | null;
 };
 
 /** Info pengguna yang sedang melihat halaman. Di-cache per request supaya Header & halaman tidak query dua kali. */
 export const getViewer = cache(async (): Promise<Viewer> => {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { user: null, isAdmin: false, isPremium: false, premiumUntil: null, plan: null, name: null };
+  if (!user) return { user: null, isAdmin: false, isPremium: false, premiumUntil: null, plan: null, name: null, avatarUrl: null };
 
   const [{ data: profile }, { data: sub }] = await Promise.all([
-    supabase.from("profiles").select("role,name").eq("id", user.id).maybeSingle(),
+    supabase.from("profiles").select("role,name,avatar_url").eq("id", user.id).maybeSingle(),
     supabase
       .from("subscriptions")
       .select("end_date,plan")
@@ -37,6 +38,7 @@ export const getViewer = cache(async (): Promise<Viewer> => {
     premiumUntil: sub?.end_date ?? null,
     plan: sub?.plan ?? null,
     name: profile?.name ?? null,
+    avatarUrl: profile?.avatar_url ?? null,
   };
 });
 
