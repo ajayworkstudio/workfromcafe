@@ -2,6 +2,7 @@ import readXlsxFile from "read-excel-file/node";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { parseCoords } from "./coords";
 import { PRICE_RANGES, slugify } from "./utils";
+import { guessProvince, MAP_CENTER } from "./region";
 import type { DayKey, OpeningHours } from "./types";
 import { AMENITIES, ASPECTS, averageScore, cleanScore, parseAmenity, type Amenities, type Scores } from "./review";
 
@@ -158,7 +159,7 @@ export async function syncWorkbook(db: SupabaseClient, data: ArrayBuffer | Buffe
     const hit = cityByName.get(key);
     if (hit) return hit;
     const { data, error } = await db.from("cities")
-      .insert({ name, slug: slugify(name), province: "Jawa Tengah", lat: lat ?? -7.15, lng: lng ?? 110.14, is_active: false })
+      .insert({ name, slug: slugify(name), province: guessProvince(lat, lng), lat: lat ?? MAP_CENTER[0], lng: lng ?? MAP_CENTER[1], is_active: false })
       .select("id,name,is_active").single();
     if (error) throw new Error(`Gagal membuat kota ${name}: ${error.message}`);
     cityByName.set(key, data);

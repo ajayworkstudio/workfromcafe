@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import { slugify } from "@/lib/utils";
 import { averageScore } from "@/lib/review";
+import { guessProvince, MAP_CENTER } from "@/lib/region";
 import type { Submission } from "@/lib/submission";
 
 /** Terima kiriman: buat kafe berstatus draf (belum tayang) lengkap dengan menu & foto, lalu buka form edit. */
@@ -27,7 +28,7 @@ export async function approveSubmission(formData: FormData) {
     if (found) cityId = found.id;
     else {
       const { data: city, error } = await supabase.from("cities")
-        .insert({ name: d.city_name, slug: slugify(d.city_name), province: "Jawa Tengah", lat: d.lat ?? -7.15, lng: d.lng ?? 110.14, is_active: false })
+        .insert({ name: d.city_name, slug: slugify(d.city_name), province: guessProvince(d.lat, d.lng), lat: d.lat ?? MAP_CENTER[0], lng: d.lng ?? MAP_CENTER[1], is_active: false })
         .select("id").single();
       if (error) return back(`Gagal membuat kota ${d.city_name}: ${error.message}`);
       cityId = city.id;

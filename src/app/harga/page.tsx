@@ -15,7 +15,7 @@ const PERKS = [
   "Ulasan lengkap semua kafe",
   "Menu rekomendasi + harga + catatan",
   "Tips tempat duduk & jam terbaik",
-  "Peta semua kafe Jawa Tengah",
+  "Peta semua kafe di Pulau Jawa",
   "Kafe baru setiap bulan",
 ];
 

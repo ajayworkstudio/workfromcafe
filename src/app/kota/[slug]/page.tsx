@@ -10,11 +10,11 @@ type P = Promise<{ slug: string }>;
 export async function generateMetadata({ params }: { params: P }): Promise<Metadata> {
   const { slug } = await params;
   const supabase = await createClient();
-  const { data } = await supabase.from("cities").select("name").eq("slug", slug).maybeSingle();
+  const { data } = await supabase.from("cities").select("name,province").eq("slug", slug).maybeSingle();
   if (!data) return {};
   return {
     title: `Kafe di ${data.name}`,
-    description: `Daftar kafe pilihan di ${data.name}, Jawa Tengah, lengkap dengan menu rekomendasi.`,
+    description: `Daftar kafe pilihan untuk kerja di ${data.name}${data.province ? `, ${data.province}` : ""}, lengkap dengan penilaian dan menu rekomendasi.`,
   };
 }
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import CityOptions from "@/components/CityOptions";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import NearbyGrid from "@/components/NearbyGrid";
@@ -56,7 +57,7 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
             <label className="label">Kota</label>
             <select name="kota" defaultValue={sp.kota ?? ""} className="input">
               <option value="">Semua kota</option>
-              {(cities as City[] | null)?.map((c) => <option key={c.id} value={c.slug}>{c.name}</option>)}
+              <CityOptions cities={(cities as City[] | null) ?? []} valueKey="slug" />
             </select>
           </div>
           <div>

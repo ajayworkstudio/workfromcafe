@@ -10,6 +10,7 @@ import { submitRecommendation, type SubmitState } from "../actions";
 import { AmenityFields, ScoreFields } from "@/components/ReviewFields";
 import OpeningHoursInput from "@/components/admin/OpeningHoursInput";
 import Icon from "@/components/Icon";
+import CityOptions from "@/components/CityOptions";
 import type { City } from "@/lib/types";
 
 type MenuRow = { name: string; price: string; note: string; is_must_try: boolean };
@@ -122,7 +123,7 @@ export default function SubmitForm({ userId, defaultName, cities }: { userId: st
             <input type="hidden" name="city_id" value={cityId === "__other" ? "" : cityId} />
             <select id="city_id" required value={cityId} onChange={(e) => setCityId(e.target.value)} className="input">
               <option value="" disabled>Pilih kota</option>
-              {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              <CityOptions cities={cities} />
               <option value="__other">Kota lain…</option>
             </select>
             {cityId === "__other" && <input name="city_other" required aria-label="Nama kota" placeholder="Tulis nama kotanya" maxLength={60} className="input mt-2" />}

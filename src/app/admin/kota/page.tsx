@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import { slugify } from "@/lib/utils";
+import { guessProvince, PROVINCES } from "@/lib/region";
 import PageHeader from "@/components/admin/PageHeader";
 import Flash from "@/components/admin/Flash";
 import SubmitButton from "@/components/admin/SubmitButton";
@@ -19,7 +20,7 @@ async function saveCity(formData: FormData) {
   const row = {
     name,
     slug: slugify(name),
-    province: String(formData.get("province") || "Jawa Tengah").trim(),
+    province: String(formData.get("province") || "").trim() || guessProvince(Number(formData.get("lat")), Number(formData.get("lng"))),
     lat: Number(formData.get("lat")),
     lng: Number(formData.get("lng")),
   };
@@ -95,7 +96,8 @@ export default async function CitiesAdmin({ searchParams }: { searchParams: Prom
           <h2 className="text-lg font-bold">{editing ? `Edit ${editing.name}` : "Tambah kota"}</h2>
           {editing && <input type="hidden" name="id" value={editing.id} />}
           <div><label htmlFor="c-name" className="label">Nama kota</label><input id="c-name" name="name" required defaultValue={editing?.name} className="input" /></div>
-          <div><label htmlFor="c-prov" className="label">Provinsi</label><input id="c-prov" name="province" defaultValue={editing?.province ?? "Jawa Tengah"} className="input" /></div>
+          <div><label htmlFor="c-prov" className="label">Provinsi</label><input id="c-prov" name="province" list="provinsi-list" defaultValue={editing?.province ?? ""} placeholder="Otomatis dari koordinat" className="input" />
+            <datalist id="provinsi-list">{PROVINCES.map((p) => <option key={p} value={p} />)}</datalist></div>
           <div className="grid grid-cols-2 gap-2">
             <div><label htmlFor="c-lat" className="label">Latitude</label><input id="c-lat" name="lat" type="number" step="any" required defaultValue={editing?.lat} className="input" /></div>
             <div><label htmlFor="c-lng" className="label">Longitude</label><input id="c-lng" name="lng" type="number" step="any" required defaultValue={editing?.lng} className="input" /></div>

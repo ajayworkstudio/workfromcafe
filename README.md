@@ -1,6 +1,6 @@
 # WorkFromCafe ☕
 
-Kurasi kafe pribadi di kota-kota Jawa Tengah, lengkap dengan menu rekomendasi, dengan model langganan.
+Kurasi kafe untuk kerja di kota-kota besar Pulau Jawa, lengkap dengan menu rekomendasi, dengan model langganan.
 Bisa dibuka di browser dan di-install di HP (PWA).
 
 **Stack:** Next.js 15 (App Router) · TypeScript · Tailwind CSS v4 · Bricolage Grotesque + Geist · Supabase (Postgres, Auth, Storage, RLS) · Midtrans Snap · Leaflet/OpenStreetMap · Vercel
@@ -119,7 +119,7 @@ Pilih paket → /api/midtrans/checkout (harga dari server, catat payments=pendin
 
 ## Struktur folder
 ```
-supabase/migrations/   skema, RLS, data awal kota Jawa Tengah + 5 kafe contoh
+supabase/migrations/   skema, RLS, data awal kota + 5 kafe contoh (0010 menambah kota besar se-Jawa)
 src/app/               halaman (beranda, kafe, kota, peta, harga, akun, masuk, admin)
 src/app/api/           checkout & webhook Midtrans, cron pengingat
 src/components/        komponen UI, peta, editor admin (foto & menu)

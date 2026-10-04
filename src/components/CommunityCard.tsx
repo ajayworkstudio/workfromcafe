@@ -23,7 +23,7 @@ export default function CommunityCard({ url, variant = "wide" }: { url: string; 
           <p className="text-sm font-semibold uppercase tracking-wider text-tan">Komunitas</p>
           <h2 className="mt-2 text-3xl font-bold leading-tight md:text-4xl">Gabung bareng WFC Hunters &amp; Author.</h2>
           <p className="mt-3 max-w-md text-white/70">
-            Tempat ngobrol para pemburu kafe kerja di Jawa Tengah: tukar rekomendasi, cari teman kerja bareng, dan dapat kabar kafe baru lebih dulu.
+            Tempat ngobrol para pemburu kafe kerja di kota-kota Pulau Jawa: tukar rekomendasi, cari teman kerja bareng, dan dapat kabar kafe baru lebih dulu.
           </p>
         </div>
         <div className="md:text-right">

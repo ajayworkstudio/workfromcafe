@@ -8,9 +8,9 @@ import { APP_NAME, SITE_URL } from "@/lib/utils";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: `${APP_NAME} — Kafe untuk kerja di Jawa Tengah`, template: `%s | ${APP_NAME}` },
+  title: { default: `${APP_NAME} — Kafe untuk kerja di Pulau Jawa`, template: `%s | ${APP_NAME}` },
   description:
-    "Koleksi kafe pilihan di Semarang, Solo, Purwokerto, Magelang dan kota lain di Jawa Tengah, lengkap dengan menu yang wajib dicoba.",
+    "Koleksi kafe pilihan untuk kerja di kota-kota besar Pulau Jawa: Jakarta, Bandung, Yogyakarta, Semarang, Solo, Surabaya, Malang, dan lainnya. Lengkap dengan penilaian kerja dan menu yang wajib dicoba.",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: APP_NAME, statusBarStyle: "default" },
   icons: { apple: "/icons/apple-touch-icon.png" },

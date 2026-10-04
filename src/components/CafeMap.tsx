@@ -1,12 +1,20 @@
 "use client";
 import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
+import { MAP_CENTER } from "@/lib/region";
 
 export type MapCafe = { slug: string; name: string; lat: number; lng: number; city: string; rating: number | null };
 
 export default function CafeMap({ cafes }: { cafes: MapCafe[] }) {
   return (
-    <MapContainer center={[-7.15, 110.14]} zoom={8} scrollWheelZoom className="h-full w-full">
+    <MapContainer
+      center={MAP_CENTER}
+      zoom={7}
+      bounds={cafes.length > 1 ? cafes.map((c) => [c.lat, c.lng] as [number, number]) : undefined}
+      boundsOptions={{ padding: [40, 40], maxZoom: 13 }}
+      scrollWheelZoom
+      className="h-full w-full"
+    >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

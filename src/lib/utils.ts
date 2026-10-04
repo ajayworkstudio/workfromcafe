@@ -27,7 +27,7 @@ export const DAYS: { key: DayKey; label: string }[] = [
   { key: "sun", label: "Minggu" },
 ];
 
-/** Waktu sekarang di zona Asia/Jakarta (WIB) — semua kota Jawa Tengah. */
+/** Waktu sekarang di zona Asia/Jakarta (WIB) — semua kota di Pulau Jawa. */
 function nowWIB() {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "Asia/Jakarta",

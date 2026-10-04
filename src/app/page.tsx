@@ -40,7 +40,7 @@ export default async function Home() {
             Kerja dari kafe mana hari ini?
           </h1>
           <p className="mt-5 max-w-xl text-lg text-ink/75">
-            {count ?? 0} kafe di Jawa Tengah yang sudah aku coba sendiri. Lengkap dengan colokan, wifi, dan menu yang layak dipesan.
+            {count ?? 0} kafe di kota-kota besar Pulau Jawa yang sudah dicoba langsung. Lengkap dengan colokan, wifi, dan menu yang layak dipesan.
           </p>
           <form action="/kafe" className="mt-8 flex max-w-xl items-center gap-2 rounded-full border border-line bg-surface p-1.5 pl-5 shadow-[0_8px_30px_-12px_rgba(20,26,23,.18)] focus-within:border-brand">
             <Icon name="search" className="h-5 w-5 shrink-0 text-muted" />
