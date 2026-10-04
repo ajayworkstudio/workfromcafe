@@ -14,6 +14,15 @@ function GoogleLogo() {
   );
 }
 
+function friendlyAuthError(msg: string) {
+  const m = msg.toLowerCase();
+  if (m.includes("rate limit")) return "Pendaftaran sedang ramai. Coba lagi dalam beberapa menit, atau pakai Masuk dengan Google.";
+  if (m.includes("already registered")) return "Email ini sudah terdaftar. Silakan masuk.";
+  if (m.includes("password")) return "Kata sandi minimal 6 karakter.";
+  if (m.includes("invalid") && m.includes("email")) return "Format email tidak valid.";
+  return msg;
+}
+
 /** Ubah ke true kalau login Google sudah diaktifkan di Supabase. */
 const GOOGLE_LOGIN_ENABLED = true;
 
@@ -55,7 +64,7 @@ export default function LoginForm({ next, initialMode = "login" }: { next: strin
       const { error } = await supabase.auth.signUp({
         email, password, options: { emailRedirectTo: `${redirectTo()}&src=email`, data: { full_name: name } },
       });
-      setMsg(error ? { type: "error", text: error.message } : { type: "info", text: `Link konfirmasi sudah dikirim ke ${email}. Buka email itu (cek juga folder Spam), lalu klik link-nya untuk mengaktifkan akun.` });
+      setMsg(error ? { type: "error", text: friendlyAuthError(error.message) } : { type: "info", text: `Link konfirmasi sudah dikirim ke ${email}. Buka email itu (cek juga folder Spam), lalu klik link-nya untuk mengaktifkan akun.` });
     }
     setLoading(false);
   }
