@@ -194,7 +194,7 @@ export default async function CafeDetailPage({ params }: { params: P }) {
           ) : (
             <section className="mt-12 rounded-3xl bg-ink p-7 text-white md:p-9">
               <Icon name="lock" className="h-6 w-6 text-gold" />
-              <h2 className="mt-4 text-2xl font-bold md:text-3xl">Ulasan lengkap dan menu yang layak dipesan</h2>
+              <h2 className="mt-4 text-2xl font-bold md:text-3xl">Ulasan lengkap dan menu rekomendasi</h2>
               <p className="mt-2 max-w-md text-white/70">
                 Termasuk meja terbaik untuk kerja dan jam paling sepi. {settings.trial_days > 0 && !viewer.user ? `Daftar sekarang dan coba gratis ${settings.trial_days} hari.` : `Member gratis bisa membuka ${settings.free_unlock_limit_per_month} kafe setiap bulan.`}
               </p>
