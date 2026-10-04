@@ -3,11 +3,15 @@ import Image from "next/image";
 import type { Cafe } from "@/lib/types";
 import { coverUrl, isOpenNow, priceLabel } from "@/lib/utils";
 import Icon from "./Icon";
+import { averageScore } from "@/lib/review";
 
 export default function CafeCard({ cafe }: { cafe: Cafe }) {
   const cover = coverUrl(cafe);
   const open = isOpenNow(cafe.opening_hours);
   const tagNames = (cafe.tags ?? []).map((t) => t.tag?.name);
+  const rating = cafe.my_rating != null ? Number(cafe.my_rating) : averageScore(cafe.scores);
+  const hasWifi = tagNames.includes("Wifi") || cafe.amenities?.wifi === true;
+  const hasPlug = tagNames.includes("Colokan") || cafe.amenities?.colokan === true;
   const vibe = (cafe.tags ?? []).map((t) => t.tag).find((t) => t?.type === "vibe");
 
   return (
@@ -30,18 +34,18 @@ export default function CafeCard({ cafe }: { cafe: Cafe }) {
           <h3 className="truncate text-lg font-bold leading-snug">{cafe.name}</h3>
           <p className="text-sm text-muted">{[cafe.area, cafe.city?.name].filter(Boolean).join(", ")}</p>
         </div>
-        {cafe.my_rating != null && (
+        {rating != null && (
           <span className="flex shrink-0 items-center gap-1 text-sm font-semibold">
             <Icon name="star" filled className="h-4 w-4 text-gold" />
-            {Number(cafe.my_rating).toFixed(1)}
+            {rating.toFixed(1)}
           </span>
         )}
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         <span className="chip">{priceLabel(cafe.price_range)}</span>
         {vibe && <span className="chip">{vibe.name}</span>}
-        {tagNames.includes("Wifi") && <span className="chip" title="Wifi"><Icon name="wifi" className="h-3.5 w-3.5" />Wifi</span>}
-        {tagNames.includes("Colokan") && <span className="chip" title="Colokan"><Icon name="plug" className="h-3.5 w-3.5" />Colokan</span>}
+        {hasWifi && <span className="chip" title="Wifi"><Icon name="wifi" className="h-3.5 w-3.5" />Wifi</span>}
+        {hasPlug && <span className="chip" title="Colokan"><Icon name="plug" className="h-3.5 w-3.5" />Colokan</span>}
       </div>
     </Link>
   );

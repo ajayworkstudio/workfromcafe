@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getViewer } from "@/lib/auth";
 import { rupiah } from "@/lib/utils";
 import { getPlans, getSettings } from "@/lib/settings";
@@ -20,6 +21,7 @@ const PERKS = [
 
 export default async function PricingPage({ searchParams }: { searchParams: Promise<{ err?: string }> }) {
   const [viewer, PLANS, settings, { err }] = await Promise.all([getViewer(), getPlans(), getSettings(), searchParams]);
+  if (settings.free_mode) redirect("/kafe");
   const manual = settings.manual_payment_enabled;
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">

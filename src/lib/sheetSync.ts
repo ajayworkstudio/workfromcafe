@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { parseCoords } from "./coords";
 import { PRICE_RANGES, slugify } from "./utils";
 import type { DayKey, OpeningHours } from "./types";
+import { AMENITIES, ASPECTS, averageScore, cleanScore, parseAmenity, type Amenities, type Scores } from "./review";
 
 /*
   Sinkron data kafe dari spreadsheet (Google Sheets atau file .xlsx) ke database.
@@ -146,6 +147,12 @@ export async function syncWorkbook(db: SupabaseClient, data: ArrayBuffer | Buffe
   const tagByName = new Map((tags ?? []).map((t) => [t.name.toLowerCase(), t as { id: string; name: string; type: string }]));
   const slugByName = new Map<string, string>();
 
+  // Kolom penilaian & fasilitas baru ada setelah migrasi 0007
+  const { error: reviewColErr } = await db.from("cafes").select("scores,amenities").limit(1);
+  const hasReviewCols = !reviewColErr;
+  const usesReviewCols = cafeRows.some((r) => Object.keys(r).some((k) => (k.startsWith("nilai_") || k.startsWith("ada_") || k.startsWith("catatan_")) && r[k]));
+  if (!hasReviewCols && usesReviewCols) report.warnings.push("Kolom nilai_… / ada_… dilewati: jalankan dulu migrasi 0007_penilaian_fasilitas_gratis.sql di Supabase.");
+
   async function ensureCity(name: string, lat: number | null, lng: number | null) {
     const key = name.toLowerCase();
     const hit = cityByName.get(key);
@@ -186,7 +193,9 @@ export async function syncWorkbook(db: SupabaseClient, data: ArrayBuffer | Buffe
     }
 
     const city = await ensureCity(r.kota, lat, lng);
-    const { data: existing } = await db.from("cafes").select("id,opening_hours,is_published").eq("slug", slug).maybeSingle();
+    const { data: existing } = await db.from("cafes")
+      .select(hasReviewCols ? "id,opening_hours,is_published,my_rating,scores,amenities" : "id,opening_hours,is_published,my_rating")
+      .eq("slug", slug).maybeSingle() as { data: { id: string; opening_hours: OpeningHours; is_published: boolean; my_rating: number | null; scores?: Scores; amenities?: Amenities } | null };
 
     // Hanya kolom yang terisi yang dikirim
     const fields: Record<string, unknown> = { name, slug, city_id: city.id };
@@ -216,6 +225,41 @@ export async function syncWorkbook(db: SupabaseClient, data: ArrayBuffer | Buffe
       else if (r[col]) report.warnings.push(`Baris ${line} (${name}): jam ${col} "${r[col]}" tidak terbaca. Contoh: 08:00-22:00, 24 jam, Tutup.`);
     }
     if (hoursChanged) fields.opening_hours = hours;
+
+    // Penilaian per aspek (nilai_internet, catatan_internet, …) & fasilitas (ada_wifi, …)
+    if (hasReviewCols) {
+      const oldScores: Scores = existing?.scores ?? {};
+      const scores: Scores = { ...oldScores, notes: { ...(oldScores.notes ?? {}) } };
+      let scoresChanged = false;
+      for (const a of ASPECTS) {
+        const raw = r[`nilai_${a.key}`];
+        if (raw) {
+          const v = cleanScore(raw);
+          if (v == null) report.warnings.push(`Baris ${line} (${name}): nilai_${a.key} "${raw}" harus angka 1–5.`);
+          else { scores[a.key] = v; scoresChanged = true; }
+        }
+        const note = r[`catatan_${a.key}`];
+        if (note) { scores.notes![a.key] = note.slice(0, 90); scoresChanged = true; }
+      }
+      if (scoresChanged) {
+        fields.scores = scores;
+        // Rating keseluruhan otomatis kalau kolom rating kosong dan rating lama juga otomatis/kosong
+        const oldAvg = averageScore(oldScores);
+        const auto = averageScore(scores);
+        const wasAuto = existing?.my_rating == null || (oldAvg != null && Math.abs(Number(existing.my_rating) - Math.round(oldAvg * 10) / 10) < 0.05);
+        if (rating == null && wasAuto && auto != null) fields.my_rating = Math.round(auto * 10) / 10;
+      }
+
+      const amenities: Amenities = { ...(existing?.amenities ?? {}) };
+      let amenitiesChanged = false;
+      for (const m of AMENITIES) {
+        const v = parseAmenity(r[`ada_${m.key}`]);
+        if (v === undefined) continue;
+        if (v === null) delete amenities[m.key]; else amenities[m.key] = v;
+        amenitiesChanged = true;
+      }
+      if (amenitiesChanged) fields.amenities = amenities;
+    }
 
     let cafeId: string;
     if (existing) {

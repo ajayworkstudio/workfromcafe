@@ -4,6 +4,10 @@ import { PRICE_RANGES } from "@/lib/utils";
 import SubmitButton from "./SubmitButton";
 import CoordinateInput from "./CoordinateInput";
 import OpeningHoursInput from "./OpeningHoursInput";
+import Icon from "@/components/Icon";
+import { AMENITIES, ASPECTS, averageScore, cleanScore } from "@/lib/review";
+
+const SCORE_OPTIONS = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
 
 function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
   return (
@@ -21,6 +25,9 @@ export default function CafeForm({
   return (
     <form action={saveCafe} className="space-y-5">
       {cafe && <input type="hidden" name="id" value={cafe.id} />}
+      {cafe && averageScore(cafe.scores) != null && (
+        <input type="hidden" name="prev_avg" value={Math.round(averageScore(cafe.scores)! * 10) / 10} />
+      )}
 
       <Section title="Info dasar" description="Terlihat oleh semua pengunjung.">
         <div className="grid gap-4 md:grid-cols-2">
@@ -59,7 +66,11 @@ export default function CafeForm({
 
       <Section title="Penilaian" description="Rating dan status tayang.">
         <div className="grid gap-4 md:grid-cols-3">
-          <div><label htmlFor="my_rating" className="label">Rating (0–5)</label><input id="my_rating" name="my_rating" type="number" step="0.1" min="0" max="5" defaultValue={cafe?.my_rating ?? ""} className="input" /></div>
+          <div>
+            <label htmlFor="my_rating" className="label">Rating keseluruhan (0–5)</label>
+            <input id="my_rating" name="my_rating" type="number" step="0.1" min="0" max="5" defaultValue={cafe?.my_rating ?? ""} placeholder="Otomatis" className="input" />
+            <p className="mt-1 text-xs text-muted">Kosongkan supaya dihitung dari rata-rata penilaian kerja di bawah.</p>
+          </div>
           <div><label htmlFor="visited_at" className="label">Tanggal kunjungan</label><input id="visited_at" name="visited_at" type="date" defaultValue={cafe?.visited_at ?? ""} className="input" /></div>
           <div><label htmlFor="slug" className="label">Alamat halaman</label><input id="slug" name="slug" defaultValue={cafe?.slug} placeholder="Otomatis dari nama" className="input" /></div>
         </div>
@@ -69,7 +80,54 @@ export default function CafeForm({
         </div>
       </Section>
 
-      <Section title="Konten khusus pelanggan" description="Hanya terlihat oleh pelanggan dan member yang membuka kafe ini.">
+      <Section title="Penilaian kerja" description="Nilai 1–5 untuk tiap aspek. Keterangan otomatis muncul sesuai nilai, atau tulis catatanmu sendiri.">
+        <div className="divide-y divide-line">
+          {ASPECTS.map((a) => {
+            const v = cleanScore(cafe?.scores?.[a.key]);
+            return (
+              <div key={a.key} className="grid gap-2 py-3 first:pt-0 last:pb-0 sm:grid-cols-[190px_110px_1fr] sm:items-center sm:gap-3">
+                <label htmlFor={`score_${a.key}`} className="flex items-center gap-2.5 text-sm font-semibold">
+                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand-soft text-brand"><Icon name={a.icon} className="h-4 w-4" /></span>
+                  {a.label}
+                </label>
+                <select id={`score_${a.key}`} name={`score_${a.key}`} defaultValue={v ?? ""} className="input !py-2">
+                  <option value="">Belum dinilai</option>
+                  {SCORE_OPTIONS.map((n) => <option key={n} value={n}>{n.toString().replace(".", ",")}</option>)}
+                </select>
+                <input name={`note_${a.key}`} defaultValue={cafe?.scores?.notes?.[a.key] ?? ""} aria-label={`Catatan ${a.label}`}
+                  placeholder={a.levels[3][1]} maxLength={90} className="input !py-2" />
+              </div>
+            );
+          })}
+        </div>
+      </Section>
+
+      <Section title="Fasilitas" description="Pilih Ada, Tidak, atau ? kalau belum kamu cek.">
+        <div className="grid gap-x-6 gap-y-2.5 sm:grid-cols-2">
+          {AMENITIES.map((m) => {
+            const v = cafe?.amenities?.[m.key];
+            const cur = v === true ? "ya" : v === false ? "tidak" : "";
+            return (
+              <fieldset key={m.key} className="flex items-center justify-between gap-3">
+                <legend className="sr-only">{m.label}</legend>
+                <span className="flex items-center gap-2 text-sm"><Icon name={m.icon} className="h-4 w-4 text-muted" />{m.label}</span>
+                <span className="flex shrink-0 overflow-hidden rounded-lg border border-line text-xs font-semibold">
+                  {[["ya", "Ada"], ["tidak", "Tidak"], ["", "?"]].map(([val, lbl]) => (
+                    <label key={val} className="cursor-pointer border-l border-line first:border-l-0">
+                      <input type="radio" name={`amenity_${m.key}`} value={val} defaultChecked={cur === val} className="peer sr-only" />
+                      <span className={`block px-2.5 py-1.5 peer-focus-visible:ring-2 peer-focus-visible:ring-brand ${
+                        val === "ya" ? "peer-checked:bg-ok peer-checked:text-white" : val === "tidak" ? "peer-checked:bg-[#b4533a] peer-checked:text-white" : "peer-checked:bg-tint"
+                      }`}>{lbl}</span>
+                    </label>
+                  ))}
+                </span>
+              </fieldset>
+            );
+          })}
+        </div>
+      </Section>
+
+      <Section title="Ulasan lengkap" description="Ulasan lengkap, tips, dan waktu terbaik. Saat mode gratis aktif, terlihat oleh semua orang.">
         <div className="space-y-4">
           <div><label htmlFor="full_review" className="label">Ulasan lengkap</label><textarea id="full_review" name="full_review" rows={6} defaultValue={details?.full_review ?? ""} className="input" /></div>
           <div className="grid gap-4 md:grid-cols-2">

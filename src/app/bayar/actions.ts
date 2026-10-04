@@ -12,6 +12,7 @@ export async function createManualPayment(formData: FormData) {
 
   const plan = String(formData.get("plan")) as Plan;
   const [plans, settings] = await Promise.all([getPlans(), getSettings()]);
+  if (settings.free_mode) redirect("/kafe");
   if (!plans[plan] || !settings.manual_payment_enabled) redirect("/harga");
 
   const admin = createAdminClient();

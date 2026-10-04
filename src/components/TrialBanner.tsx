@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { getViewer } from "@/lib/auth";
+import { getSettings } from "@/lib/settings";
 
 /** Pita tipis di bawah header untuk pengguna yang sedang trial. */
 export default async function TrialBanner() {
-  const v = await getViewer();
+  const [v, s] = await Promise.all([getViewer(), getSettings()]);
+  if (s.free_mode) return null;
   if (v.plan !== "trial" || !v.premiumUntil) return null;
   const days = Math.max(0, Math.ceil((new Date(v.premiumUntil).getTime() - Date.now()) / 864e5));
   return (

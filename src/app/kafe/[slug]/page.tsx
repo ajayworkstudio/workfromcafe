@@ -7,6 +7,8 @@ import { getViewer } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
 import Icon from "@/components/Icon";
 import PhotoGallery from "@/components/PhotoGallery";
+import CafeScorecard from "@/components/CafeScorecard";
+import { averageScore } from "@/lib/review";
 import { FavoriteButton, UnlockButton, VisitedButton } from "@/components/ActionButtons";
 import type { Cafe, CafeDetails, MenuItem } from "@/lib/types";
 import { CAFE_LIST_SELECT, DAYS, formatSlot, SITE_URL, coverUrl, isOpenNow, priceLabel, rupiah } from "@/lib/utils";
@@ -56,7 +58,9 @@ export default async function CafeDetailPage({ params }: { params: P }) {
 
   const d = details as CafeDetails | null;
   const items = (menu as MenuItem[] | null) ?? [];
-  const unlocked = !!d;
+  const free = settings.free_mode;
+  const unlocked = !!d || free;
+  const overall = cafe.my_rating != null ? Number(cafe.my_rating) : averageScore(cafe.scores);
   const photos = [...(cafe.photos ?? [])].sort((a, b) => Number(b.is_cover) - Number(a.is_cover) || a.sort_order - b.sort_order);
   const open = isOpenNow(cafe.opening_hours);
   const tags = (cafe.tags ?? []).map((t) => t.tag).filter(Boolean);
@@ -92,11 +96,11 @@ export default async function CafeDetailPage({ params }: { params: P }) {
           <h1 className="mt-2 text-4xl font-extrabold leading-[1.05] md:text-5xl">{cafe.name}</h1>
 
           <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
-            {cafe.my_rating != null && (
-              <span className="flex items-center gap-1.5 font-semibold">
+            {overall != null && (
+              <a href="#penilaian" className="flex items-center gap-1.5 font-semibold hover:text-brand">
                 <Icon name="star" filled className="h-4 w-4 text-gold" />
-                {Number(cafe.my_rating).toFixed(1)} <span className="font-normal text-muted">dari aku</span>
-              </span>
+                {overall.toFixed(1)} <span className="font-normal text-muted">dari aku</span>
+              </a>
             )}
             <span className="text-muted">{priceLabel(cafe.price_range)}</span>
             {open !== null && (
@@ -129,7 +133,9 @@ export default async function CafeDetailPage({ params }: { params: P }) {
             )}
           </div>
 
-          {/* ===== Konten premium ===== */}
+          <CafeScorecard scores={cafe.scores} amenities={cafe.amenities} overall={overall} visitedAt={cafe.visited_at} />
+
+          {/* ===== Konten premium (terbuka untuk semua saat mode gratis) ===== */}
           {unlocked ? (
             <>
               {d?.full_review && (
@@ -144,7 +150,7 @@ export default async function CafeDetailPage({ params }: { params: P }) {
                   {d?.best_time && <div className="rounded-2xl bg-brand-soft p-5"><p className="text-sm font-semibold text-brand">Waktu terbaik</p><p className="mt-1">{d.best_time}</p></div>}
                 </section>
               )}
-              <section className="mt-12">
+              {(items.length > 0 || !free) && <section className="mt-12">
                 <h2 className="text-2xl font-bold">Menu Rekomendasi</h2>
                 <ul className="mt-4 divide-y divide-line border-y border-line">
                   {items.map((m) => (
@@ -167,7 +173,7 @@ export default async function CafeDetailPage({ params }: { params: P }) {
                   ))}
                   {!items.length && <li className="py-4 text-muted">Menu belum ditambahkan.</li>}
                 </ul>
-              </section>
+              </section>}
             </>
           ) : (
             <section className="mt-12 rounded-3xl bg-ink p-7 text-white md:p-9">

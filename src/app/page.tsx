@@ -13,7 +13,8 @@ export const revalidate = 300;
 export default async function Home() {
   const supabase = await createClient();
   const [viewer, settings] = await Promise.all([getViewer(), getSettings()]);
-  const showTrial = !viewer.user && settings.trial_days > 0;
+  const free = settings.free_mode;
+  const showTrial = !free && !viewer.user && settings.trial_days > 0;
   const [{ data: cities }, { data: featured }, { data: latest }, { count }] = await Promise.all([
     supabase.from("cities").select("*").eq("is_active", true).order("name"),
     supabase.from("cafes").select(CAFE_LIST_SELECT).eq("is_featured", true).order("visited_at", { ascending: false }).limit(6),
@@ -45,6 +46,12 @@ export default async function Home() {
             <input name="q" aria-label="Cari kafe" placeholder="Cari nama kafe atau area" className="min-w-0 flex-1 bg-transparent py-2 text-base outline-none placeholder:text-muted" />
             <button className="btn-primary shrink-0">Cari</button>
           </form>
+          {free && (
+            <p className="mt-5 flex flex-wrap items-center gap-2 text-sm text-muted">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-ok/10 px-3 py-1 font-semibold text-ok"><Icon name="gift" className="h-4 w-4" />Gratis</span>
+              Semua ulasan, menu, dan peta terbuka tanpa langganan.
+            </p>
+          )}
           {showTrial && (
             <p className="mt-5 flex flex-wrap items-center gap-3 text-sm">
               <Link href="/masuk?daftar=1" className="btn-dark !py-2"><Icon name="gift" className="h-4 w-4" />Coba gratis {settings.trial_days} hari</Link>
@@ -90,11 +97,15 @@ export default async function Home() {
           <div>
             <h2 className="text-3xl font-bold md:text-4xl">Tahu mau pesan apa sebelum sampai.</h2>
             <p className="mt-3 max-w-md text-white/75">
-              Pelanggan bisa membaca ulasan lengkap, menu yang wajib dicoba, meja terbaik untuk kerja, dan peta semua kafe.
+              {free
+                ? "Baca penilaian kerja, ulasan lengkap, menu yang wajib dicoba, dan lihat peta semua kafe. Semuanya gratis."
+                : "Pelanggan bisa membaca ulasan lengkap, menu yang wajib dicoba, meja terbaik untuk kerja, dan peta semua kafe."}
             </p>
           </div>
           <div className="md:text-right">
-            {showTrial
+            {free
+              ? <Link href="/peta" className="btn bg-white text-brand hover:bg-brand-soft"><Icon name="map" className="h-4 w-4" />Buka peta kafe</Link>
+              : showTrial
               ? <Link href="/masuk?daftar=1" className="btn bg-white text-brand hover:bg-brand-soft">Coba gratis {settings.trial_days} hari</Link>
               : <Link href="/harga" className="btn bg-white text-brand hover:bg-brand-soft">Lihat harga langganan</Link>}
           </div>

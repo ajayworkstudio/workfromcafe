@@ -1,3 +1,5 @@
+import type { Amenities, Scores } from "./review";
+
 export type City = {
   id: string;
   name: string;
@@ -34,6 +36,8 @@ export type Cafe = {
   created_at: string;
   menu_url?: string | null;
   instagram?: string | null;
+  scores?: Scores | null;
+  amenities?: Amenities | null;
   city?: City;
   photos?: Photo[];
   tags?: { tag: Tag }[];

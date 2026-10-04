@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import { DAYS, slugify } from "@/lib/utils";
 import type { OpeningHours } from "@/lib/types";
+import { AMENITIES, ASPECTS, averageScore, cleanScore, parseAmenity, type Amenities, type Scores } from "@/lib/review";
 
 const str = (f: FormData, k: string) => ((f.get(k) as string) ?? "").trim() || null;
 
@@ -22,6 +23,20 @@ export async function saveCafe(formData: FormData) {
     hours[key] = m ? [m[1], m[2]] : null;
   }
 
+  const scores: Scores = { notes: {} };
+  for (const a of ASPECTS) {
+    const v = cleanScore(str(formData, `score_${a.key}`));
+    if (v != null) scores[a.key] = v;
+    const note = str(formData, `note_${a.key}`);
+    if (note) scores.notes![a.key] = note.slice(0, 90);
+  }
+  const amenities: Amenities = {};
+  for (const m of AMENITIES) {
+    const v = parseAmenity(str(formData, `amenity_${m.key}`));
+    if (typeof v === "boolean") amenities[m.key] = v;
+  }
+  const avg = averageScore(scores);
+
   const cafe = {
     name,
     slug: slugify(str(formData, "slug") || name),
@@ -31,7 +46,16 @@ export async function saveCafe(formData: FormData) {
     lat: num("lat"),
     lng: num("lng"),
     price_range: Number(formData.get("price_range") || 2),
-    my_rating: num("my_rating"),
+    // Rating keseluruhan: isian manual menang; kosong (atau masih sama dengan rata-rata lama) = rata-rata baru
+    my_rating: (() => {
+      const manual = num("my_rating");
+      const prev = num("prev_avg");
+      const auto = avg != null ? Math.round(avg * 10) / 10 : null;
+      if (manual == null || (prev != null && Math.abs(manual - prev) < 0.05)) return auto ?? manual;
+      return manual;
+    })(),
+    scores,
+    amenities,
     short_review: str(formData, "short_review"),
     menu_url: str(formData, "menu_url"),
     instagram: str(formData, "instagram")?.replace(/^@/, "").replace(/^https?:\/\/(www\.)?instagram\.com\//, "").replace(/\/.*$/, "") ?? null,
@@ -70,6 +94,7 @@ export async function saveCafe(formData: FormData) {
 }
 
 function friendly(msg: string) {
+  if (/scores|amenities/.test(msg) && /column/.test(msg)) return "Database belum diperbarui. Jalankan migrasi 0007_penilaian_fasilitas_gratis.sql di Supabase SQL Editor.";
   if (msg.includes("cafes_slug_key")) return "Slug URL sudah dipakai kafe lain. Ganti nama atau slug-nya.";
   return msg;
 }

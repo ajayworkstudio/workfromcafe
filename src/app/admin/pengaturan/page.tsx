@@ -30,13 +30,37 @@ async function saveSettings(formData: FormData) {
   redirect(error ? `/admin/pengaturan?err=${encodeURIComponent(error.message)}` : `/admin/pengaturan?ok=${encodeURIComponent("Pengaturan disimpan. Langsung berlaku untuk pembayaran berikutnya.")}`);
 }
 
+async function saveFreeMode(formData: FormData) {
+  "use server";
+  await requireAdmin();
+  const supabase = await createClient();
+  const on = formData.get("free_mode") === "on";
+  const { error } = await supabase.from("app_settings").upsert({ key: "free_mode", value: on ? "true" : "false" });
+  revalidatePath("/", "layout");
+  redirect(error
+    ? `/admin/pengaturan?err=${encodeURIComponent(error.message)}`
+    : `/admin/pengaturan?ok=${encodeURIComponent(on ? "Mode gratis aktif. Semua konten terbuka untuk semua orang." : "Mode langganan aktif. Halaman harga, trial, dan kunci konten muncul lagi.")}`);
+}
+
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ ok?: string; err?: string }> }) {
   const [sp, s] = await Promise.all([searchParams, getSettings()]);
   return (
     <>
       <PageHeader title="Pengaturan" description="Harga dan kuota bisa diubah kapan saja tanpa deploy ulang." />
       <Flash ok={sp.ok} err={sp.err} />
-      <form action={saveSettings} className="max-w-xl space-y-5">
+      <form action={saveFreeMode} className="card mb-5 max-w-xl space-y-4 p-5 md:p-6">
+        <h2 className="text-lg font-bold">Mode aplikasi</h2>
+        <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-line px-4 py-3 has-[:checked]:border-brand has-[:checked]:bg-brand-soft">
+          <input type="checkbox" name="free_mode" defaultChecked={s.free_mode} className="h-4 w-4 accent-brand" />
+          <span>
+            <span className="block text-sm font-semibold">Semua fitur gratis</span>
+            <span className="block text-xs text-muted">Ulasan lengkap, menu, dan peta terbuka untuk semua orang. Halaman harga, trial, dan tombol langganan disembunyikan.</span>
+          </span>
+        </label>
+        <SubmitButton>Simpan mode</SubmitButton>
+      </form>
+      <form action={saveSettings} className={`max-w-xl space-y-5 ${s.free_mode ? "opacity-60" : ""}`}>
+        {s.free_mode && <p className="text-sm text-muted">Pengaturan di bawah baru dipakai lagi saat mode gratis dimatikan.</p>}
         <section className="card space-y-4 p-5 md:p-6">
           <h2 className="text-lg font-bold">Harga langganan</h2>
           <div className="grid gap-4 sm:grid-cols-2">

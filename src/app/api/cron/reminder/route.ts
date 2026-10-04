@@ -24,6 +24,10 @@ export async function GET(req: Request) {
     .eq("status", "active")
     .lt("end_date", now.toISOString());
 
+  // Mode gratis: tidak perlu mengirim pengingat perpanjangan
+  const { data: freeRow } = await admin.from("app_settings").select("value").eq("key", "free_mode").maybeSingle();
+  const freeMode = (freeRow?.value ?? "true") === "true";
+
   const in3 = new Date(now.getTime() + 3 * 864e5);
   const in4 = new Date(now.getTime() + 4 * 864e5);
   const { data: soon } = await admin
@@ -35,7 +39,7 @@ export async function GET(req: Request) {
     .lt("end_date", in4.toISOString());
 
   let sent = 0;
-  for (const sub of soon ?? []) {
+  for (const sub of freeMode ? [] : soon ?? []) {
     // Lewati jika pengguna sudah memperpanjang (ada langganan lain yang berakhir lebih lama)
     const { count } = await admin.from("subscriptions").select("id", { count: "exact", head: true })
       .eq("user_id", sub.user_id).eq("status", "active").gt("end_date", sub.end_date);

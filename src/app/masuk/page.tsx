@@ -10,7 +10,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     <div className="mx-auto grid min-h-[calc(100dvh-4rem)] max-w-md content-center px-4 py-12">
       <h1 className="text-4xl font-extrabold">{daftar ? "Daftar" : "Masuk"}</h1>
       <p className="mt-2 text-muted">
-        {settings.trial_days > 0
+        {settings.free_mode
+          ? "Gratis. Simpan kafe favorit dan tandai kafe yang sudah kamu datangi."
+          : settings.trial_days > 0
           ? `Akun baru langsung dapat akses penuh gratis ${settings.trial_days} hari. Tanpa bayar, tanpa kartu.`
           : `Simpan kafe favorit dan buka ${settings.free_unlock_limit_per_month} ulasan lengkap gratis setiap bulan.`}
       </p>

@@ -6,7 +6,7 @@ import { getViewer } from "@/lib/auth";
 import CafeCard from "@/components/CafeCard";
 import type { Cafe } from "@/lib/types";
 import { CAFE_LIST_SELECT, rupiah } from "@/lib/utils";
-import { PLAN_META } from "@/lib/settings";
+import { PLAN_META, getSettings } from "@/lib/settings";
 
 export const metadata: Metadata = { title: "Akun saya" };
 
@@ -19,7 +19,7 @@ async function logout() {
 
 export default async function AccountPage({ searchParams }: { searchParams: Promise<{ bayar?: string; terkonfirmasi?: string }> }) {
   const { bayar, terkonfirmasi } = await searchParams;
-  const viewer = await getViewer();
+  const [viewer, settings] = await Promise.all([getViewer(), getSettings()]);
   if (!viewer.user) redirect("/masuk?next=/akun");
   const supabase = await createClient();
 
@@ -35,7 +35,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
     <div className="mx-auto max-w-5xl px-4 py-10">
       {terkonfirmasi && (
         <p className="mb-6 rounded-xl bg-ok/10 p-4 text-sm text-ok">
-          Email berhasil dikonfirmasi dan kamu sudah otomatis masuk.{viewer.plan === "trial" ? " Trial gratis sudah aktif, selamat menjelajah." : ""}
+          Email berhasil dikonfirmasi dan kamu sudah otomatis masuk.{viewer.plan === "trial" ? " Selamat menjelajah." : ""}
         </p>
       )}
       {bayar === "selesai" && (
@@ -54,7 +54,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         </div>
       </div>
 
-      <div className="card mt-6 flex flex-wrap items-center gap-4 p-5">
+      {!settings.free_mode && <div className="card mt-6 flex flex-wrap items-center gap-4 p-5">
         {viewer.isPremium ? (
           <>
             <div className="flex-1">
@@ -77,7 +77,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
             <Link href="/harga" className="btn-primary">Upgrade ke premium</Link>
           </>
         )}
-      </div>
+      </div>}
 
       <h2 className="mt-10 font-display text-2xl font-bold">Kafe favorit</h2>
       <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

@@ -2,15 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/auth";
+import { getSettings } from "@/lib/settings";
 import Icon from "@/components/Icon";
 import CafeMapLoader from "@/components/CafeMapLoader";
 
 export const metadata: Metadata = { title: "Peta kafe" };
 
 export default async function MapPage() {
-  const viewer = await getViewer();
+  const [viewer, settings] = await Promise.all([getViewer(), getSettings()]);
 
-  if (!viewer.isPremium && !viewer.isAdmin) {
+  if (!settings.free_mode && !viewer.isPremium && !viewer.isAdmin) {
     return (
       <div className="mx-auto max-w-xl px-4 py-20 text-center">
         <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-brand-soft text-brand"><Icon name="map" className="h-7 w-7" /></div>
