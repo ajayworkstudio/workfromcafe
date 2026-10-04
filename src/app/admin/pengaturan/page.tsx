@@ -35,7 +35,15 @@ async function saveFreeMode(formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
   const on = formData.get("free_mode") === "on";
-  const { error } = await supabase.from("app_settings").upsert({ key: "free_mode", value: on ? "true" : "false" });
+  const community = String(formData.get("community_url") || "").trim();
+  if (community && !/^https:\/\/(chat\.whatsapp\.com|wa\.me|whatsapp\.com)\//.test(community))
+    redirect(`/admin/pengaturan?err=${encodeURIComponent("Link komunitas harus link WhatsApp, contoh: https://chat.whatsapp.com/…")}`);
+  // Buang parameter pelacak (?utm_…, fbclid) dari link yang disalin dari Instagram
+  const cleanCommunity = community ? community.split("?")[0] : "";
+  const { error } = await supabase.from("app_settings").upsert([
+    { key: "free_mode", value: on ? "true" : "false" },
+    { key: "community_url", value: cleanCommunity },
+  ]);
   revalidatePath("/", "layout");
   redirect(error
     ? `/admin/pengaturan?err=${encodeURIComponent(error.message)}`
@@ -49,7 +57,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       <PageHeader title="Pengaturan" description="Harga dan kuota bisa diubah kapan saja tanpa deploy ulang." />
       <Flash ok={sp.ok} err={sp.err} />
       <form action={saveFreeMode} className="card mb-5 max-w-xl space-y-4 p-5 md:p-6">
-        <h2 className="text-lg font-bold">Mode aplikasi</h2>
+        <h2 className="text-lg font-bold">Mode aplikasi &amp; komunitas</h2>
         <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-line px-4 py-3 has-[:checked]:border-brand has-[:checked]:bg-brand-soft">
           <input type="checkbox" name="free_mode" defaultChecked={s.free_mode} className="h-4 w-4 accent-brand" />
           <span>
@@ -57,7 +65,12 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             <span className="block text-xs text-muted">Ulasan lengkap, menu, dan peta terbuka untuk semua orang. Halaman harga, trial, dan tombol langganan disembunyikan.</span>
           </span>
         </label>
-        <SubmitButton>Simpan mode</SubmitButton>
+        <div>
+          <label htmlFor="community_url" className="label">Link komunitas WhatsApp</label>
+          <input id="community_url" name="community_url" type="url" defaultValue={s.community_url} placeholder="https://chat.whatsapp.com/…" className="input" />
+          <p className="mt-1.5 text-xs text-muted">Tampil di header, beranda, halaman Jadi author, Akun, dan footer. Kosongkan untuk menyembunyikan.</p>
+        </div>
+        <SubmitButton>Simpan</SubmitButton>
       </form>
       <form action={saveSettings} className={`max-w-xl space-y-5 ${s.free_mode ? "opacity-60" : ""}`}>
         {s.free_mode && <p className="text-sm text-muted">Pengaturan di bawah baru dipakai lagi saat mode gratis dimatikan.</p>}

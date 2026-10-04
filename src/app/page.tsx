@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import CafeCard from "@/components/CafeCard";
+import CommunityCard from "@/components/CommunityCard";
 import Icon from "@/components/Icon";
 import type { Cafe, City } from "@/lib/types";
 import { CAFE_LIST_SELECT } from "@/lib/utils";
@@ -104,6 +105,12 @@ export default async function Home() {
           <span className="btn-dark">Kirim rekomendasi</span>
         </Link>
       </section>
+
+      {settings.community_url && (
+        <section className="mx-auto max-w-6xl px-4 pt-5">
+          <CommunityCard url={settings.community_url} />
+        </section>
+      )}
 
       <section className="mx-auto max-w-6xl px-4 pt-10">
         <div className="grid gap-6 overflow-hidden rounded-3xl bg-brand p-7 text-white md:grid-cols-[1.4fr_1fr] md:items-center md:p-10">

@@ -3,6 +3,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/auth";
 import Icon from "@/components/Icon";
+import CommunityCard from "@/components/CommunityCard";
+import { getSettings } from "@/lib/settings";
 import { STATUS_META, type Submission } from "@/lib/submission";
 import { withdrawSubmission } from "./actions";
 
@@ -18,7 +20,7 @@ const STEPS = [
 ];
 
 export default async function SubmissionsPage({ searchParams }: { searchParams: Promise<{ terkirim?: string }> }) {
-  const [{ terkirim }, viewer] = await Promise.all([searchParams, getViewer()]);
+  const [{ terkirim }, viewer, settings] = await Promise.all([searchParams, getViewer(), getSettings()]);
   let subs: (Submission & { cafe: { slug: string; is_published: boolean } | null })[] = [];
   if (viewer.user) {
     const supabase = await createClient();
@@ -66,6 +68,10 @@ export default async function SubmissionsPage({ searchParams }: { searchParams: 
           ))}
         </ol>
       </section>
+
+      {settings.community_url && (
+        <div className="mt-5"><CommunityCard url={settings.community_url} variant="compact" /></div>
+      )}
 
       {viewer.user && (
         <section className="mt-12">

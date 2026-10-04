@@ -14,9 +14,13 @@ export type Settings = {
   trial_days: number;
   sheet_url: string;
   sheet_last_sync: string;
+  /** Link grup/komunitas WhatsApp untuk author & WFC hunters ("" = sembunyikan) */
+  community_url: string;
   /** true = semua fitur gratis untuk semua orang; langganan, trial, dan halaman harga disembunyikan. */
   free_mode: boolean;
 };
+
+export const DEFAULT_COMMUNITY_URL = "https://chat.whatsapp.com/J08g0t98OCG3ZLNMz8SsgR";
 
 /** Pengaturan dari tabel app_settings (bisa diubah di Admin → Pengaturan). Fallback ke .env. */
 export const getSettings = cache(async (): Promise<Settings> => {
@@ -36,6 +40,7 @@ export const getSettings = cache(async (): Promise<Settings> => {
     trial_days: num("trial_days", 7),
     sheet_url: m.get("sheet_url") || "",
     sheet_last_sync: m.get("sheet_last_sync") || "",
+    community_url: m.has("community_url") ? (m.get("community_url") ?? "") : DEFAULT_COMMUNITY_URL,
     free_mode: (m.get("free_mode") ?? "true") === "true",
   };
 });

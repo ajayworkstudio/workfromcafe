@@ -6,6 +6,7 @@ import { getViewer } from "@/lib/auth";
 import CafeCard from "@/components/CafeCard";
 import Icon from "@/components/Icon";
 import ProfileEditor from "./ProfileEditor";
+import CommunityCard from "@/components/CommunityCard";
 import type { Cafe } from "@/lib/types";
 import { CAFE_LIST_SELECT, rupiah } from "@/lib/utils";
 import { PLAN_META, getSettings } from "@/lib/settings";
@@ -93,6 +94,8 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         </span>
         <span className="text-sm font-semibold text-brand">Buka →</span>
       </Link>
+
+      {settings.community_url && <div className="mt-3"><CommunityCard url={settings.community_url} variant="compact" /></div>}
 
       <h2 className="mt-10 font-display text-2xl font-bold">Kafe favorit</h2>
       <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
