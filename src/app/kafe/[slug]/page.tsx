@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
 import Icon from "@/components/Icon";
+import PhotoGallery from "@/components/PhotoGallery";
 import { FavoriteButton, UnlockButton, VisitedButton } from "@/components/ActionButtons";
 import type { Cafe, CafeDetails, MenuItem } from "@/lib/types";
 import { CAFE_LIST_SELECT, DAYS, formatSlot, SITE_URL, coverUrl, isOpenNow, priceLabel, rupiah } from "@/lib/utils";
@@ -80,20 +81,7 @@ export default async function CafeDetailPage({ params }: { params: P }) {
     <article className="mx-auto max-w-6xl px-4 pb-10 pt-6">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      {/* Galeri */}
-      <div className={`grid gap-2 ${photos.length >= 3 ? "md:grid-cols-[2fr_1fr]" : ""}`}>
-        <div className={`relative aspect-[4/3] overflow-hidden rounded-[var(--radius-photo)] bg-tint md:aspect-auto ${photos.length >= 3 ? "md:min-h-[420px]" : "md:h-[440px]"}`}>
-          {photos[0] ? <Image src={photos[0].url} alt={cafe.name} fill priority sizes="(max-width:768px) 100vw, 66vw" className="object-cover" />
-            : <div className="grid h-full place-items-center text-mist"><Icon name="cup" className="h-16 w-16" /></div>}
-        </div>
-        {photos.length >= 3 && <div className="hidden grid-rows-2 gap-2 md:grid">
-          {[1, 2].map((i) => (
-            <div key={i} className="relative overflow-hidden rounded-[var(--radius-photo)] bg-tint">
-              {photos[i] && <Image src={photos[i].url} alt="" fill sizes="33vw" className="object-cover" />}
-            </div>
-          ))}
-        </div>}
-      </div>
+      <PhotoGallery photos={photos.map((p) => ({ id: p.id, url: p.url }))} name={cafe.name} />
 
       <div className="mt-8 grid gap-10 md:grid-cols-[1fr_320px]">
         <div className="min-w-0">
