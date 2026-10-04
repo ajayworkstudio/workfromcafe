@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/auth";
 import CafeCard from "@/components/CafeCard";
+import Icon from "@/components/Icon";
 import type { Cafe } from "@/lib/types";
 import { CAFE_LIST_SELECT, rupiah } from "@/lib/utils";
 import { PLAN_META, getSettings } from "@/lib/settings";
@@ -78,6 +79,15 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           </>
         )}
       </div>}
+
+      <Link href="/kirim" className="card mt-6 flex items-center gap-4 p-5 transition-colors hover:border-brand">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon name="send" className="h-5 w-5" /></span>
+        <span className="flex-1">
+          <span className="block font-semibold">Rekomendasi kafe kamu</span>
+          <span className="block text-sm text-muted">Kirim kafe andalanmu dan pantau statusnya.</span>
+        </span>
+        <span className="text-sm font-semibold text-brand">Buka →</span>
+      </Link>
 
       <h2 className="mt-10 font-display text-2xl font-bold">Kafe favorit</h2>
       <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

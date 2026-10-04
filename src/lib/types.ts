@@ -38,6 +38,8 @@ export type Cafe = {
   instagram?: string | null;
   scores?: Scores | null;
   amenities?: Amenities | null;
+  contributor_name?: string | null;
+  contributor_instagram?: string | null;
   city?: City;
   photos?: Photo[];
   tags?: { tag: Tag }[];

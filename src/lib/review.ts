@@ -161,3 +161,21 @@ export function parseAmenity(v: string | null | undefined): boolean | null | und
 }
 
 export const hasAnyAmenity = (a: Amenities | null | undefined) => !!a && AMENITIES.some((m) => typeof a[m.key] === "boolean");
+
+/** Baca isian ScoreFields & AmenityFields dari FormData. */
+export function reviewFromForm(f: FormData): { scores: Scores; amenities: Amenities } {
+  const get = (k: string) => String(f.get(k) ?? "").trim();
+  const scores: Scores = { notes: {} };
+  for (const a of ASPECTS) {
+    const v = cleanScore(get(`score_${a.key}`));
+    if (v != null) scores[a.key] = v;
+    const note = get(`note_${a.key}`);
+    if (note) scores.notes![a.key] = note.slice(0, 90);
+  }
+  const amenities: Amenities = {};
+  for (const m of AMENITIES) {
+    const v = parseAmenity(get(`amenity_${m.key}`));
+    if (typeof v === "boolean") amenities[m.key] = v;
+  }
+  return { scores, amenities };
+}

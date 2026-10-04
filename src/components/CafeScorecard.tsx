@@ -22,8 +22,8 @@ export function Stars({ value, className = "h-4 w-4" }: { value: number; classNa
 }
 
 export default function CafeScorecard({
-  scores, amenities, overall, visitedAt,
-}: { scores?: Scores | null; amenities?: Amenities | null; overall: number | null; visitedAt?: string | null }) {
+  scores, amenities, overall, visitedAt, byContributor,
+}: { scores?: Scores | null; amenities?: Amenities | null; overall: number | null; visitedAt?: string | null; byContributor?: string | null }) {
   const aspects = filledAspects(scores);
   const showAmenities = hasAnyAmenity(amenities);
   if (!aspects.length && !showAmenities) return null;
@@ -33,7 +33,9 @@ export default function CafeScorecard({
   return (
     <section className="mt-12" aria-labelledby="penilaian">
       <h2 id="penilaian" className="text-2xl font-bold">Cocok buat kerja?</h2>
-      <p className="mt-1 text-sm text-muted">Aku nilai langsung saat duduk dan kerja di sini{visited ? `, terakhir ${visited}` : ""}.</p>
+      <p className="mt-1 text-sm text-muted">
+        {byContributor ? `Dinilai oleh ${byContributor} saat kerja di sini` : "Aku nilai langsung saat duduk dan kerja di sini"}{visited ? `, terakhir ${visited}` : ""}.
+      </p>
 
       {!!aspects.length && (
         <div className="mt-5 overflow-hidden rounded-3xl border border-line bg-surface">

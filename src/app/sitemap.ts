@@ -8,6 +8,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base: MetadataRoute.Sitemap = [
     { url: SITE_URL, changeFrequency: "daily", priority: 1 },
     { url: `${SITE_URL}/kafe`, changeFrequency: "daily" },
+    { url: `${SITE_URL}/kirim`, changeFrequency: "monthly" },
   ];
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return base;
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);

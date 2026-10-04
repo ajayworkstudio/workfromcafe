@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import { DAYS, slugify } from "@/lib/utils";
 import type { OpeningHours } from "@/lib/types";
-import { AMENITIES, ASPECTS, averageScore, cleanScore, parseAmenity, type Amenities, type Scores } from "@/lib/review";
+import { averageScore, reviewFromForm } from "@/lib/review";
 
 const str = (f: FormData, k: string) => ((f.get(k) as string) ?? "").trim() || null;
 
@@ -23,18 +23,7 @@ export async function saveCafe(formData: FormData) {
     hours[key] = m ? [m[1], m[2]] : null;
   }
 
-  const scores: Scores = { notes: {} };
-  for (const a of ASPECTS) {
-    const v = cleanScore(str(formData, `score_${a.key}`));
-    if (v != null) scores[a.key] = v;
-    const note = str(formData, `note_${a.key}`);
-    if (note) scores.notes![a.key] = note.slice(0, 90);
-  }
-  const amenities: Amenities = {};
-  for (const m of AMENITIES) {
-    const v = parseAmenity(str(formData, `amenity_${m.key}`));
-    if (typeof v === "boolean") amenities[m.key] = v;
-  }
+  const { scores, amenities } = reviewFromForm(formData);
   const avg = averageScore(scores);
 
   const cafe = {

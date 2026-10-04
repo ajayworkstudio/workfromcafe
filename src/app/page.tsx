@@ -92,7 +92,20 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 pt-20">
+      <section className="mx-auto max-w-6xl px-4 pt-16">
+        <Link href="/kirim" className="group flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-line bg-surface p-6 transition-colors hover:border-brand md:p-8">
+          <span className="flex items-center gap-4">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-soft text-brand"><Icon name="send" className="h-6 w-6" /></span>
+            <span>
+              <span className="block text-xl font-bold md:text-2xl">Punya kafe andalan buat kerja?</span>
+              <span className="block text-muted">Kirim rekomendasimu dan tampil sebagai author.</span>
+            </span>
+          </span>
+          <span className="btn-dark">Kirim rekomendasi</span>
+        </Link>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pt-10">
         <div className="grid gap-6 overflow-hidden rounded-3xl bg-brand p-7 text-white md:grid-cols-[1.4fr_1fr] md:items-center md:p-10">
           <div>
             <h2 className="text-3xl font-bold md:text-4xl">Tahu mau pesan apa sebelum sampai.</h2>

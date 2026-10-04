@@ -99,7 +99,7 @@ export default async function CafeDetailPage({ params }: { params: P }) {
             {overall != null && (
               <a href="#penilaian" className="flex items-center gap-1.5 font-semibold hover:text-brand">
                 <Icon name="star" filled className="h-4 w-4 text-gold" />
-                {overall.toFixed(1)} <span className="font-normal text-muted">dari aku</span>
+                {overall.toFixed(1)} <span className="font-normal text-muted">{cafe.contributor_name ? `dari ${cafe.contributor_name.split(" ")[0]}` : "dari aku"}</span>
               </a>
             )}
             <span className="text-muted">{priceLabel(cafe.price_range)}</span>
@@ -133,7 +133,7 @@ export default async function CafeDetailPage({ params }: { params: P }) {
             )}
           </div>
 
-          <CafeScorecard scores={cafe.scores} amenities={cafe.amenities} overall={overall} visitedAt={cafe.visited_at} />
+          <CafeScorecard scores={cafe.scores} amenities={cafe.amenities} overall={overall} visitedAt={cafe.visited_at} byContributor={cafe.contributor_name} />
 
           {/* ===== Konten premium (terbuka untuk semua saat mode gratis) ===== */}
           {unlocked ? (
@@ -218,6 +218,20 @@ export default async function CafeDetailPage({ params }: { params: P }) {
               </tbody>
             </table>
           </div>
+          {cafe.contributor_name && (
+            <div className="flex items-center gap-3 rounded-2xl bg-brand-soft p-4">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand font-semibold text-white">{cafe.contributor_name.charAt(0).toUpperCase()}</span>
+              <div className="min-w-0 text-sm">
+                <p className="text-muted">Direkomendasikan oleh</p>
+                <p className="truncate font-semibold">
+                  {cafe.contributor_name}
+                  {cafe.contributor_instagram && (
+                    <a href={`https://instagram.com/${cafe.contributor_instagram}`} target="_blank" rel="noopener" className="ml-1.5 font-normal text-brand hover:underline">@{cafe.contributor_instagram}</a>
+                  )}
+                </p>
+              </div>
+            </div>
+          )}
           {cafe.visited_at && (
             <p className="border-t border-line pt-4 text-sm text-muted">
               Terakhir aku datangi {new Date(cafe.visited_at).toLocaleDateString("id-ID", { month: "long", year: "numeric" })}.

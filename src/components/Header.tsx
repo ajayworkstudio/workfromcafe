@@ -19,6 +19,7 @@ export default async function Header() {
         <nav className="hidden items-center gap-1 text-sm font-medium text-muted md:flex">
           <Link href="/kafe" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Jelajah</Link>
           <Link href="/peta" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Peta</Link>
+          <Link href="/kirim" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Kirim kafe</Link>
           {!v.isPremium && !free && <Link href="/harga" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Harga</Link>}
           {v.isAdmin && <Link href="/admin" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Admin</Link>}
         </nav>
@@ -39,10 +40,11 @@ export default async function Header() {
     </header>
 
       {/* Navigasi bawah untuk HP — di luar <header> karena backdrop-blur membuat position:fixed ikut header */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] text-[11px] font-medium text-muted backdrop-blur-xl md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] text-[11px] font-medium text-muted backdrop-blur-xl md:hidden">
         {[
           { href: "/", icon: "home", label: "Beranda" },
           { href: "/kafe", icon: "search", label: "Jelajah" },
+          { href: "/kirim", icon: "send", label: "Kirim" },
           { href: "/peta", icon: "map", label: "Peta" },
           { href: v.user ? "/akun" : "/masuk", icon: "user", label: "Akun" },
         ].map((i) => (
