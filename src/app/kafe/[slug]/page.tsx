@@ -145,7 +145,7 @@ export default async function CafeDetailPage({ params }: { params: P }) {
                 </section>
               )}
               <section className="mt-12">
-                <h2 className="text-2xl font-bold">Yang layak dipesan</h2>
+                <h2 className="text-2xl font-bold">Menu Rekomendasi</h2>
                 <ul className="mt-4 divide-y divide-line border-y border-line">
                   {items.map((m) => (
                     <li key={m.id} className="flex gap-4 py-4">
