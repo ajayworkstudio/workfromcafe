@@ -17,8 +17,8 @@ async function logout() {
   redirect("/");
 }
 
-export default async function AccountPage({ searchParams }: { searchParams: Promise<{ bayar?: string }> }) {
-  const { bayar } = await searchParams;
+export default async function AccountPage({ searchParams }: { searchParams: Promise<{ bayar?: string; terkonfirmasi?: string }> }) {
+  const { bayar, terkonfirmasi } = await searchParams;
   const viewer = await getViewer();
   if (!viewer.user) redirect("/masuk?next=/akun");
   const supabase = await createClient();
@@ -33,6 +33,11 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
+      {terkonfirmasi && (
+        <p className="mb-6 rounded-xl bg-ok/10 p-4 text-sm text-ok">
+          Email berhasil dikonfirmasi dan kamu sudah otomatis masuk.{viewer.plan === "trial" ? " Trial gratis sudah aktif, selamat menjelajah." : ""}
+        </p>
+      )}
       {bayar === "selesai" && (
         <p className="mb-6 rounded-xl bg-ok/10 p-4 text-sm text-ok">
           Terima kasih! Pembayaran sedang dikonfirmasi. Status langganan akan aktif otomatis dalam beberapa saat — muat ulang halaman ini.

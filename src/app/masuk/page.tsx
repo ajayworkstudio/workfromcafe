@@ -16,7 +16,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       </p>
       {error && (
         <p role="alert" className="mt-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-          Login tidak berhasil. Coba lagi, atau pakai cara masuk yang lain.
+          {error === "konfirmasi"
+            ? "Link konfirmasi sudah kedaluwarsa atau sudah pernah dipakai. Coba masuk dengan email dan kata sandimu. Kalau belum bisa, daftar ulang untuk mendapat link baru."
+            : "Login tidak berhasil. Coba lagi, atau pakai cara masuk yang lain."}
         </p>
       )}
       <LoginForm next={next?.startsWith("/") ? next : "/"} initialMode={daftar ? "daftar" : "login"} />
