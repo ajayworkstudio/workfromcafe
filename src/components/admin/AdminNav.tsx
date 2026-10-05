@@ -7,6 +7,7 @@ const ITEMS = [
   { href: "/admin", label: "Ringkasan", icon: "grid", exact: true },
   { href: "/admin/kafe", label: "Kafe", icon: "cup" },
   { href: "/admin/rekomendasi", label: "Rekomendasi", icon: "inbox" },
+  { href: "/admin/komentar", label: "Komentar", icon: "chat" },
   { href: "/admin/spreadsheet", label: "Spreadsheet", icon: "table" },
   { href: "/admin/kota", label: "Kota", icon: "pin" },
   { href: "/admin/tag", label: "Tag", icon: "tag" },

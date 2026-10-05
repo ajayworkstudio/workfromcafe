@@ -8,6 +8,7 @@ import { getSettings } from "@/lib/settings";
 import Icon from "@/components/Icon";
 import PhotoGallery from "@/components/PhotoGallery";
 import CafeScorecard from "@/components/CafeScorecard";
+import CafeComments from "@/components/CafeComments";
 import Avatar from "@/components/Avatar";
 import { averageScore } from "@/lib/review";
 import { FavoriteButton, UnlockButton, VisitedButton } from "@/components/ActionButtons";
@@ -210,6 +211,8 @@ export default async function CafeDetailPage({ params }: { params: P }) {
               </div>
             </section>
           )}
+
+          <CafeComments cafeId={cafe.id} slug={cafe.slug} viewerId={viewer.user?.id ?? null} viewerIsAdmin={viewer.isAdmin} contributorId={cafe.contributor_id} />
         </div>
 
         <aside className="space-y-6 md:sticky md:top-24 md:self-start">

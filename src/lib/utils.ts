@@ -80,3 +80,14 @@ export function slugify(s: string) {
 
 export const CAFE_LIST_SELECT =
   "*, city:cities(*), photos:cafe_photos(id,url,is_cover,sort_order), tags:cafe_tags(tag:tags(*))";
+
+/** "baru saja", "5 menit lalu", "3 hari lalu", lalu tanggal untuk yang lebih lama. */
+export function timeAgo(iso: string) {
+  const s = (Date.now() - new Date(iso).getTime()) / 1000;
+  const rtf = new Intl.RelativeTimeFormat("id", { numeric: "auto" });
+  if (s < 60) return "baru saja";
+  if (s < 3600) return rtf.format(-Math.floor(s / 60), "minute");
+  if (s < 86400) return rtf.format(-Math.floor(s / 3600), "hour");
+  if (s < 86400 * 7) return rtf.format(-Math.floor(s / 86400), "day");
+  return new Date(iso).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" });
+}
