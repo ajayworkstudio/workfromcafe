@@ -1,4 +1,7 @@
 import type { Metadata, Viewport } from "next";
+import "@fontsource-variable/plus-jakarta-sans";
+import "@fontsource-variable/plus-jakarta-sans/wght-italic.css";
+import "@fontsource/montserrat/800.css";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -42,15 +45,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   }
   return (
     <html lang="id">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Geist:wght@400..700&family=Montserrat:wght@800&display=swap"
-          rel="stylesheet"
-        />
-      </head>
       <body className="flex min-h-dvh flex-col antialiased">
         <Header />
         <TrialBanner />

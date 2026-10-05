@@ -265,7 +265,7 @@ export default async function CafeDetailPage({ params }: { params: P }) {
           )}
           {cafe.visited_at && (
             <p className="border-t border-line pt-4 text-sm text-muted">
-              Terakhir aku datangi {new Date(cafe.visited_at).toLocaleDateString("id-ID", { month: "long", year: "numeric" })}.
+              {cafe.contributor_name ? "Terakhir dikunjungi" : "Terakhir aku datangi"} {new Date(cafe.visited_at).toLocaleDateString("id-ID", { month: "long", year: "numeric" })}.
             </p>
           )}
         </aside>

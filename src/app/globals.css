@@ -19,8 +19,8 @@
   --color-gold: #e0a045;
   --color-ok: #3e8e5e;
 
-  --font-display: "Bricolage Grotesque", system-ui, sans-serif;
-  --font-sans: "Geist", system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", system-ui, sans-serif;
   --font-logo: "Montserrat", system-ui, sans-serif;
 
   --radius-photo: 1.25rem;
@@ -31,7 +31,6 @@ body {
   background: var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-sans);
-  font-feature-settings: "ss01", "cv11";
 }
 h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; }
 
