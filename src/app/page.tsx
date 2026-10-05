@@ -3,6 +3,9 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import CafeCard from "@/components/CafeCard";
 import CommunityCard from "@/components/CommunityCard";
+import Avatar from "@/components/Avatar";
+import AuthorBadge from "@/components/AuthorBadge";
+import { authorHref, getAuthors, pickFeatured } from "@/lib/author";
 import Icon from "@/components/Icon";
 import type { Cafe, City } from "@/lib/types";
 import { CAFE_LIST_SELECT } from "@/lib/utils";
@@ -15,6 +18,7 @@ export default async function Home() {
   const supabase = await createClient();
   const [viewer, settings] = await Promise.all([getViewer(), getSettings()]);
   const free = settings.free_mode;
+  const featuredAuthor = pickFeatured(await getAuthors(), settings.featured_author);
   const showTrial = !free && !viewer.user && settings.trial_days > 0;
   const [{ data: cities }, { data: featured }, { data: latest }, { count }] = await Promise.all([
     supabase.from("cities").select("*").eq("is_active", true).order("name"),
@@ -93,7 +97,39 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 pt-16">
+      {featuredAuthor && (
+        <section className="mx-auto max-w-6xl px-4 pt-16">
+          <div className="grid overflow-hidden rounded-3xl border border-line bg-surface md:grid-cols-[1.25fr_1fr]">
+            <Link href={authorHref(featuredAuthor)} className="group flex flex-col gap-5 p-6 transition-colors hover:bg-brand-soft/40 sm:flex-row sm:items-center md:p-8">
+              <div className="relative w-fit shrink-0">
+                <Avatar url={featuredAuthor.avatar_url} name={featuredAuthor.name} className="h-24 w-24 text-3xl" />
+                <span className="absolute -bottom-1 -right-1 grid h-9 w-9 place-items-center rounded-full bg-gold text-ink ring-4 ring-surface"><Icon name="star" filled className="h-4 w-4" /></span>
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold uppercase tracking-wider text-tan">Author bulan ini</p>
+                <p className="mt-1 text-2xl font-bold group-hover:text-brand">{featuredAuthor.name}</p>
+                <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-muted">
+                  <AuthorBadge count={featuredAuthor.cafe_count} />
+                  <span>{featuredAuthor.cafe_count} kafe direkomendasikan</span>
+                </div>
+                {featuredAuthor.bio && <p className="mt-2 line-clamp-2 text-ink/75">{featuredAuthor.bio}</p>}
+                <span className="mt-3 inline-block text-sm font-semibold text-brand">Lihat profil &amp; kafenya →</span>
+              </div>
+            </Link>
+            <div className="flex flex-col justify-center gap-4 border-t border-line bg-brand p-6 text-white md:border-l md:border-t-0 md:p-8">
+              <div>
+                <p className="text-xl font-bold">Punya kafe andalan buat kerja?</p>
+                <p className="mt-1 text-white/70">Kirim rekomendasimu, dapat halaman author sendiri, dan naik level sampai Kurator Utama.</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Link href="/kirim" className="btn bg-white text-brand hover:bg-brand-soft"><Icon name="send" className="h-4 w-4" />Kirim rekomendasi</Link>
+                <Link href="/author" className="btn border border-white/30 text-white hover:bg-white/10">Para author</Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+      {!featuredAuthor && (        <section className="mx-auto max-w-6xl px-4 pt-16">
         <Link href="/kirim" className="group flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-line bg-surface p-6 transition-colors hover:border-brand md:p-8">
           <span className="flex items-center gap-4">
             <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-soft text-brand"><Icon name="send" className="h-6 w-6" /></span>
@@ -104,7 +140,8 @@ export default async function Home() {
           </span>
           <span className="btn-dark">Kirim rekomendasi</span>
         </Link>
-      </section>
+        </section>
+      )}
 
       {settings.community_url && (
         <section className="mx-auto max-w-6xl px-4 pt-5">

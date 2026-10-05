@@ -43,6 +43,7 @@ async function saveFreeMode(formData: FormData) {
   const { error } = await supabase.from("app_settings").upsert([
     { key: "free_mode", value: on ? "true" : "false" },
     { key: "community_url", value: cleanCommunity },
+    { key: "featured_author", value: String(formData.get("featured_author") || "").trim().replace(/^@/, "").toLowerCase().replace(/^.*\/author\//, "") },
   ]);
   revalidatePath("/", "layout");
   redirect(error
@@ -57,7 +58,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       <PageHeader title="Pengaturan" description="Harga dan kuota bisa diubah kapan saja tanpa deploy ulang." />
       <Flash ok={sp.ok} err={sp.err} />
       <form action={saveFreeMode} className="card mb-5 max-w-xl space-y-4 p-5 md:p-6">
-        <h2 className="text-lg font-bold">Mode aplikasi &amp; komunitas</h2>
+        <h2 className="text-lg font-bold">Mode aplikasi, komunitas &amp; author</h2>
         <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-line px-4 py-3 has-[:checked]:border-brand has-[:checked]:bg-brand-soft">
           <input type="checkbox" name="free_mode" defaultChecked={s.free_mode} className="h-4 w-4 accent-brand" />
           <span>
@@ -69,6 +70,11 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <label htmlFor="community_url" className="label">Link komunitas WhatsApp</label>
           <input id="community_url" name="community_url" type="url" defaultValue={s.community_url} placeholder="https://chat.whatsapp.com/…" className="input" />
           <p className="mt-1.5 text-xs text-muted">Tampil di header, beranda, halaman Jadi author, Akun, dan footer. Kosongkan untuk menyembunyikan.</p>
+        </div>
+        <div>
+          <label htmlFor="featured_author" className="label">Author bulan ini (username)</label>
+          <input id="featured_author" name="featured_author" defaultValue={s.featured_author} placeholder="Kosongkan = otomatis" className="input" />
+          <p className="mt-1.5 text-xs text-muted">Kosong: otomatis author dengan kafe tayang terbanyak bulan ini. Isi username (atau tempel link profilnya) untuk memilih sendiri.</p>
         </div>
         <SubmitButton>Simpan</SubmitButton>
       </form>

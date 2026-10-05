@@ -6,6 +6,7 @@ import { requireAdmin } from "@/lib/auth";
 import { slugify } from "@/lib/utils";
 import { averageScore } from "@/lib/review";
 import { guessProvince, MAP_CENTER } from "@/lib/region";
+import { autoUsername } from "@/lib/author";
 import type { Submission } from "@/lib/submission";
 
 /** Terima kiriman: buat kafe berstatus draf (belum tayang) lengkap dengan menu & foto, lalu buka form edit. */
@@ -79,6 +80,12 @@ export async function approveSubmission(formData: FormData) {
       ? supabase.from("cafe_photos").insert(d.photos.map((url, i) => ({ cafe_id: cafe.id, url, is_cover: i === 0, sort_order: i })))
       : Promise.resolve(),
   ]);
+
+  // Pastikan author punya username untuk link profil publik (setelah migrasi 0012)
+  const { data: prof } = await supabase.from("profiles").select("username,name").eq("id", sub.user_id).maybeSingle();
+  if (prof && !prof.username) {
+    await supabase.from("profiles").update({ username: autoUsername(prof.name || sub.author_name, sub.user_id) }).eq("id", sub.user_id);
+  }
 
   await supabase.from("cafe_submissions").update({
     status: "approved", cafe_id: cafe.id, reviewed_at: new Date().toISOString(), admin_note: String(formData.get("note") || "").trim() || null,

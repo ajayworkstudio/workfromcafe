@@ -1,6 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { USERNAME_RE } from "@/lib/author";
 
 export type ProfileState = { ok?: string; error?: string } | null;
 
@@ -15,6 +16,9 @@ export async function updateProfile(_prev: ProfileState, f: FormData): Promise<P
     .replace(/^@/, "").replace(/^https?:\/\/(www\.)?instagram\.com\//, "").replace(/[/?#].*$/, "").slice(0, 40) || null;
   const avatar = String(f.get("avatar_url") ?? "").trim();
   if (!name) return { error: "Nama tidak boleh kosong." };
+  const hasUsername = f.has("username");
+  const username = String(f.get("username") ?? "").trim().toLowerCase().replace(/^@/, "") || null;
+  if (username && !USERNAME_RE.test(username)) return { error: "Username 3–30 karakter: huruf kecil, angka, titik, strip, atau garis bawah." };
   if (instagram && !/^[a-zA-Z0-9._]+$/.test(instagram)) return { error: "Username Instagram hanya boleh huruf, angka, titik, dan garis bawah." };
 
   // Foto hanya boleh dari folder milik sendiri, atau foto lama (mis. dari Google) yang tidak diubah
@@ -22,8 +26,12 @@ export async function updateProfile(_prev: ProfileState, f: FormData): Promise<P
   const ownPrefix = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/cafe-photos/avatars/${user.id}/`;
   const avatar_url = !avatar ? null : avatar === current?.avatar_url || avatar.startsWith(ownPrefix) ? avatar : current?.avatar_url ?? null;
 
-  const { error } = await supabase.from("profiles").update({ name, bio, instagram, avatar_url }).eq("id", user.id);
+  const patch: Record<string, unknown> = { name, bio, instagram, avatar_url };
+  if (hasUsername) patch.username = username;
+  const { error } = await supabase.from("profiles").update(patch).eq("id", user.id);
   if (error) {
+    if (/profiles_username_key|duplicate/.test(error.message)) return { error: "Username itu sudah dipakai orang lain. Coba yang lain." };
+    if (/username/.test(error.message)) return { error: "Database belum diperbarui. Admin perlu menjalankan migrasi 0012." };
     if (/bio|instagram/.test(error.message)) return { error: "Database belum diperbarui. Admin perlu menjalankan migrasi 0009_profil_author.sql." };
     return { error: error.message };
   }

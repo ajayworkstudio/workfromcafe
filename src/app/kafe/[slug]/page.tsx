@@ -10,6 +10,7 @@ import PhotoGallery from "@/components/PhotoGallery";
 import CafeScorecard from "@/components/CafeScorecard";
 import CafeComments from "@/components/CafeComments";
 import Avatar from "@/components/Avatar";
+import AuthorBadge from "@/components/AuthorBadge";
 import { averageScore } from "@/lib/review";
 import { FavoriteButton, UnlockButton, VisitedButton } from "@/components/ActionButtons";
 import type { Cafe, CafeDetails, MenuItem } from "@/lib/types";
@@ -59,7 +60,7 @@ export default async function CafeDetailPage({ params }: { params: P }) {
   ]);
 
   // Profil author terbaru (nama, foto, bio); fallback ke data saat rekomendasi diterima
-  type AuthorCard = { name: string | null; avatar_url: string | null; bio: string | null; instagram: string | null };
+  type AuthorCard = { name: string | null; avatar_url: string | null; bio: string | null; instagram: string | null; username?: string | null; cafe_count?: number; href?: string | null };
   let author: AuthorCard | null = null;
   if (cafe.contributor_id || cafe.contributor_name) {
     const { data: card } = cafe.contributor_id
@@ -70,6 +71,8 @@ export default async function CafeDetailPage({ params }: { params: P }) {
       avatar_url: card?.avatar_url ?? null,
       bio: card?.bio ?? null,
       instagram: card?.instagram || cafe.contributor_instagram || null,
+      cafe_count: card?.cafe_count ?? 0,
+      href: card?.cafe_count != null && cafe.contributor_id ? `/author/${card.username ?? cafe.contributor_id}` : null,
     };
   }
 
@@ -243,13 +246,21 @@ export default async function CafeDetailPage({ params }: { params: P }) {
                 <Avatar url={author.avatar_url} name={author.name} className="h-11 w-11 text-base" />
                 <div className="min-w-0 text-sm">
                   <p className="text-muted">Direkomendasikan oleh</p>
-                  <p className="truncate font-semibold">{author.name}</p>
-                  {author.instagram && (
-                    <a href={`https://instagram.com/${author.instagram}`} target="_blank" rel="noopener" className="text-brand hover:underline">@{author.instagram}</a>
-                  )}
+                  {author.href
+                    ? <Link href={author.href} className="block truncate font-semibold hover:text-brand hover:underline">{author.name}</Link>
+                    : <p className="truncate font-semibold">{author.name}</p>}
+                  <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                    {!!author.cafe_count && <AuthorBadge count={author.cafe_count} />}
+                    {author.instagram && (
+                      <a href={`https://instagram.com/${author.instagram}`} target="_blank" rel="noopener" className="text-brand hover:underline">@{author.instagram}</a>
+                    )}
+                  </div>
                 </div>
               </div>
-              {author.bio && <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-ink/80">{author.bio}</p>}
+              {author.bio && <p className="mt-3 line-clamp-4 whitespace-pre-line text-sm leading-relaxed text-ink/80">{author.bio}</p>}
+              {author.href && author.cafe_count! > 1 && (
+                <Link href={author.href} className="mt-3 inline-block text-sm font-semibold text-brand hover:underline">Lihat {author.cafe_count} kafe rekomendasinya →</Link>
+              )}
             </div>
           )}
           {cafe.visited_at && (

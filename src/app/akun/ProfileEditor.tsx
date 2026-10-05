@@ -7,9 +7,9 @@ import Avatar from "@/components/Avatar";
 import Icon from "@/components/Icon";
 import { updateProfile, type ProfileState } from "./actions";
 
-type Profile = { name: string | null; avatar_url: string | null; bio: string | null; instagram: string | null };
+type Profile = { name: string | null; avatar_url: string | null; bio: string | null; instagram: string | null; username?: string | null };
 
-export default function ProfileEditor({ userId, email, profile, ready }: { userId: string; email?: string; profile: Profile; ready: boolean }) {
+export default function ProfileEditor({ userId, email, profile, ready, usernameReady = false, siteUrl = "" }: { userId: string; email?: string; profile: Profile; ready: boolean; usernameReady?: boolean; siteUrl?: string }) {
   const [state, action] = useActionState<ProfileState, FormData>(updateProfile, null);
   const [editing, setEditing] = useState(false);
   const [avatar, setAvatar] = useState(profile.avatar_url ?? "");
@@ -89,6 +89,19 @@ export default function ProfileEditor({ userId, email, profile, ready }: { userI
                 </div>
               </div>
             </div>
+            {usernameReady && (
+              <div>
+                <label htmlFor="p_username" className="label">Username profil author</label>
+                <div className="flex items-center rounded-xl border border-line bg-surface focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/10">
+                  <span className="shrink-0 pl-3.5 text-sm text-muted"><span className="hidden sm:inline">{siteUrl.replace(/^https?:\/\//, "")}</span>/author/</span>
+                  <input id="p_username" name="username" maxLength={30} defaultValue={profile.username ?? ""} placeholder="namamu"
+                    pattern="[a-z0-9][a-z0-9._\-]{2,29}" title="3–30 karakter: huruf kecil, angka, titik, strip, garis bawah"
+                    onChange={(e) => { e.target.value = e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, ""); }}
+                    className="w-full min-w-0 bg-transparent px-1 py-2.5 text-sm outline-none" />
+                </div>
+                <p className="mt-1 text-xs text-muted">Link profil publikmu setelah ada kafe rekomendasimu yang tayang.</p>
+              </div>
+            )}
             <div>
               <div className="flex items-baseline justify-between">
                 <label htmlFor="p_bio" className="label">Deskripsi</label>

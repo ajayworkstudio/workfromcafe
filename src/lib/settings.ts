@@ -16,6 +16,8 @@ export type Settings = {
   sheet_last_sync: string;
   /** Link grup/komunitas WhatsApp untuk author & WFC hunters ("" = sembunyikan) */
   community_url: string;
+  /** Username author of the month pilihan admin ("" = otomatis) */
+  featured_author: string;
   /** true = semua fitur gratis untuk semua orang; langganan, trial, dan halaman harga disembunyikan. */
   free_mode: boolean;
 };
@@ -40,6 +42,7 @@ export const getSettings = cache(async (): Promise<Settings> => {
     trial_days: num("trial_days", 7),
     sheet_url: m.get("sheet_url") || "",
     sheet_last_sync: m.get("sheet_last_sync") || "",
+    featured_author: m.get("featured_author") ?? "",
     community_url: m.has("community_url") ? (m.get("community_url") ?? "") : DEFAULT_COMMUNITY_URL,
     free_mode: (m.get("free_mode") ?? "true") === "true",
   };

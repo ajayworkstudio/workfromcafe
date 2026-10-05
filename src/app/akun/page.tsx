@@ -6,9 +6,11 @@ import { getViewer } from "@/lib/auth";
 import CafeCard from "@/components/CafeCard";
 import Icon from "@/components/Icon";
 import ProfileEditor from "./ProfileEditor";
+import AuthorBadge from "@/components/AuthorBadge";
+import { authorHref, getAuthors, levelFor } from "@/lib/author";
 import CommunityCard from "@/components/CommunityCard";
 import type { Cafe } from "@/lib/types";
-import { CAFE_LIST_SELECT, rupiah } from "@/lib/utils";
+import { CAFE_LIST_SELECT, SITE_URL, rupiah } from "@/lib/utils";
 import { PLAN_META, getSettings } from "@/lib/settings";
 
 export const metadata: Metadata = { title: "Akun saya" };
@@ -34,12 +36,19 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
 
   // Profil lengkap (bio & instagram ada setelah migrasi 0009)
   let ready = true;
-  let { data: profile } = await supabase.from("profiles").select("name,avatar_url,bio,instagram").eq("id", viewer.user.id).maybeSingle();
+  // username ada setelah migrasi 0012
+  const { data: withUsername } = await supabase.from("profiles").select("name,avatar_url,bio,instagram,username").eq("id", viewer.user.id).maybeSingle();
+  const usernameReady = !!withUsername;
+  let { data: profile } = withUsername
+    ? { data: withUsername as { name: string | null; avatar_url: string | null; bio: string | null; instagram: string | null; username?: string | null } }
+    : await supabase.from("profiles").select("name,avatar_url,bio,instagram").eq("id", viewer.user.id).maybeSingle();
   if (!profile) {
     const { data } = await supabase.from("profiles").select("name,avatar_url").eq("id", viewer.user.id).maybeSingle();
     profile = data ? { ...data, bio: null, instagram: null } : { name: viewer.name, avatar_url: null, bio: null, instagram: null };
     ready = false;
   }
+
+  const myAuthor = (await getAuthors()).find((a) => a.id === viewer.user!.id) ?? null;
 
   const favCafes = ((favs ?? []) as unknown as { cafe: Cafe | null }[]).map((f) => f.cafe).filter(Boolean) as Cafe[];
 
@@ -55,7 +64,17 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           Terima kasih! Pembayaran sedang dikonfirmasi. Status langganan akan aktif otomatis dalam beberapa saat — muat ulang halaman ini.
         </p>
       )}
-      <ProfileEditor userId={viewer.user.id} email={viewer.user.email} profile={profile} ready={ready} />
+      <ProfileEditor userId={viewer.user.id} email={viewer.user.email} profile={profile} ready={ready} usernameReady={usernameReady} siteUrl={SITE_URL} />
+      {myAuthor && (
+        <Link href={authorHref(myAuthor)} className="card mt-3 flex flex-wrap items-center gap-3 p-4 transition-colors hover:border-brand">
+          <AuthorBadge count={myAuthor.cafe_count} />
+          <span className="flex-1 text-sm">
+            <b>{myAuthor.cafe_count} kafe</b> rekomendasimu sudah tayang.
+            {levelFor(myAuthor.cafe_count).next && <span className="text-muted"> {levelFor(myAuthor.cafe_count).toNext} lagi menuju {levelFor(myAuthor.cafe_count).next!.name}.</span>}
+          </span>
+          <span className="text-sm font-semibold text-brand">Lihat profil publik →</span>
+        </Link>
+      )}
       <div className="mt-3 flex justify-end gap-2">
         {viewer.isAdmin && <Link href="/admin" className="btn-primary">Panel admin</Link>}
         <form action={logout}><button className="btn-ghost">Keluar</button></form>

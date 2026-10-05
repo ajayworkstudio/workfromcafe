@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 const STEPS = [
   { icon: "edit", title: "Isi rekomendasi", text: "Lokasi, ulasan, penilaian kerja, fasilitas, menu andalan, dan foto." },
   { icon: "eye", title: "Dicek admin", text: "Kami cek dan rapikan supaya formatnya sama dengan kafe lain." },
-  { icon: "star", title: "Tayang dengan namamu", text: "Halaman kafe menampilkan namamu sebagai author." },
+  { icon: "star", title: "Tayang & naik level", text: "Namamu tampil di kafe, kamu dapat profil author publik, dan naik level sampai Kurator Utama." },
 ];
 
 export default async function SubmissionsPage({ searchParams }: { searchParams: Promise<{ terkirim?: string }> }) {
@@ -54,6 +54,7 @@ export default async function SubmissionsPage({ searchParams }: { searchParams: 
               <Icon name="send" className="h-4 w-4" />{viewer.user ? "Kirim rekomendasi" : "Masuk untuk mulai"}
             </Link>
             {!viewer.user && <p className="mt-2 text-sm text-white/60">Daftar gratis pakai email atau Google.</p>}
+            <Link href="/author" className="mt-3 block text-sm font-semibold text-tan hover:underline">Lihat para author →</Link>
           </div>
         </div>
         <ol className="grid border-t border-white/15 sm:grid-cols-3">

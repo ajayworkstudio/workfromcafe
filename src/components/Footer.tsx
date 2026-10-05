@@ -12,6 +12,7 @@ export default async function Footer() {
           <Link href="/kafe" className="hover:text-ink">Semua kafe</Link>
           <Link href="/peta" className="hover:text-ink">Peta</Link>
           <Link href="/kirim" className="hover:text-ink">Jadi author</Link>
+          <Link href="/author" className="hover:text-ink">Para author</Link>
           {community_url && <a href={community_url} target="_blank" rel="noopener" className="hover:text-ink">Komunitas WhatsApp</a>}
           {!free_mode && <Link href="/harga" className="hover:text-ink">Harga langganan</Link>}
         </div>
