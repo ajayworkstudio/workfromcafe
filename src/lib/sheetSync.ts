@@ -1,4 +1,5 @@
 import readXlsxFile from "read-excel-file/node";
+import { revalidateTag } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { parseCoords } from "./coords";
 import { PRICE_RANGES, slugify } from "./utils";
@@ -353,10 +354,12 @@ export async function syncFromUrlAndRecord(db: SupabaseClient, url: string, sour
     const buf = data ?? (await fetchSheetWorkbook(url));
     const report = await syncWorkbook(db, buf);
     await db.from("app_settings").upsert({ key: "sheet_last_sync", value: JSON.stringify({ at, source, ok: true, report }) });
+    try { revalidateTag("settings"); revalidateTag("authors"); } catch { /* di luar konteks request */ }
     return { ok: true as const, report };
   } catch (e) {
     const message = (e as Error).message;
     await db.from("app_settings").upsert({ key: "sheet_last_sync", value: JSON.stringify({ at, source, ok: false, error: message }) });
+    try { revalidateTag("settings"); } catch { /* di luar konteks request */ }
     return { ok: false as const, error: message };
   }
 }

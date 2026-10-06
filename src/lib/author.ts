@@ -1,5 +1,6 @@
 import { cache } from "react";
-import { createClient } from "./supabase/server";
+import { unstable_cache } from "next/cache";
+import { createPublicClient } from "./supabase/server";
 
 export type PublicAuthor = {
   id: string; name: string; avatar_url: string | null; bio: string | null; instagram: string | null; username: string | null;
@@ -32,11 +33,16 @@ export function autoUsername(name: string | null | undefined, id: string) {
 export const USERNAME_RE = /^[a-z0-9][a-z0-9._-]{2,29}$/;
 
 /** Semua author publik (punya minimal 1 kafe tayang). Kosong kalau migrasi 0012 belum dijalankan. */
-export const getAuthors = cache(async (): Promise<PublicAuthor[]> => {
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc("authors_list");
-  return error ? [] : ((data as PublicAuthor[] | null) ?? []);
-});
+// Cache server 5 menit (tag "authors"); disegarkan saat kafe/rekomendasi/profil berubah.
+const loadAuthors = unstable_cache(
+  async (): Promise<PublicAuthor[]> => {
+    const { data, error } = await createPublicClient().rpc("authors_list");
+    return error ? [] : ((data as PublicAuthor[] | null) ?? []);
+  },
+  ["authors-list"],
+  { revalidate: 300, tags: ["authors"] },
+);
+export const getAuthors = cache(() => loadAuthors());
 
 /** Author of the month: pilihan admin (username), kalau kosong otomatis yang paling banyak kafe bulan ini. */
 export function pickFeatured(authors: PublicAuthor[], setting: string) {

@@ -1,5 +1,5 @@
 "use server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { USERNAME_RE } from "@/lib/author";
 
@@ -42,6 +42,7 @@ export async function updateProfile(_prev: ProfileState, f: FormData): Promise<P
     await supabase.storage.from("cafe-photos").remove([old.slice(old.indexOf("/cafe-photos/") + "/cafe-photos/".length)]);
   }
 
+  revalidateTag("authors");
   revalidatePath("/", "layout");
   return { ok: "Profil disimpan." };
 }

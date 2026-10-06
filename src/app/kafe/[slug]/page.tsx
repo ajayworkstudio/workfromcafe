@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { cache } from "react";
+import { cache, Suspense } from "react";
 import JsonLd from "@/components/JsonLd";
 import { breadcrumb, clip } from "@/lib/seo";
 import Image from "next/image";
@@ -58,14 +58,15 @@ export async function generateMetadata({ params }: { params: P }): Promise<Metad
 
 export default async function CafeDetailPage({ params }: { params: P }) {
   const { slug } = await params;
-  const cafe = await getCafe(slug);
+  // Semua yang tidak saling bergantung diambil bersamaan (lebih sedikit bolak-balik ke database)
+  const [cafe, viewer, settings] = await Promise.all([getCafe(slug), getViewer(), getSettings()]);
   if (!cafe) notFound();
 
   const supabase = await createClient();
-  const [viewer, settings] = await Promise.all([getViewer(), getSettings()]);
+  type AuthorCard = { name: string | null; avatar_url: string | null; bio: string | null; instagram: string | null; username?: string | null; cafe_count?: number; href?: string | null };
 
   // RLS yang menentukan: baris ini hanya kembali kalau pengguna berhak.
-  const [{ data: details }, { data: menu }, fav, visit, left] = await Promise.all([
+  const [{ data: details }, { data: menu }, fav, visit, left, { data: card }] = await Promise.all([
     supabase.from("cafe_details").select("*").eq("cafe_id", cafe.id).maybeSingle(),
     supabase.from("menu_items").select("*").eq("cafe_id", cafe.id).order("sort_order"),
     viewer.user
@@ -74,16 +75,16 @@ export default async function CafeDetailPage({ params }: { params: P }) {
     viewer.user
       ? supabase.from("user_visits").select("cafe_id").eq("cafe_id", cafe.id).eq("user_id", viewer.user.id).maybeSingle()
       : Promise.resolve({ data: null }),
-    viewer.user ? supabase.rpc("free_unlocks_left") : Promise.resolve({ data: 0 }),
+    viewer.user && !settings.free_mode ? supabase.rpc("free_unlocks_left") : Promise.resolve({ data: 0 }),
+    // Profil author terbaru (nama, foto, bio)
+    cafe.contributor_id
+      ? supabase.rpc("author_card", { p_id: cafe.contributor_id }).maybeSingle<AuthorCard>()
+      : Promise.resolve({ data: null as AuthorCard | null }),
   ]);
 
-  // Profil author terbaru (nama, foto, bio); fallback ke data saat rekomendasi diterima
-  type AuthorCard = { name: string | null; avatar_url: string | null; bio: string | null; instagram: string | null; username?: string | null; cafe_count?: number; href?: string | null };
+  // Fallback ke data saat rekomendasi diterima kalau profil belum publik
   let author: AuthorCard | null = null;
   if (cafe.contributor_id || cafe.contributor_name) {
-    const { data: card } = cafe.contributor_id
-      ? await supabase.rpc("author_card", { p_id: cafe.contributor_id }).maybeSingle<AuthorCard>()
-      : { data: null };
     author = {
       name: card?.name || cafe.contributor_name || "Author",
       avatar_url: card?.avatar_url ?? null,
@@ -285,7 +286,10 @@ export default async function CafeDetailPage({ params }: { params: P }) {
             </section>
           )}
 
-          <CafeComments cafeId={cafe.id} slug={cafe.slug} viewerId={viewer.user?.id ?? null} viewerIsAdmin={viewer.isAdmin} contributorId={cafe.contributor_id} />
+          {/* Komentar dimuat menyusul supaya halaman kafe tampil lebih dulu */}
+          <Suspense fallback={<div className="mt-12 h-40 animate-pulse rounded-2xl bg-tint" aria-label="Memuat komentar" />}>
+            <CafeComments cafeId={cafe.id} slug={cafe.slug} viewerId={viewer.user?.id ?? null} viewerIsAdmin={viewer.isAdmin} contributorId={cafe.contributor_id} />
+          </Suspense>
         </div>
 
         <aside className="space-y-6 md:sticky md:top-24 md:self-start">

@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
@@ -17,6 +17,7 @@ async function saveUrl(formData: FormData) {
   const url = String(formData.get("sheet_url") || "").trim();
   if (url && !sheetExportUrl(url)) redirect(`/admin/spreadsheet?err=${encodeURIComponent("Itu bukan link Google Sheets.")}`);
   await createAdminClient().from("app_settings").upsert({ key: "sheet_url", value: url });
+  revalidateTag("settings");
   revalidatePath("/admin/spreadsheet");
   redirect(`/admin/spreadsheet?ok=${encodeURIComponent(url ? "Link spreadsheet disimpan." : "Link spreadsheet dihapus.")}`);
 }

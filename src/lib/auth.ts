@@ -15,7 +15,9 @@ export type Viewer = {
 /** Info pengguna yang sedang melihat halaman. Di-cache per request supaya Header & halaman tidak query dua kali. */
 export const getViewer = cache(async (): Promise<Viewer> => {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const claims = claimsData?.claims;
+  const user = claims?.sub ? { id: claims.sub, email: (claims.email as string | undefined) ?? undefined } : null;
   if (!user) return { user: null, isAdmin: false, isPremium: false, premiumUntil: null, plan: null, name: null, avatarUrl: null };
 
   const [{ data: profile }, { data: sub }] = await Promise.all([

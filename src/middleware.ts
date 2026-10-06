@@ -27,7 +27,7 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  let user = null;
+  let user: { id: string } | null = null;
   try {
     const supabase = createServerClient(url, key, {
       cookies: {
@@ -39,7 +39,9 @@ export async function middleware(request: NextRequest) {
         },
       },
     });
-    ({ data: { user } } = await supabase.auth.getUser());
+    // getClaims memverifikasi token & me-refresh sesi; lebih ringan dari getUser (tanpa panggilan ke server Auth bila memakai JWT signing key)
+    const { data } = await supabase.auth.getClaims();
+    user = data?.claims?.sub ? { id: data.claims.sub } : null;
   } catch (e) {
     console.error("[middleware] Gagal cek sesi Supabase:", e);
   }

@@ -1,5 +1,5 @@
 "use server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
@@ -78,6 +78,7 @@ export async function saveCafe(formData: FormData) {
   // Kota otomatis aktif begitu punya kafe yang tayang
   if (cafe.is_published) await supabase.from("cities").update({ is_active: true }).eq("id", cafe.city_id);
 
+  revalidateTag("authors");
   revalidatePath("/", "layout");
   redirect(`/admin/kafe/${cafeId}?ok=${encodeURIComponent(id ? "Perubahan disimpan." : "Kafe dibuat. Sekarang tambahkan foto dan menu.")}`);
 }
@@ -98,6 +99,7 @@ export async function deleteCafe(formData: FormData) {
   const paths = [...(files ?? []).filter((f) => f.id).map((f) => `${id}/${f.name}`), ...(menuFiles ?? []).map((f) => `${id}/menu/${f.name}`)];
   if (paths.length) await supabase.storage.from("cafe-photos").remove(paths);
   await supabase.from("cafes").delete().eq("id", id);
+  revalidateTag("authors");
   revalidatePath("/", "layout");
   redirect("/admin/kafe?ok=" + encodeURIComponent("Kafe dihapus."));
 }
@@ -108,5 +110,6 @@ export async function toggleCafeFlag(formData: FormData) {
   const field = String(formData.get("field"));
   if (field !== "is_published" && field !== "is_featured") return;
   await supabase.from("cafes").update({ [field]: formData.get("value") === "true" }).eq("id", String(formData.get("id")));
+  revalidateTag("authors");
   revalidatePath("/", "layout");
 }

@@ -1,5 +1,5 @@
 "use server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
@@ -91,6 +91,7 @@ export async function approveSubmission(formData: FormData) {
     status: "approved", cafe_id: cafe.id, reviewed_at: new Date().toISOString(), admin_note: String(formData.get("note") || "").trim() || null,
   }).eq("id", id);
 
+  revalidateTag("authors");
   revalidatePath("/admin/rekomendasi");
   redirect(`/admin/kafe/${cafe.id}?ok=${encodeURIComponent(`Draf kafe dibuat dari rekomendasi ${sub.author_name}. Cek lokasi, rapikan, lalu centang Tayang.`)}`);
 }
@@ -103,6 +104,7 @@ export async function rejectSubmission(formData: FormData) {
   const { error } = await supabase.from("cafe_submissions")
     .update({ status: "rejected", admin_note: note || null, reviewed_at: new Date().toISOString() })
     .eq("id", id);
+  revalidateTag("authors");
   revalidatePath("/admin/rekomendasi");
   redirect(error
     ? `/admin/rekomendasi/${id}?err=${encodeURIComponent(error.message)}`

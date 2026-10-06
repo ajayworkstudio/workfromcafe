@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
@@ -26,6 +26,7 @@ async function saveSettings(formData: FormData) {
     { key: "qris_image_url", value: String(formData.get("qris_image_url") || "") },
   );
   const { error } = await supabase.from("app_settings").upsert(rows);
+  revalidateTag("settings");
   revalidatePath("/", "layout");
   redirect(error ? `/admin/pengaturan?err=${encodeURIComponent(error.message)}` : `/admin/pengaturan?ok=${encodeURIComponent("Pengaturan disimpan. Langsung berlaku untuk pembayaran berikutnya.")}`);
 }
@@ -46,6 +47,7 @@ async function saveFreeMode(formData: FormData) {
     { key: "events_public", value: formData.get("events_public") === "on" ? "true" : "false" },
     { key: "featured_author", value: String(formData.get("featured_author") || "").trim().replace(/^@/, "").toLowerCase().replace(/^.*\/author\//, "") },
   ]);
+  revalidateTag("settings");
   revalidatePath("/", "layout");
   redirect(error
     ? `/admin/pengaturan?err=${encodeURIComponent(error.message)}`
