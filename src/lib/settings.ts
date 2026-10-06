@@ -31,7 +31,8 @@ export const DEFAULT_COMMUNITY_URL = "https://chat.whatsapp.com/J08g0t98OCG3ZLNM
 // Disimpan di cache server 60 detik (tag "settings"); disegarkan langsung saat admin menyimpan Pengaturan.
 const loadSettingRows = unstable_cache(
   async () => {
-    const { data } = await createPublicClient().from("app_settings").select("key,value");
+    const { data, error } = await createPublicClient().from("app_settings").select("key,value");
+    if (error) throw new Error(error.message); // jangan simpan hasil gagal ke cache
     return (data ?? []) as { key: string; value: string }[];
   },
   ["app-settings"],
@@ -39,7 +40,7 @@ const loadSettingRows = unstable_cache(
 );
 
 export const getSettings = cache(async (): Promise<Settings> => {
-  const rows = await loadSettingRows();
+  const rows = await loadSettingRows().catch(() => [] as { key: string; value: string }[]);
   const m = new Map(rows.map((r) => [r.key, r.value]));
   const num = (k: string, fb: number) => (m.has(k) && !isNaN(Number(m.get(k))) ? Number(m.get(k)) : fb);
   return {

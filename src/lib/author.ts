@@ -37,12 +37,15 @@ export const USERNAME_RE = /^[a-z0-9][a-z0-9._-]{2,29}$/;
 const loadAuthors = unstable_cache(
   async (): Promise<PublicAuthor[]> => {
     const { data, error } = await createPublicClient().rpc("authors_list");
-    return error ? [] : ((data as PublicAuthor[] | null) ?? []);
+    if (error) throw new Error(error.message); // jangan simpan hasil gagal ke cache
+    return (data as PublicAuthor[] | null) ?? [];
   },
   ["authors-list"],
   { revalidate: 300, tags: ["authors"] },
 );
-export const getAuthors = cache(() => loadAuthors());
+export const getAuthors = cache(async (): Promise<PublicAuthor[]> => {
+  try { return await loadAuthors(); } catch { return []; } // mis. migrasi 0012 belum dijalankan
+});
 
 /** Author of the month: pilihan admin (username), kalau kosong otomatis yang paling banyak kafe bulan ini. */
 export function pickFeatured(authors: PublicAuthor[], setting: string) {
