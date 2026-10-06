@@ -11,6 +11,7 @@ import { withdrawSubmission } from "./actions";
 export const metadata: Metadata = {
   title: "Jadi author: kirim rekomendasi kafe",
   description: "Punya kafe andalan buat kerja? Kirim rekomendasimu ke WorkFromCafe dan tampil sebagai author.",
+  alternates: { canonical: "/kirim" },
 };
 
 const STEPS = [

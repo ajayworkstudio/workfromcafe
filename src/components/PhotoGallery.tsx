@@ -50,7 +50,7 @@ export default function PhotoGallery({ photos, name }: { photos: P[]; name: stri
           onScroll={(e) => { const el = e.currentTarget; setSlide(Math.round(el.scrollLeft / el.clientWidth)); }}>
           {photos.map((p, i) => (
             <button key={p.id} type="button" onClick={() => setOpen(i)} className="relative aspect-[4/3] w-full shrink-0 snap-center bg-tint" aria-label={`Foto ${i + 1} dari ${n}`}>
-              <Image src={p.url} alt={i === 0 ? name : ""} fill priority={i === 0} sizes="100vw" className="object-cover" />
+              <Image src={p.url} alt={`${name}, foto ${i + 1}`} fill priority={i === 0} sizes="100vw" className="object-cover" />
             </button>
           ))}
         </div>
@@ -73,7 +73,7 @@ export default function PhotoGallery({ photos, name }: { photos: P[]; name: stri
           <div className={`grid gap-2 ${side.length === 2 ? "grid-rows-2" : ""}`}>
             {side.map((p, i) => (
               <button key={p.id} type="button" onClick={() => setOpen(i + 1)} className="group relative overflow-hidden rounded-[var(--radius-photo)] bg-tint">
-                <Image src={p.url} alt="" fill sizes="33vw" className="object-cover transition duration-500 group-hover:scale-[1.03]" />
+                <Image src={p.url} alt={`${name}, foto ${i + 2}`} fill sizes="33vw" className="object-cover transition duration-500 group-hover:scale-[1.03]" />
               </button>
             ))}
           </div>

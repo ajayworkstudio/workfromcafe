@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
@@ -6,13 +7,16 @@ import CommunityCard from "@/components/CommunityCard";
 import Avatar from "@/components/Avatar";
 import AuthorBadge from "@/components/AuthorBadge";
 import { authorHref, getAuthors, pickFeatured } from "@/lib/author";
+import JsonLd from "@/components/JsonLd";
+import { ORGANIZATION } from "@/lib/seo";
 import Icon from "@/components/Icon";
 import type { Cafe, City } from "@/lib/types";
-import { CAFE_LIST_SELECT } from "@/lib/utils";
+import { APP_NAME, CAFE_LIST_SELECT, SITE_URL } from "@/lib/utils";
 import { getViewer } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
 
 export const revalidate = 300;
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default async function Home() {
   const supabase = await createClient();
@@ -30,6 +34,25 @@ export default async function Home() {
 
   return (
     <>
+      <JsonLd data={{
+        "@context": "https://schema.org",
+        "@graph": [
+          ORGANIZATION,
+          {
+            "@type": "WebSite",
+            "@id": `${SITE_URL}/#website`,
+            url: SITE_URL,
+            name: APP_NAME,
+            inLanguage: "id-ID",
+            publisher: { "@id": `${SITE_URL}/#organization` },
+            potentialAction: {
+              "@type": "SearchAction",
+              target: { "@type": "EntryPoint", urlTemplate: `${SITE_URL}/kafe?q={search_term_string}` },
+              "query-input": "required name=search_term_string",
+            },
+          },
+        ],
+      }} />
       <section className="relative isolate overflow-hidden">
         {/* Gambar latar + gradasi: di HP gambar di atas memudar ke bawah, di layar lebar gambar di kanan memudar ke kiri */}
         <div className="absolute inset-x-0 top-0 -z-10 h-[300px] md:inset-y-0 md:left-[38%] md:right-0 md:h-auto" aria-hidden>

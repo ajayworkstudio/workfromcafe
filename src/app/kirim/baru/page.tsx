@@ -6,7 +6,7 @@ import { getViewer } from "@/lib/auth";
 import type { City } from "@/lib/types";
 import SubmitForm from "./SubmitForm";
 
-export const metadata: Metadata = { title: "Kirim rekomendasi kafe" };
+export const metadata: Metadata = { title: "Kirim rekomendasi kafe", robots: { index: false, follow: false } };
 
 export default async function NewSubmissionPage() {
   const viewer = await getViewer();

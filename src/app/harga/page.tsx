@@ -9,7 +9,7 @@ import SubmitButton from "@/components/admin/SubmitButton";
 import Icon from "@/components/Icon";
 import type { Plan } from "@/lib/types";
 
-export const metadata: Metadata = { title: "Langganan" };
+export const metadata: Metadata = { title: "Langganan", alternates: { canonical: "/harga" } };
 
 const PERKS = [
   "Ulasan lengkap semua kafe",

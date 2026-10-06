@@ -1,7 +1,7 @@
 import type { Cafe, DayKey, OpeningHours } from "./types";
 
 export const APP_NAME = "WorkFromCafe";
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "");
 
 export const rupiah = (n: number | null | undefined) =>
   n == null ? "-" : new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);

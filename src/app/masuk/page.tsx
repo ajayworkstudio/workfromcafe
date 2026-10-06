@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import LoginForm from "./LoginForm";
 import { getSettings } from "@/lib/settings";
 
-export const metadata: Metadata = { title: "Masuk" };
+export const metadata: Metadata = { title: "Masuk", robots: { index: false, follow: false } };
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; error?: string; daftar?: string; terkonfirmasi?: string }> }) {
   const [{ next, error, daftar, terkonfirmasi }, settings] = await Promise.all([searchParams, getSettings()]);

@@ -6,7 +6,19 @@ import NearbyGrid from "@/components/NearbyGrid";
 import type { Cafe, City, Tag } from "@/lib/types";
 import { CAFE_LIST_SELECT, PRICE_RANGES, isOpenNow } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Jelajah kafe" };
+type SPMeta = Promise<Record<string, string | string[] | undefined>>;
+
+export async function generateMetadata({ searchParams }: { searchParams: SPMeta }): Promise<Metadata> {
+  const sp = await searchParams;
+  const filtered = Object.values(sp).some((v) => v && (Array.isArray(v) ? v.length : String(v).length));
+  return {
+    title: "Jelajah kafe untuk kerja & nugas di Pulau Jawa",
+    description: "Cari kafe yang nyaman untuk kerja (WFC) dan nugas: filter per kota, kisaran harga, fasilitas seperti wifi dan colokan, serta kafe yang sedang buka.",
+    // Hasil filter/pencarian tidak diindeks supaya tidak jadi konten ganda; Google tetap mengikuti link kafenya
+    alternates: { canonical: typeof sp.kota === "string" && Object.keys(sp).length === 1 ? `/kota/${sp.kota}` : "/kafe" },
+    robots: filtered ? { index: false, follow: true } : undefined,
+  };
+}
 
 type SP = Promise<{ q?: string; kota?: string; tag?: string | string[]; harga?: string; buka?: string }>;
 

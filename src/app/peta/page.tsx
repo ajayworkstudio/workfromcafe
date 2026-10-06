@@ -6,7 +6,11 @@ import { getSettings } from "@/lib/settings";
 import Icon from "@/components/Icon";
 import CafeMapLoader from "@/components/CafeMapLoader";
 
-export const metadata: Metadata = { title: "Peta kafe" };
+export const metadata: Metadata = {
+  title: "Peta kafe untuk kerja di Pulau Jawa",
+  description: "Lihat sebaran kafe yang nyaman untuk kerja dan nugas di Jakarta, Bandung, Yogyakarta, Semarang, Solo, Surabaya, dan kota lain di Pulau Jawa dalam satu peta.",
+  alternates: { canonical: "/peta" },
+};
 
 export default async function MapPage() {
   const [viewer, settings] = await Promise.all([getViewer(), getSettings()]);

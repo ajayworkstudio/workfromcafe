@@ -6,6 +6,8 @@ import Avatar from "@/components/Avatar";
 import AuthorBadge from "@/components/AuthorBadge";
 import CafeCard from "@/components/CafeCard";
 import Icon from "@/components/Icon";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumb } from "@/lib/seo";
 import { getAuthors, levelFor } from "@/lib/author";
 import { getViewer } from "@/lib/auth";
 import { CAFE_LIST_SELECT, SITE_URL } from "@/lib/utils";
@@ -21,9 +23,14 @@ async function findAuthor(key: string) {
 export async function generateMetadata({ params }: { params: P }): Promise<Metadata> {
   const a = await findAuthor((await params).key);
   if (!a) return {};
-  const title = `${a.name}, author WorkFromCafe`;
+  const title = `${a.name}: ${a.cafe_count} kafe rekomendasi untuk kerja`;
   const description = a.bio ?? `${a.cafe_count} kafe untuk kerja yang direkomendasikan ${a.name}.`;
-  return { title, description, openGraph: { title, description, images: a.avatar_url ? [a.avatar_url] : undefined }, alternates: { canonical: `${SITE_URL}/author/${a.username ?? a.id}` } };
+  return {
+    title,
+    description,
+    alternates: { canonical: `/author/${a.username ?? a.id}` },
+    openGraph: { type: "profile", title, description, url: `/author/${a.username ?? a.id}`, images: a.avatar_url ? [a.avatar_url] : undefined },
+  };
 }
 
 export default async function AuthorPage({ params }: { params: P }) {
@@ -40,8 +47,27 @@ export default async function AuthorPage({ params }: { params: P }) {
   const progress = next ? Math.min(100, ((a.cafe_count - (current?.min ?? 0)) / (next.min - (current?.min ?? 0))) * 100) : 100;
   const isMe = viewer.user?.id === a.id;
 
+  const profileUrl = `${SITE_URL}/author/${a.username ?? a.id}`;
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
+      <JsonLd data={[
+        {
+          "@context": "https://schema.org",
+          "@type": "ProfilePage",
+          url: profileUrl,
+          dateCreated: a.first_at,
+          dateModified: a.last_at,
+          mainEntity: {
+            "@type": "Person",
+            name: a.name,
+            description: a.bio ?? undefined,
+            image: a.avatar_url ?? undefined,
+            url: profileUrl,
+            sameAs: a.instagram ? [`https://instagram.com/${a.instagram}`] : undefined,
+          },
+        },
+        breadcrumb([{ name: "Beranda", path: "/" }, { name: "Para author", path: "/author" }, { name: a.name, path: `/author/${a.username ?? a.id}` }]),
+      ]} />
       <section className="overflow-hidden rounded-3xl border border-line bg-surface">
         <div className="h-24 bg-gradient-to-r from-brand via-brand to-tan md:h-32" aria-hidden />
         <div className="px-6 pb-7 md:px-10">

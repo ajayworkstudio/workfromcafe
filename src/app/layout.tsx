@@ -14,6 +14,13 @@ export const metadata: Metadata = {
   title: { default: `${APP_NAME} — Kafe untuk kerja di Pulau Jawa`, template: `%s | ${APP_NAME}` },
   description:
     "Koleksi kafe pilihan untuk kerja di kota-kota besar Pulau Jawa: Jakarta, Bandung, Yogyakarta, Semarang, Solo, Surabaya, Malang, dan lainnya. Lengkap dengan penilaian kerja dan menu yang wajib dicoba.",
+  applicationName: APP_NAME,
+  keywords: ["kafe untuk kerja", "work from cafe", "WFC", "cafe wifi kencang", "cafe colokan", "tempat nugas", "coworking cafe", "kafe Jakarta", "kafe Bandung", "kafe Yogyakarta", "kafe Semarang", "kafe Solo", "kafe Surabaya", "kafe Malang"],
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 } },
+  twitter: { card: "summary_large_image" },
+  formatDetection: { telephone: false, address: false, email: false },
+  verification: process.env.GOOGLE_SITE_VERIFICATION ? { google: process.env.GOOGLE_SITE_VERIFICATION } : undefined,
+  category: "travel",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: APP_NAME, statusBarStyle: "default" },
   icons: { apple: "/icons/apple-touch-icon.png" },

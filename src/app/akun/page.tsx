@@ -13,7 +13,7 @@ import type { Cafe } from "@/lib/types";
 import { CAFE_LIST_SELECT, SITE_URL, rupiah } from "@/lib/utils";
 import { PLAN_META, getSettings } from "@/lib/settings";
 
-export const metadata: Metadata = { title: "Akun saya" };
+export const metadata: Metadata = { title: "Akun saya", robots: { index: false, follow: false } };
 
 async function logout() {
   "use server";

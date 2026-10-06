@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { cache } from "react";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumb, clip } from "@/lib/seo";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -11,17 +14,30 @@ import CafeScorecard from "@/components/CafeScorecard";
 import CafeComments from "@/components/CafeComments";
 import Avatar from "@/components/Avatar";
 import AuthorBadge from "@/components/AuthorBadge";
-import { averageScore } from "@/lib/review";
+import { AMENITIES, averageScore, filledAspects, levelOf } from "@/lib/review";
 import { FavoriteButton, UnlockButton, VisitedButton } from "@/components/ActionButtons";
 import type { Cafe, CafeDetails, MenuItem } from "@/lib/types";
-import { CAFE_LIST_SELECT, DAYS, formatSlot, SITE_URL, coverUrl, isOpenNow, priceLabel, rupiah } from "@/lib/utils";
+import { APP_NAME, CAFE_LIST_SELECT, DAYS, formatSlot, SITE_URL, coverUrl, isOpenNow, priceLabel, rupiah } from "@/lib/utils";
 
 type P = Promise<{ slug: string }>;
 
-async function getCafe(slug: string) {
+// cache(): metadata dan halaman memakai satu query yang sama
+const getCafe = cache(async (slug: string) => {
   const supabase = await createClient();
   const { data } = await supabase.from("cafes").select(CAFE_LIST_SELECT).eq("slug", slug).maybeSingle();
   return data as Cafe | null;
+});
+
+/** Deskripsi untuk Google: ulasan singkat, kalau kosong dirangkai dari penilaian & fasilitas. */
+function describeCafe(cafe: Cafe) {
+  const where = [cafe.area, cafe.city?.name].filter(Boolean).join(", ");
+  const facts = filledAspects(cafe.scores)
+    .filter((a) => ["internet", "colokan", "ketenangan"].includes(a.key))
+    .map((a) => `${a.label.toLowerCase()} ${levelOf(a, a.score)[0].toLowerCase()}`);
+  const base = cafe.short_review?.trim() || `Review ${cafe.name} di ${where} sebagai tempat kerja dan nugas.`;
+  const factText = facts.join(", ");
+  const extra = factText ? ` ${factText.charAt(0).toUpperCase()}${factText.slice(1)}.` : "";
+  return clip(`${base}${extra} Harga ${priceLabel(cafe.price_range)}, jam buka & menu rekomendasi.`);
 }
 
 export async function generateMetadata({ params }: { params: P }): Promise<Metadata> {
@@ -29,12 +45,14 @@ export async function generateMetadata({ params }: { params: P }): Promise<Metad
   const cafe = await getCafe(slug);
   if (!cafe) return {};
   const cover = coverUrl(cafe);
-  const title = `${cafe.name} — ${cafe.city?.name}`;
+  const title = `${cafe.name}, ${cafe.city?.name ?? ""}: review tempat kerja, wifi & colokan`;
+  const description = describeCafe(cafe);
   return {
     title,
-    description: cafe.short_review ?? `Ulasan ${cafe.name} di ${cafe.city?.name}`,
-    openGraph: { title, description: cafe.short_review ?? undefined, images: cover ? [cover] : undefined },
+    description,
     alternates: { canonical: `/kafe/${cafe.slug}` },
+    openGraph: { type: "article", title, description, url: `/kafe/${cafe.slug}`, images: cover ? [{ url: cover, alt: cafe.name }] : undefined },
+    twitter: { card: "summary_large_image", title, description, images: cover ? [cover] : undefined },
   };
 }
 
@@ -88,22 +106,74 @@ export default async function CafeDetailPage({ params }: { params: P }) {
     ? `https://www.google.com/maps/search/?api=1&query=${cafe.lat},${cafe.lng}`
     : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${cafe.name} ${cafe.address ?? ""}`)}`;
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "CafeOrCoffeeShop",
-    name: cafe.name,
-    address: { "@type": "PostalAddress", streetAddress: cafe.address, addressLocality: cafe.city?.name, addressRegion: cafe.city?.province, addressCountry: "ID" },
-    geo: cafe.lat ? { "@type": "GeoCoordinates", latitude: cafe.lat, longitude: cafe.lng } : undefined,
-    image: coverUrl(cafe) ?? undefined,
-    priceRange: priceLabel(cafe.price_range),
-    url: `${SITE_URL}/kafe/${cafe.slug}`,
-  };
+  // ===== Data terstruktur (schema.org) untuk Google =====
+  const url = `${SITE_URL}/kafe/${cafe.slug}`;
+  const DAY_SCHEMA: Record<string, string> = { mon: "Monday", tue: "Tuesday", wed: "Wednesday", thu: "Thursday", fri: "Friday", sat: "Saturday", sun: "Sunday" };
+  const openingHoursSpecification = DAYS.flatMap(({ key }) => {
+    const h = cafe.opening_hours?.[key];
+    return h ? [{ "@type": "OpeningHoursSpecification", dayOfWeek: `https://schema.org/${DAY_SCHEMA[key]}`, opens: h[0], closes: h[1] === "24:00" ? "23:59" : h[1] }] : [];
+  });
+  const amenityFeature = AMENITIES.flatMap((m) => {
+    const v = cafe.amenities?.[m.key];
+    return typeof v === "boolean" ? [{ "@type": "LocationFeatureSpecification", name: m.label, value: v }] : [];
+  });
+  const reviewAuthor = cafe.contributor_name
+    ? { "@type": "Person", name: cafe.contributor_name }
+    : { "@type": "Organization", name: APP_NAME, url: SITE_URL };
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "CafeOrCoffeeShop",
+      "@id": `${url}#cafe`,
+      name: cafe.name,
+      url,
+      description: cafe.short_review ?? undefined,
+      image: photos.slice(0, 6).map((p) => p.url),
+      address: { "@type": "PostalAddress", streetAddress: cafe.address ?? undefined, addressLocality: cafe.city?.name, addressRegion: cafe.city?.province, addressCountry: "ID" },
+      geo: cafe.lat ? { "@type": "GeoCoordinates", latitude: cafe.lat, longitude: cafe.lng } : undefined,
+      hasMap: mapsUrl,
+      priceRange: priceLabel(cafe.price_range),
+      servesCuisine: ["Kopi", "Minuman"],
+      currenciesAccepted: "IDR",
+      openingHoursSpecification: openingHoursSpecification.length ? openingHoursSpecification : undefined,
+      amenityFeature: amenityFeature.length ? amenityFeature : undefined,
+      sameAs: cafe.instagram ? [`https://instagram.com/${cafe.instagram.replace(/^@/, "")}`] : undefined,
+      hasMenu: items.length
+        ? {
+            "@type": "Menu",
+            name: `Menu rekomendasi ${cafe.name}`,
+            url: cafe.menu_url ?? undefined,
+            hasMenuItem: items.slice(0, 15).map((m) => ({
+              "@type": "MenuItem",
+              name: m.name,
+              description: m.note ?? undefined,
+              offers: m.price ? { "@type": "Offer", price: m.price, priceCurrency: "IDR" } : undefined,
+            })),
+          }
+        : cafe.menu_url ?? undefined,
+      review: overall != null
+        ? {
+            "@type": "Review",
+            author: reviewAuthor,
+            datePublished: (cafe.visited_at ?? cafe.created_at)?.slice(0, 10),
+            reviewBody: d?.full_review || cafe.short_review || undefined,
+            reviewRating: { "@type": "Rating", ratingValue: Number(overall.toFixed(1)), bestRating: 5, worstRating: 1 },
+            publisher: { "@type": "Organization", name: APP_NAME, url: SITE_URL },
+          }
+        : undefined,
+    },
+    breadcrumb([
+      { name: "Beranda", path: "/" },
+      ...(cafe.city ? [{ name: `Kafe di ${cafe.city.name}`, path: `/kota/${cafe.city.slug}` }] : []),
+      { name: cafe.name, path: `/kafe/${cafe.slug}` },
+    ]),
+  ];
 
   const today = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Jakarta", weekday: "short" }).format(new Date()).toLowerCase().slice(0, 3);
 
   return (
     <article className="mx-auto max-w-6xl px-4 pb-10 pt-6">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <JsonLd data={jsonLd} />
 
       <PhotoGallery photos={photos.map((p) => ({ id: p.id, url: p.url }))} name={cafe.name} />
 

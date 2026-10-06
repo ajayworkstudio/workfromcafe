@@ -7,7 +7,8 @@ import { authorHref, getAuthors, LEVELS } from "@/lib/author";
 
 export const metadata: Metadata = {
   title: "Para author",
-  description: "Orang-orang yang merekomendasikan kafe untuk kerja di WorkFromCafe.",
+  description: "Orang-orang yang merekomendasikan kafe untuk kerja dan nugas di WorkFromCafe, dari Jakarta sampai Surabaya. Jadi author dan naik level sampai Kurator Utama.",
+  alternates: { canonical: "/author" },
 };
 
 export default async function AuthorsPage() {
