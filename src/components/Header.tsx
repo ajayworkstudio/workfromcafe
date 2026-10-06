@@ -12,7 +12,7 @@ export default async function Header() {
   return (
     <>
     <header className="sticky top-0 z-40 border-b border-line/80 bg-canvas/85 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4">
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 md:gap-6">
         <Link href="/" className="flex items-center" aria-label="WorkFromCafe, beranda">
           <Wordmark />
         </Link>
@@ -20,6 +20,10 @@ export default async function Header() {
           <Link href="/kafe" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Jelajah</Link>
           <Link href="/peta" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Peta</Link>
           <Link href="/kirim" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Kirim kafe</Link>
+          <Link href="/event" className="flex items-center gap-1.5 rounded-full px-3 py-2 hover:bg-tint hover:text-ink">
+            Event
+            {!settings.events_public && <span className="rounded-full bg-gold/25 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#8a5a00]">Segera</span>}
+          </Link>
           {settings.community_url && (
             <a href={settings.community_url} target="_blank" rel="noopener" className="flex items-center gap-1.5 rounded-full px-3 py-2 hover:bg-tint hover:text-ink">
               <Icon name="whatsapp" className="h-4 w-4 text-[#128c4a]" />Komunitas
@@ -29,6 +33,11 @@ export default async function Header() {
           {v.isAdmin && <Link href="/admin" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Admin</Link>}
         </nav>
         <div className="ml-auto flex items-center gap-2">
+          <Link href="/event" aria-label={settings.events_public ? "Event" : "Event, segera hadir"}
+            className="flex shrink-0 items-center gap-1 rounded-full border border-line py-1 pl-2 pr-2.5 text-[11px] font-semibold text-muted md:hidden">
+            <Icon name="calendar" className="h-3.5 w-3.5" />
+            {settings.events_public ? "Event" : <span className="text-[#8a5a00]">Segera</span>}
+          </Link>
           {v.user ? (
             <Link href="/akun" className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 text-sm font-medium hover:bg-tint">
               <span className="relative">

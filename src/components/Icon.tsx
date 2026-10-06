@@ -45,6 +45,7 @@ const paths: Record<string, React.ReactNode> = {
   desk: <><rect x="6" y="3" width="12" height="9" rx="1" /><path d="M12 12v9M8 21h8" /></>,
   paw: <><circle cx="6.5" cy="10" r="1.8" /><circle cx="10" cy="6" r="1.8" /><circle cx="14" cy="6" r="1.8" /><circle cx="17.5" cy="10" r="1.8" /><path d="M12 11.5c-3 0-5.5 4-5.5 6.2 0 1.8 1.6 2.3 3 1.9 1.2-.3 1.8-.6 2.5-.6s1.3.3 2.5.6c1.4.4 3-.1 3-1.9 0-2.2-2.5-6.2-5.5-6.2Z" /></>,
   music: <><path d="M9 18V5l11-2v13" /><circle cx="6.5" cy="18" r="2.5" /><circle cx="17.5" cy="16" r="2.5" /></>,
+  calendar: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></>,
   chat: <path d="M4 5h16v11H9l-5 4V5Z" />,
   send: <><path d="M21 3 10 14" /><path d="m21 3-7 18-4-7-7-4 18-7Z" /></>,
   inbox: <><path d="M3 13h5l1.5 3h5L16 13h5" /><path d="M5.5 5h13L21 13v6H3v-6l2.5-8Z" /></>,

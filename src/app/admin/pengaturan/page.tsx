@@ -43,6 +43,7 @@ async function saveFreeMode(formData: FormData) {
   const { error } = await supabase.from("app_settings").upsert([
     { key: "free_mode", value: on ? "true" : "false" },
     { key: "community_url", value: cleanCommunity },
+    { key: "events_public", value: formData.get("events_public") === "on" ? "true" : "false" },
     { key: "featured_author", value: String(formData.get("featured_author") || "").trim().replace(/^@/, "").toLowerCase().replace(/^.*\/author\//, "") },
   ]);
   revalidatePath("/", "layout");
@@ -64,6 +65,13 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <span>
             <span className="block text-sm font-semibold">Semua fitur gratis</span>
             <span className="block text-xs text-muted">Ulasan lengkap, menu, dan peta terbuka untuk semua orang. Halaman harga, trial, dan tombol langganan disembunyikan.</span>
+          </span>
+        </label>
+        <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-line px-4 py-3 has-[:checked]:border-brand has-[:checked]:bg-brand-soft">
+          <input type="checkbox" name="events_public" defaultChecked={s.events_public} className="h-4 w-4 accent-brand" />
+          <span>
+            <span className="block text-sm font-semibold">Buka menu Event untuk umum</span>
+            <span className="block text-xs text-muted">Kalau belum dicentang, pengunjung melihat label &quot;Segera&quot; dan hanya admin yang bisa melihat event.</span>
           </span>
         </label>
         <div>

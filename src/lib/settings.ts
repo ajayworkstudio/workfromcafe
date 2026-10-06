@@ -18,6 +18,8 @@ export type Settings = {
   community_url: string;
   /** Username author of the month pilihan admin ("" = otomatis) */
   featured_author: string;
+  /** true = menu Event terbuka untuk umum; false = hanya admin, umum melihat "Segera" */
+  events_public: boolean;
   /** true = semua fitur gratis untuk semua orang; langganan, trial, dan halaman harga disembunyikan. */
   free_mode: boolean;
 };
@@ -43,6 +45,7 @@ export const getSettings = cache(async (): Promise<Settings> => {
     sheet_url: m.get("sheet_url") || "",
     sheet_last_sync: m.get("sheet_last_sync") || "",
     featured_author: m.get("featured_author") ?? "",
+    events_public: m.get("events_public") === "true",
     community_url: m.has("community_url") ? (m.get("community_url") ?? "") : DEFAULT_COMMUNITY_URL,
     free_mode: (m.get("free_mode") ?? "true") === "true",
   };
