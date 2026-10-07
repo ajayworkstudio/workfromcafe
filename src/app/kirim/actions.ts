@@ -22,19 +22,22 @@ export async function submitRecommendation(_prev: SubmitState, f: FormData): Pro
 
   // --- Validasi isian wajib
   const name = clean(f.get("name"), 120);
-  const authorName = clean(f.get("author_name"), 60);
+  // Nama author: isian form, kalau kosong pakai nama profil / awal email
+  let authorName = clean(f.get("author_name"), 60);
+  if (!authorName) {
+    const { data: prof } = await supabase.from("profiles").select("name").eq("id", user.id).maybeSingle();
+    authorName = prof?.name?.trim() || user.email?.split("@")[0] || "WFC Hunter";
+  }
   const cityId = clean(f.get("city_id"), 60);
   const cityOther = clean(f.get("city_other"), 60);
   const shortReview = clean(f.get("short_review"), 200);
   const address = clean(f.get("address"), 300);
   const mapsLink = clean(f.get("maps_link"), 500);
 
-  if (!authorName) return { error: "Isi nama yang mau ditampilkan sebagai author." };
   if (!name) return { error: "Nama kafe wajib diisi." };
   if (!cityId && !cityOther) return { error: "Pilih kota, atau tulis nama kotanya kalau tidak ada di daftar." };
-  if (!address && !mapsLink) return { error: "Isi alamat atau link Google Maps supaya kafenya bisa ditemukan." };
-  if (!shortReview || shortReview.length < 20) return { error: "Ulasan singkat minimal 20 huruf. Ceritakan kenapa kafe ini enak buat kerja." };
-  if (f.get("consent") !== "on") return { error: "Centang persetujuan di bagian bawah dulu ya." };
+  if (!address && !mapsLink) return { error: "Tempel link Google Maps (atau tulis alamatnya) supaya kafenya bisa ditemukan." };
+  if (!shortReview || shortReview.length < 10) return { error: "Tulis satu kalimat kenapa kafe ini enak buat kerja (minimal 10 huruf)." };
 
   // --- Batas kiriman supaya tidak dibanjiri spam
   const since = new Date(Date.now() - 864e5).toISOString();

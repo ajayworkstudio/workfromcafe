@@ -19,7 +19,7 @@ export default async function NewSubmissionPage() {
       <Link href="/kirim" className="text-sm font-medium text-muted hover:text-brand">← Rekomendasi saya</Link>
       <h1 className="mt-3 text-4xl font-extrabold leading-tight">Kirim rekomendasi kafe</h1>
       <p className="mt-2 max-w-xl text-muted">
-        Isi sebanyak yang kamu tahu. Yang wajib cuma nama, kota, lokasi, dan ulasan singkat. Admin akan mengecek dan merapikan sebelum ditayangkan.
+        Cukup ±1 menit: nama kafe, kota, link Google Maps, dan satu kalimat kenapa enak buat kerja. Detail lain opsional, admin yang melengkapi.
       </p>
       <div className="mt-8">
         <SubmitForm userId={viewer.user.id} defaultName={viewer.name ?? ""} cities={(cities as City[] | null) ?? []} />

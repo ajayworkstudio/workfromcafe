@@ -4,10 +4,10 @@ import { AMENITIES, ASPECTS, cleanScore, type Amenities, type Scores } from "@/l
 const SCORE_OPTIONS = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
 
 /** Isian nilai 1–5 + catatan per aspek. Nama field: score_<aspek>, note_<aspek>. */
-export function ScoreFields({ scores }: { scores?: Scores | null }) {
+export function ScoreFields({ scores, exclude = [] }: { scores?: Scores | null; exclude?: string[] }) {
   return (
     <div className="divide-y divide-line">
-      {ASPECTS.map((a) => {
+      {ASPECTS.filter((a) => !exclude.includes(a.key)).map((a) => {
         const v = cleanScore(scores?.[a.key]);
         return (
           <div key={a.key} className="grid gap-2 py-3 first:pt-0 last:pb-0 sm:grid-cols-[190px_150px_1fr] sm:items-center sm:gap-3">
