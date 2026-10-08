@@ -1,6 +1,6 @@
 // Service worker WorkFromCafe: cache aset statis + halaman offline.
 // Proses login (/auth, /masuk, ?code=) dan API tidak pernah disentuh supaya redirect login tidak terganggu.
-const CACHE = "wfc-v4";
+const CACHE = "wfc-v5";
 const OFFLINE_URL = "/offline.html";
 
 self.addEventListener("install", (e) => {
