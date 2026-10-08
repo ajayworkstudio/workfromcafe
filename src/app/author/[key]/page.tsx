@@ -7,6 +7,7 @@ import AuthorBadge from "@/components/AuthorBadge";
 import CafeCard from "@/components/CafeCard";
 import Icon from "@/components/Icon";
 import JsonLd from "@/components/JsonLd";
+import KuratorShare from "@/components/KuratorShare";
 import { breadcrumb } from "@/lib/seo";
 import { getAuthors, levelFor } from "@/lib/author";
 import { getViewer } from "@/lib/auth";
@@ -111,6 +112,20 @@ export default async function AuthorPage({ params }: { params: P }) {
           )}
         </div>
       </section>
+
+      {isMe && current && a.cafe_count >= 5 && (
+        <KuratorShare base={`/author/${a.username ?? a.id}/kartu`} slug={a.username ?? a.id.slice(0, 8)} levelName={current.name} profileUrl={profileUrl} />
+      )}
+      {isMe && a.cafe_count < 5 && (
+        <div className="mt-8 flex flex-wrap items-center gap-4 rounded-3xl border border-dashed border-line p-6">
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gold/20 text-[#8a5a00]"><Icon name="lock" className="h-5 w-5" /></span>
+          <div className="flex-1">
+            <p className="font-bold">Kartu Kurator terbuka di 5 kafe</p>
+            <p className="text-sm text-muted">Tinggal {5 - a.cafe_count} kafe lagi. Begitu tembus, kamu dapat kartu khusus untuk dibagikan ke Instagram dan kabar lewat email.</p>
+          </div>
+          <Link href="/kirim/baru" className="btn-primary !py-2 text-sm">Kirim kafe</Link>
+        </div>
+      )}
 
       <h2 className="mt-12 text-2xl font-bold">Kafe rekomendasi {a.name.split(" ")[0]}</h2>
       {cities.length > 1 && <p className="mt-1 text-sm text-muted">{cities.join(" · ")}</p>}

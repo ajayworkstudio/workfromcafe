@@ -66,13 +66,13 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       )}
       <ProfileEditor userId={viewer.user.id} email={viewer.user.email} profile={profile} ready={ready} usernameReady={usernameReady} siteUrl={SITE_URL} />
       {myAuthor && (
-        <Link href={authorHref(myAuthor)} className="card mt-3 flex flex-wrap items-center gap-3 p-4 transition-colors hover:border-brand">
+        <Link href={`${authorHref(myAuthor)}${myAuthor.cafe_count >= 5 ? "#kartu" : ""}`} className="card mt-3 flex flex-wrap items-center gap-3 p-4 transition-colors hover:border-brand">
           <AuthorBadge count={myAuthor.cafe_count} />
           <span className="flex-1 text-sm">
             <b>{myAuthor.cafe_count} kafe</b> rekomendasimu sudah tayang.
             {levelFor(myAuthor.cafe_count).next && <span className="text-muted"> {levelFor(myAuthor.cafe_count).toNext} lagi menuju {levelFor(myAuthor.cafe_count).next!.name}.</span>}
           </span>
-          <span className="text-sm font-semibold text-brand">Lihat profil publik →</span>
+          <span className="text-sm font-semibold text-brand">{myAuthor.cafe_count >= 5 ? "Bagikan kartu Kurator →" : "Lihat profil publik →"}</span>
         </Link>
       )}
       <div className="mt-3 flex justify-end gap-2">
