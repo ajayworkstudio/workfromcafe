@@ -1,3 +1,4 @@
+import { INSTAGRAM_URL } from "@/lib/utils";
 import Link from "next/link";
 import { getViewer } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
@@ -29,6 +30,10 @@ export default async function Header() {
               <Icon name="whatsapp" className="h-4 w-4 text-[#128c4a]" />Komunitas
             </a>
           )}
+          <a href={INSTAGRAM_URL} target="_blank" rel="noopener" aria-label="Instagram @wfchunters" title="@wfchunters"
+            className="grid h-9 w-9 place-items-center rounded-full hover:bg-tint hover:text-ink">
+            <Icon name="instagram" className="h-[18px] w-[18px] text-[#c13584]" />
+          </a>
           {!v.isPremium && !free && <Link href="/harga" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Harga</Link>}
           {v.isAdmin && <Link href="/admin" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Admin</Link>}
         </nav>

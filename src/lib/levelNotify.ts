@@ -1,7 +1,7 @@
 import { createAdminClient } from "./supabase/server";
 import { LEVELS, autoUsername } from "./author";
 import { mailConfigured, sendMail } from "./mail";
-import { SITE_URL } from "./utils";
+import { INSTAGRAM_URL, SITE_URL } from "./utils";
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
@@ -58,7 +58,7 @@ export async function notifyAuthorLevel(contributorId: string | null | undefined
     </div>
     ${nextLine}
   </div>
-  <p style="text-align:center;margin:18px 0 0;font-size:12px;color:#6f625a">Kamu menerima email ini karena terdaftar sebagai author di <a href="${SITE_URL}" style="color:#6b4226">WFC Hunters</a>.</p>
+  <p style="text-align:center;margin:18px 0 0;font-size:12px;color:#6f625a">Kamu menerima email ini karena terdaftar sebagai author di <a href="${SITE_URL}" style="color:#6b4226">WFC Hunters</a>.<br>Ikuti kami di Instagram <a href="${INSTAGRAM_URL}" style="color:#6b4226">@wfchunters</a></p>
 </div></body></html>`;
     const text = `${subject}\n\nHalo ${first}, ${intro.replace(/<[^>]+>/g, "")}\n\n${withCard ? "Bagikan kartumu: " : "Profilmu: "}${profileUrl}${withCard ? "#kartu" : ""}`;
 

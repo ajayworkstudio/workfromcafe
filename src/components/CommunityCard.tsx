@@ -1,4 +1,5 @@
 import Icon from "./Icon";
+import { INSTAGRAM_URL } from "@/lib/utils";
 
 /** Ajakan gabung komunitas WhatsApp WorkFromCafe. */
 export default function CommunityCard({ url, variant = "wide" }: { url: string; variant?: "wide" | "compact" }) {
@@ -31,6 +32,9 @@ export default function CommunityCard({ url, variant = "wide" }: { url: string; 
             <Icon name="whatsapp" className="h-5 w-5" />Gabung komunitas WhatsApp
           </a>
           <p className="mt-2 text-sm text-white/50">Gratis, terbuka untuk semua.</p>
+          <a href={INSTAGRAM_URL} target="_blank" rel="noopener" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-white/80 hover:text-white">
+            <Icon name="instagram" className="h-4 w-4" />Ikuti @wfchunters di Instagram
+          </a>
         </div>
       </div>
     </div>

@@ -6,7 +6,7 @@ import Icon from "./Icon";
 export default function KuratorShare({ base, slug, levelName, profileUrl }: { base: string; slug: string; levelName: string; profileUrl: string }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
-  const text = `Aku resmi jadi ${levelName} di WFC Hunters! ☕ Cek kafe-kafe rekomendasiku buat kerja: ${profileUrl}`;
+  const text = `Aku resmi jadi ${levelName} di @wfchunters! ☕ Cek kafe-kafe rekomendasiku buat kerja: ${profileUrl}`;
 
   async function share(format: "story" | "post") {
     setBusy(format); setMsg(null);

@@ -1,6 +1,8 @@
 import type { Cafe, DayKey, OpeningHours } from "./types";
 
 export const APP_NAME = "WorkFromCafe";
+export const INSTAGRAM_HANDLE = "wfchunters";
+export const INSTAGRAM_URL = `https://www.instagram.com/${INSTAGRAM_HANDLE}/`;
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "");
 
 export const rupiah = (n: number | null | undefined) =>

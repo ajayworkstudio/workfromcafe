@@ -69,6 +69,12 @@ function Pin({ size, color }: { size: number; color: string }) {
   );
 }
 
+function Insta({ size, color }: { size: number; color: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1.2" fill={color} stroke="none" /></svg>
+  );
+}
+
 export async function renderKuratorCard(a: PublicAuthor, cities: string[], format: CardFormat) {
   const [{ fonts, logo }, avatar] = await Promise.all([loadAssets(), avatarDataUrl(a.avatar_url)]);
   const { width, height } = CARD_SIZE[format];
@@ -90,7 +96,7 @@ export async function renderKuratorCard(a: PublicAuthor, cities: string[], forma
           backgroundColor: BROWN,
           backgroundImage: `radial-gradient(circle at 3px 3px, rgba(246,242,238,0.09) 2.5px, transparent 0), linear-gradient(160deg, ${BROWN} 0%, ${BROWN_DARK} 100%)`,
           backgroundSize: "44px 44px, 100% 100%",
-          padding: story ? "150px 90px 120px" : "64px 80px 64px",
+          padding: story ? "120px 90px 110px" : "64px 80px 64px",
         }}
       >
         {/* Lingkaran "noda cangkir kopi" sebagai ornamen */}
@@ -103,7 +109,7 @@ export async function renderKuratorCard(a: PublicAuthor, cities: string[], forma
           <img src={logo} width={story ? 210 : 140} height={story ? 136 : 90} alt="" />
         </div>
 
-        <div style={{ display: "flex", marginTop: story ? 110 : 40, fontSize: story ? 34 : 24, fontWeight: 600, letterSpacing: 8, color: TAN }}>
+        <div style={{ display: "flex", marginTop: story ? 80 : 40, fontSize: story ? 34 : 24, fontWeight: 600, letterSpacing: 8, color: TAN }}>
           RESMI JADI
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 14, backgroundColor: isTop ? CREAM : GOLD, color: BROWN_DARK, borderRadius: 9999, padding: story ? "18px 46px" : "12px 34px", fontSize: story ? 58 : 40, fontWeight: 800, letterSpacing: 2 }}>
@@ -146,10 +152,13 @@ export async function renderKuratorCard(a: PublicAuthor, cities: string[], forma
         )}
 
         {/* Bawah */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: "auto", paddingTop: story ? 0 : 24 }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: "auto", paddingTop: story ? 56 : 24 }}>
           <div style={{ display: "flex", fontSize: story ? 30 : 22, color: "rgba(246,242,238,0.75)" }}>Cari kafe enak buat kerja di</div>
           <div style={{ display: "flex", marginTop: 10, fontSize: story ? 40 : 30, fontWeight: 800, color: CREAM, backgroundColor: "rgba(0,0,0,0.22)", borderRadius: 9999, padding: "12px 34px" }}>
             {profile}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: story ? 18 : 12, fontSize: story ? 28 : 21, fontWeight: 600, color: TAN }}>
+            <Insta size={story ? 30 : 23} color={TAN} />@wfchunters
           </div>
         </div>
       </div>

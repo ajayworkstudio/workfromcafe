@@ -1,4 +1,4 @@
-import { APP_NAME, SITE_URL } from "./utils";
+import { APP_NAME, SITE_URL, INSTAGRAM_URL } from "./utils";
 
 export const abs = (path: string) => (path.startsWith("http") ? path : `${SITE_URL}${path.startsWith("/") ? "" : "/"}${path}`);
 
@@ -23,6 +23,7 @@ export const ORGANIZATION = {
   name: APP_NAME,
   url: SITE_URL,
   logo: abs("/logo.png"),
+  sameAs: [INSTAGRAM_URL],
 };
 
 /** Halaman yang tidak perlu muncul di Google. */
