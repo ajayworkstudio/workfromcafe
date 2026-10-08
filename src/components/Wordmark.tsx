@@ -1,10 +1,7 @@
-/** Logo WorkFromCafe versi satu baris untuk header (warna sama dengan logo resmi). */
-export default function Wordmark({ className = "text-[17px]" }: { className?: string }) {
-  return (
-    <span className={`font-logo font-extrabold uppercase leading-none tracking-[-0.02em] ${className}`} aria-label="WorkFromCafe">
-      <span className="text-brand">Work</span>
-      <span className="text-tan">From</span>
-      <span className="text-brand">Cafe</span>
-    </span>
-  );
+import Image from "next/image";
+
+/** Logo WFC Hunter (public/logo.png, rasio 744×565). */
+export default function Wordmark({ height = 44, className = "" }: { height?: number; className?: string }) {
+  const width = Math.round((height * 744) / 565);
+  return <Image src="/logo.png" alt="WFC Hunter" width={width} height={height} priority className={`block h-auto ${className}`} style={{ height, width }} />;
 }
