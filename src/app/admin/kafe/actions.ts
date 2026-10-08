@@ -81,11 +81,12 @@ export async function saveCafe(formData: FormData) {
 
   // Kabari author lewat email kalau kafe ini membuatnya naik level
   const { data: owner } = await supabase.from("cafes").select("contributor_id").eq("id", cafeId!).maybeSingle();
-  await notifyAuthorLevel(owner?.contributor_id);
+  const mailNote = await notifyAuthorLevel(owner?.contributor_id);
 
   revalidateTag("authors");
   revalidatePath("/", "layout");
-  redirect(`/admin/kafe/${cafeId}?ok=${encodeURIComponent(id ? "Perubahan disimpan." : "Kafe dibuat. Sekarang tambahkan foto dan menu.")}`);
+  const okMsg = id ? "Perubahan disimpan." : "Kafe dibuat. Sekarang tambahkan foto dan menu.";
+  redirect(`/admin/kafe/${cafeId}?ok=${encodeURIComponent(mailNote ? `${okMsg} ${mailNote}` : okMsg)}`);
 }
 
 function friendly(msg: string) {

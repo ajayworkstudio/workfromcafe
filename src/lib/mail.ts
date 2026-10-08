@@ -27,7 +27,7 @@ export async function sendMail({ to, subject, html, text }: { to: string; subjec
       host: process.env.SMTP_HOST || "smtp.gmail.com",
       port,
       secure: port === 465,
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+      auth: { user: process.env.SMTP_USER.trim(), pass: process.env.SMTP_PASS.replace(/\s+/g, "") }, // App Password sering tersalin dengan spasi
     });
     await transport.sendMail({ from, to, subject, html, text });
     return;

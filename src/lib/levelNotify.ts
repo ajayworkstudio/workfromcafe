@@ -10,19 +10,24 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
  * Kalau naik ke level yang belum pernah dikabari → kirim email ke alamat terdaftar.
  * Tidak pernah melempar error (email gagal tidak boleh menggagalkan simpan kafe).
  */
-export async function notifyAuthorLevel(contributorId: string | null | undefined) {
-  if (!contributorId || !process.env.SUPABASE_SERVICE_ROLE_KEY) return;
+export async function notifyAuthorLevel(contributorId: string | null | undefined): Promise<string | null> {
+  if (!contributorId) return null; // kafe tanpa author
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return "Email author tidak dikirim: SUPABASE_SERVICE_ROLE_KEY belum diisi di Vercel.";
   try {
     const db = createAdminClient();
     const [{ count }, { data: prof, error }] = await Promise.all([
       db.from("cafes").select("id", { count: "exact", head: true }).eq("contributor_id", contributorId).eq("is_published", true),
       db.from("profiles").select("email,name,username,notified_level").eq("id", contributorId).maybeSingle(),
     ]);
-    if (error || !prof?.email) return; // migrasi 0014 belum jalan / tidak ada email
+    if (error) return /notified_level/.test(error.message)
+      ? "Email author tidak dikirim: migrasi 0014_notifikasi_level.sql belum dijalankan."
+      : `Email author tidak dikirim: ${error.message}`;
+    if (!prof?.email) return "Email author tidak dikirim: author ini tidak punya alamat email di profil.";
     const n = count ?? 0;
     const levelIdx = LEVELS.reduce((i, l, j) => (n >= l.min ? j + 1 : i), 0); // 0 = belum ada level
-    if (levelIdx <= (prof.notified_level ?? 0)) return;
-    if (!mailConfigured()) return; // tunggu sampai email dikonfigurasi, lalu kabari di perubahan berikutnya
+    if (levelIdx <= (prof.notified_level ?? 0))
+      return levelIdx ? `(Author: ${n} kafe tayang, email level ${LEVELS[levelIdx - 1].name} sudah pernah dikirim.)` : null;
+    if (!mailConfigured()) return "Email author tidak dikirim: SMTP_USER / SMTP_PASS belum diisi di Vercel (lalu Redeploy).";
 
     const username = prof.username || autoUsername(prof.name, contributorId);
     if (!prof.username) await db.from("profiles").update({ username }).eq("id", contributorId);
@@ -59,7 +64,12 @@ export async function notifyAuthorLevel(contributorId: string | null | undefined
 
     await sendMail({ to: prof.email, subject, html, text });
     await db.from("profiles").update({ notified_level: levelIdx }).eq("id", contributorId);
+    return `Email "${level.name}" terkirim ke ${prof.email}.`;
   } catch (e) {
     console.error("[notifyAuthorLevel]", e);
+    const msg = e instanceof Error ? e.message : String(e);
+    return /535|Invalid login|BadCredentials|Username and Password/i.test(msg)
+      ? "Email author gagal: Gmail menolak login. Cek SMTP_USER dan App Password di SMTP_PASS."
+      : `Email author gagal: ${msg.slice(0, 160)}`;
   }
 }
