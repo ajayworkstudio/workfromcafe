@@ -102,12 +102,6 @@ export default async function Home() {
               <input name="q" aria-label="Cari kafe" placeholder="Cari nama kafe atau area" className="min-w-0 flex-1 bg-transparent py-2 text-base outline-none placeholder:text-muted" />
               <button className="btn-primary min-h-11 shrink-0">Cari</button>
             </form>
-            {free && (
-              <p className="mt-5 flex flex-wrap items-center gap-2 text-sm text-muted">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-ok/10 px-3 py-1 font-semibold text-ok"><Icon name="gift" className="h-4 w-4" />Gratis</span>
-                Semua ulasan, menu, dan peta terbuka tanpa langganan.
-              </p>
-            )}
             {showTrial && (
               <p className="mt-5 flex flex-wrap items-center gap-3 text-sm">
                 <Link href="/masuk?daftar=1" className="btn-dark !py-2"><Icon name="gift" className="h-4 w-4" />Coba gratis {settings.trial_days} hari</Link>
