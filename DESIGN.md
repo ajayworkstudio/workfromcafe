@@ -32,12 +32,12 @@ Palet inti: brand + ink + canvas, aksen gold. Hijau WhatsApp hanya di tombol kom
 
 ## Motif identitas
 
-- **Kartu kafe yang bisa digeser.** Deret kafe terbaru tampil sebagai kartu yang digeser ke samping, seperti membalik-balik foto kafe di galeri HP. Section tidak saling menimpa.
+- **Tumpukan kartu yang diseret (gaya Tinder).** Kafe terbaru tampil sebagai tumpukan kartu foto; seret ke kiri/kanan untuk lanjut, ketuk untuk buka. Geser tidak berarti suka/tidak suka. Section halaman tidak saling menimpa.
 - **Foto kafe asli** sebagai visual utama. Tidak ada ilustrasi stok.
 
 ## Komposisi
 
-- Beranda: hero foto, grid kafe pilihan, deret geser "Baru ditambahkan", lalu kartu ajakan: author bulan ini lebar penuh, komunitas dan peta berdampingan. Kotak kontak hanya di /kontak.
+- Beranda: hero foto, grid kafe pilihan, tumpukan kartu "Baru ditambahkan", lalu kartu ajakan: author bulan ini lebar penuh, komunitas dan peta berdampingan. Kotak kontak hanya di /kontak.
 - Radius: kartu 1.5–2rem, foto `--radius-photo`, tombol bulat penuh. Input tetap kotak membulat kecil (bukan pil).
 - Bayangan hanya untuk kolom pencarian di hero (elemen yang paling penting untuk diisi). Kartu lain cukup border tipis.
 
@@ -45,7 +45,7 @@ Palet inti: brand + ink + canvas, aksen gold. Hijau WhatsApp hanya di tombol kom
 
 - GSAP + ScrollTrigger, hanya di beranda.
 - Hero: judul muncul sekali saat halaman dibuka; foto bergerak lebih lambat dari teks saat scroll (memberi kedalaman ke foto kafe).
-- Deret "Baru ditambahkan": kartu masuk berurutan dari kanan saat pertama terlihat, lalu deret mengintip ke kanan sekali sebagai tanda bisa digeser.
+- Tumpukan "Baru ditambahkan": muncul sekali saat terlihat, kartu teratas bergoyang sekali sebagai tanda bisa diseret, kartu yang dilepas terbang keluar dan kartu berikutnya naik. Semua gerak dipicu pengguna kecuali goyangan pertama.
 - Tidak ada animasi berulang tanpa henti. `prefers-reduced-motion: reduce` mematikan semua animasi scroll.
 
 ## Tema

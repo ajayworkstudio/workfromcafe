@@ -3,7 +3,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import CafeCard from "@/components/CafeCard";
-import SwipeRow from "@/components/SwipeRow";
+import CafeSwipeStack, { type StackCafe } from "@/components/CafeSwipeStack";
+import { averageScore } from "@/lib/review";
 import HomeMotion from "@/components/HomeMotion";
 import Avatar from "@/components/Avatar";
 import AuthorBadge from "@/components/AuthorBadge";
@@ -12,7 +13,7 @@ import JsonLd from "@/components/JsonLd";
 import { ORGANIZATION } from "@/lib/seo";
 import Icon from "@/components/Icon";
 import type { Cafe, City } from "@/lib/types";
-import { APP_NAME, CAFE_LIST_SELECT, INSTAGRAM_URL, SITE_URL } from "@/lib/utils";
+import { APP_NAME, CAFE_LIST_SELECT, INSTAGRAM_URL, SITE_URL, coverUrl, isOpenNow, priceLabel } from "@/lib/utils";
 import { getViewer } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
 
@@ -33,6 +34,26 @@ export default async function Home() {
   ]);
   const cityList = (cities as City[] | null) ?? [];
   const latestList = (latest as Cafe[] | null) ?? [];
+  // Data ringkas untuk tumpukan kartu (komponen klien)
+  const stackCafes: StackCafe[] = latestList.map((c) => {
+    const tags = (c.tags ?? []).map((t) => t.tag);
+    const names = tags.map((t) => t?.name);
+    const vibe = tags.find((t) => t?.type === "vibe")?.name;
+    return {
+      id: c.id, slug: c.slug, name: c.name,
+      place: [c.area, c.city?.name].filter(Boolean).join(", "),
+      cover: coverUrl(c),
+      rating: c.my_rating != null ? Number(c.my_rating) : averageScore(c.scores),
+      price: priceLabel(c.price_range),
+      open: isOpenNow(c.opening_hours),
+      review: c.short_review,
+      chips: [
+        vibe,
+        names.includes("Wifi") || c.amenities?.wifi === true ? "Wifi" : null,
+        names.includes("Colokan") || c.amenities?.colokan === true ? "Colokan" : null,
+      ].filter((x): x is string => !!x),
+    };
+  });
 
   return (
     <>
@@ -121,24 +142,22 @@ export default async function Home() {
       )}
 
       <section className="mx-auto max-w-6xl px-4 pt-16">
-        <div className="flex items-baseline justify-between gap-4">
-          <h2 className="text-2xl font-bold md:text-3xl">Baru ditambahkan</h2>
-          {latestList.length > 1 && <p className="shrink-0 text-sm text-muted md:hidden">Geser untuk melihat</p>}
-        </div>
         {latestErr ? (
-          <p role="alert" className="mt-6 rounded-2xl border border-dashed border-line p-6 text-muted">
-            Daftar kafe terbaru gagal dimuat. Muat ulang halaman ini, atau buka <Link href="/kafe" className="font-semibold text-brand hover:underline">semua kafe</Link>.
-          </p>
-        ) : latestList.length ? (
-          <div className="mt-6">
-            <SwipeRow label="Kafe yang baru ditambahkan">
-              {latestList.map((c) => <CafeCard key={c.id} cafe={c} />)}
-            </SwipeRow>
-          </div>
+          <>
+            <h2 className="text-2xl font-bold md:text-3xl">Baru ditambahkan</h2>
+            <p role="alert" className="mt-6 rounded-2xl border border-dashed border-line p-6 text-muted">
+              Daftar kafe terbaru gagal dimuat. Muat ulang halaman ini, atau buka <Link href="/kafe" className="font-semibold text-brand hover:underline">semua kafe</Link>.
+            </p>
+          </>
+        ) : stackCafes.length ? (
+          <CafeSwipeStack cafes={stackCafes} title="Baru ditambahkan" />
         ) : (
-          <p className="mt-6 rounded-2xl border border-dashed border-line p-6 text-muted">
-            Belum ada kafe yang tayang. Punya kafe andalan? <Link href="/kirim" className="font-semibold text-brand hover:underline">Kirim rekomendasi pertama</Link>.
-          </p>
+          <>
+            <h2 className="text-2xl font-bold md:text-3xl">Baru ditambahkan</h2>
+            <p className="mt-6 rounded-2xl border border-dashed border-line p-6 text-muted">
+              Belum ada kafe yang tayang. Punya kafe andalan? <Link href="/kirim" className="font-semibold text-brand hover:underline">Kirim rekomendasi pertama</Link>.
+            </p>
+          </>
         )}
       </section>
 
