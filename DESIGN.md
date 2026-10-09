@@ -32,7 +32,7 @@ Palet inti: brand + ink + canvas, aksen gold. Hijau WhatsApp hanya di tombol kom
 
 ## Motif identitas
 
-- **Tumpukan kartu yang diseret (gaya Tinder).** Kafe terbaru tampil sebagai tumpukan kartu foto; seret ke kiri/kanan untuk lanjut, ketuk untuk buka. Geser tidak berarti suka/tidak suka. Section halaman tidak saling menimpa.
+- **Tumpukan kartu yang diseret (gaya Tinder).** Kafe terbaru tampil sebagai tumpukan kartu foto; seret ke kiri/kanan untuk lanjut, ketuk untuk buka. Tumpukan berputar terus: setelah kafe terakhir, kafe pertama kembali dari belakang. Geser tidak berarti suka/tidak suka. Section halaman tidak saling menimpa.
 - **Foto kafe asli** sebagai visual utama. Tidak ada ilustrasi stok.
 
 ## Komposisi

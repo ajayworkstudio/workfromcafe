@@ -3,7 +3,7 @@ import { useEffect } from "react";
 
 /*
   Gerak beranda (MOTION 2, lihat DESIGN.md): foto hero bergerak lebih lambat dari teks saat
-  scroll, memberi kedalaman ke foto kafe. Animasi deret "Baru ditambahkan" ada di SwipeRow.
+  scroll, memberi kedalaman ke foto kafe. Animasi "Baru ditambahkan" ada di CafeSwipeStack.
   Di-scrub ke posisi scroll (tidak ada animasi yang berjalan sendiri), dan dimatikan
   untuk pengguna yang memilih "kurangi gerakan". Tanpa JS, halaman tetap utuh.
 */

@@ -39,12 +39,14 @@ export default function CafeSwipeStack({ cafes, title, allHref = "/kafe" }: { ca
   const busy = useRef(false);
   const dragged = useRef(false);
   const n = cafes.length;
-  const done = index >= n;
+  // Tumpukan berputar: setelah kafe terakhir, kafe pertama muncul lagi dari belakang.
+  const pos = ((index % n) + n) % n;
+  const visible = Array.from({ length: Math.min(VISIBLE, n) }, (_, k) => cafes[(pos + k) % n]);
 
   // Atur posisi tiap lapis setiap kali kartu teratas berganti
   useLayoutEffect(() => {
     const dur = reduced() ? 0 : 0.35;
-    cafes.slice(index, index + VISIBLE).forEach((c, k) => {
+    visible.forEach((c, k) => {
       const el = cards.current.get(c.id);
       if (!el) return;
       // Titik tumpu di tepi bawah: kartu belakang mengecil ke atas sehingga tepi bawahnya mengintip
@@ -56,17 +58,18 @@ export default function CafeSwipeStack({ cafes, title, allHref = "/kafe" }: { ca
           { ...target, duration: reduced() ? 0 : 0.45, ease: "power3.out", onComplete: () => { busy.current = false; } });
         enterFrom.current = 0;
       } else if (!el.dataset.placed) {
-        gsap.fromTo(el, { y: (k + 1) * DEPTH_Y, scale: 1 - (k + 1) * DEPTH_SCALE, opacity: 0 }, { ...target, duration: dur, ease: "power2.out" });
+        // Kartu baru (atau kartu yang baru dilempar lalu kembali ke belakang tumpukan) muncul dari balik tumpukan
+        gsap.fromTo(el, { x: 0, rotation: 0, y: (k + 1) * DEPTH_Y, scale: 1 - (k + 1) * DEPTH_SCALE, opacity: 0 }, { ...target, duration: dur, ease: "power2.out" });
       } else {
         gsap.to(el, { ...target, duration: dur, ease: "power2.out" });
       }
       el.dataset.placed = "1";
     });
-  }, [index, cafes]);
+  }, [index, cafes]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fly = useCallback((dir: 1 | -1) => {
-    if (busy.current || index >= n) return;
-    const el = cards.current.get(cafes[index].id);
+    if (busy.current || !n) return;
+    const el = cards.current.get(visible[0].id);
     const w = stackRef.current?.offsetWidth ?? 400;
     if (!el || reduced()) { setIndex((i) => i + 1); return; }
     busy.current = true;
@@ -74,16 +77,15 @@ export default function CafeSwipeStack({ cafes, title, allHref = "/kafe" }: { ca
       x: dir * w * 1.4, y: "+=40", rotation: dir * 24, duration: 0.42, ease: "power2.in",
       onComplete: () => { busy.current = false; delete el.dataset.placed; setIndex((i) => i + 1); },
     });
-  }, [cafes, index, n]);
+  }, [visible, n]);
 
   const back = useCallback(() => {
-    if (busy.current || index === 0) return;
+    if (busy.current || n < 2) return;
     busy.current = !reduced();
     enterFrom.current = -1;
     setIndex((i) => i - 1);
-  }, [index]);
+  }, [n]);
 
-  const restart = () => { setIndex(0); };
 
   // Seret kartu teratas
   const onPointerDown = (e: React.PointerEvent<HTMLElement>) => {
@@ -142,7 +144,6 @@ export default function CafeSwipeStack({ cafes, title, allHref = "/kafe" }: { ca
     if (e.key === "ArrowLeft") { e.preventDefault(); back(); }
   };
 
-  const visible = cafes.slice(index, index + VISIBLE);
 
   return (
     // HP: judul, tumpukan, tombol (urutan DOM). Layar lebar: judul dan tombol di kiri, tumpukan di kanan.
@@ -159,17 +160,6 @@ export default function CafeSwipeStack({ cafes, title, allHref = "/kafe" }: { ca
           tabIndex={0} onKeyDown={onKeyDown}
           className="relative mx-auto aspect-[4/5] w-full max-w-[400px] rounded-[1.75rem] outline-offset-4"
           style={{ marginBottom: (VISIBLE - 1) * DEPTH_Y + 12 }}>
-          {done && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[1.75rem] border border-dashed border-mist bg-surface p-8 text-center">
-              <span className="grid h-14 w-14 place-items-center rounded-full bg-brand-soft text-brand"><Icon name="cup" className="h-7 w-7" /></span>
-              <p className="mt-4 text-xl font-bold">Itu {n} kafe terbaru.</p>
-              <p className="mt-1 text-muted">Masih banyak kafe lain di daftar lengkap.</p>
-              <div className="mt-6 flex flex-wrap justify-center gap-2">
-                <button type="button" onClick={restart} className="btn-ghost min-h-11">Ulangi dari awal</button>
-                <Link href={allHref} className="btn-primary min-h-11">Lihat semua kafe</Link>
-              </div>
-            </div>
-          )}
           {visible.map((c, k) => (
             <Link key={c.id} href={`/kafe/${c.slug}`}
               ref={(el) => { if (el) cards.current.set(c.id, el); else cards.current.delete(c.id); }}
@@ -218,19 +208,19 @@ export default function CafeSwipeStack({ cafes, title, allHref = "/kafe" }: { ca
 
       <div className="md:col-start-1 md:row-start-3 md:self-start">
         <div className="flex items-center justify-center gap-3 md:mt-0 md:justify-start">
-          <button type="button" onClick={back} disabled={index === 0} aria-label="Kafe sebelumnya"
+          <button type="button" onClick={back} disabled={n < 2} aria-label="Kafe sebelumnya"
             className="grid h-12 w-12 place-items-center rounded-full border border-line bg-surface transition-colors hover:border-brand disabled:opacity-40 disabled:hover:border-line">
             <Icon name="chevron" className="h-5 w-5 rotate-180" />
           </button>
           <p aria-live="polite" className="min-w-16 text-center text-sm font-semibold tabular-nums text-muted">
-            {done ? `${n} / ${n}` : `${index + 1} / ${n}`}
+            {`${pos + 1} / ${n}`}
           </p>
-          <button type="button" onClick={() => fly(1)} disabled={done} aria-label="Kafe berikutnya"
+          <button type="button" onClick={() => fly(1)} disabled={n < 2} aria-label="Kafe berikutnya"
             className="grid h-12 w-12 place-items-center rounded-full bg-brand text-white transition-colors hover:bg-brand-dark disabled:opacity-40">
             <Icon name="chevron" className="h-5 w-5" />
           </button>
         </div>
-        <Link href={allHref} className="mt-4 hidden text-sm font-semibold text-brand hover:underline md:inline-block">Lihat semua kafe</Link>
+        <Link href={allHref} className="mt-4 flex min-h-11 items-center justify-center text-sm font-semibold text-brand hover:underline md:inline-flex md:justify-start">Lihat semua kafe</Link>
       </div>
     </div>
   );
