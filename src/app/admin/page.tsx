@@ -10,11 +10,12 @@ const STATUS: Record<string, string> = { paid: "Lunas", pending: "Menunggu", fai
 
 export default async function AdminHome() {
   const supabase = await createClient();
-  const [{ data: stats }, { data: recent }, { count: pendingManual }, { count: pendingSubs }] = await Promise.all([
+  const [{ data: stats }, { data: recent }, { count: pendingManual }, { count: pendingSubs }, { count: unreadMsgs }] = await Promise.all([
     supabase.rpc("admin_stats"),
     supabase.from("payments").select("order_id,plan,amount,status,created_at").order("created_at", { ascending: false }).limit(8),
     supabase.from("payments").select("id", { count: "exact", head: true }).eq("method", "manual").eq("status", "pending"),
     supabase.from("cafe_submissions").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    supabase.from("contact_messages").select("id", { count: "exact", head: true }).eq("is_read", false),
   ]);
   const s = (stats ?? {}) as Stats;
 
@@ -27,6 +28,12 @@ export default async function AdminHome() {
         <Link href="/admin/rekomendasi" className="mb-5 flex items-center justify-between gap-3 rounded-2xl border border-brand/30 bg-brand-soft px-5 py-4 hover:bg-brand-soft/70">
           <span><span className="font-semibold">{pendingSubs} rekomendasi kafe dari author menunggu review.</span></span>
           <span className="btn-dark !py-1.5 text-sm">Review</span>
+        </Link>
+      )}
+      {!!unreadMsgs && (
+        <Link href="/admin/pesan" className="mb-5 flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-5 py-4 hover:border-brand">
+          <span className="font-semibold">{unreadMsgs} pesan baru dari kotak kontak.</span>
+          <span className="btn-dark !py-1.5 text-sm">Baca</span>
         </Link>
       )}
       {!!pendingManual && (

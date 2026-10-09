@@ -121,7 +121,7 @@ export default async function SubmissionDetail({ params, searchParams }: { param
             <p className="mt-2 text-sm text-muted">{authorTotal ?? 0} kiriman, {authorApproved ?? 0} diterima</p>
             {relation && (
               <p className={`mt-3 rounded-lg px-3 py-2 text-sm ${d.relation === "pengunjung" ? "bg-tint" : "bg-gold/15"}`}>
-                <b>{relation.label}</b>{d.relation !== "pengunjung" && " — penilaian mungkin tidak netral, cek ulang sebelum tayang."}
+                <b>{relation.label}</b>{d.relation !== "pengunjung" && ". Penilaian mungkin tidak netral, cek ulang sebelum tayang."}
               </p>
             )}
           </section>

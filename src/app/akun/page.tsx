@@ -61,7 +61,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       )}
       {bayar === "selesai" && (
         <p className="mb-6 rounded-xl bg-ok/10 p-4 text-sm text-ok">
-          Terima kasih! Pembayaran sedang dikonfirmasi. Status langganan akan aktif otomatis dalam beberapa saat — muat ulang halaman ini.
+          Terima kasih! Pembayaran sedang dikonfirmasi. Status langganan akan aktif otomatis dalam beberapa saat. Muat ulang halaman ini.
         </p>
       )}
       <ProfileEditor userId={viewer.user.id} email={viewer.user.email} profile={profile} ready={ready} usernameReady={usernameReady} siteUrl={SITE_URL} />

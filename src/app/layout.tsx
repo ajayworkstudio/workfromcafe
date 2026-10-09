@@ -10,7 +10,7 @@ import { APP_NAME, SITE_URL } from "@/lib/utils";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: `${APP_NAME} — Kafe untuk kerja di Pulau Jawa`, template: `%s | ${APP_NAME}` },
+  title: { default: `${APP_NAME}: Kafe untuk kerja di Pulau Jawa`, template: `%s | ${APP_NAME}` },
   description:
     "Koleksi kafe pilihan untuk kerja di kota-kota besar Pulau Jawa: Jakarta, Bandung, Yogyakarta, Semarang, Solo, Surabaya, Malang, dan lainnya. Lengkap dengan penilaian kerja dan menu yang wajib dicoba.",
   applicationName: APP_NAME,

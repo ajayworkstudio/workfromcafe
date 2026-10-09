@@ -9,6 +9,7 @@ const ITEMS = [
   { href: "/admin/rekomendasi", label: "Rekomendasi", icon: "inbox" },
   { href: "/admin/event", label: "Event", icon: "calendar" },
   { href: "/admin/komentar", label: "Komentar", icon: "chat" },
+  { href: "/admin/pesan", label: "Pesan", icon: "send" },
   { href: "/admin/spreadsheet", label: "Spreadsheet", icon: "table" },
   { href: "/admin/kota", label: "Kota", icon: "pin" },
   { href: "/admin/tag", label: "Tag", icon: "tag" },

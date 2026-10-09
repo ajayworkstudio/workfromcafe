@@ -10,6 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/kafe`, changeFrequency: "daily", priority: 0.9 },
     { url: `${SITE_URL}/peta`, changeFrequency: "weekly", priority: 0.6 },
     { url: `${SITE_URL}/author`, changeFrequency: "weekly", priority: 0.5 },
+    { url: `${SITE_URL}/kontak`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE_URL}/kirim`, changeFrequency: "monthly", priority: 0.4 },
   ];
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return base;

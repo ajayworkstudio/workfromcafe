@@ -58,7 +58,7 @@ export default async function Header() {
       </div>
     </header>
 
-      {/* Navigasi bawah untuk HP — di luar <header> karena backdrop-blur membuat position:fixed ikut header */}
+      {/* Navigasi bawah untuk HP, di luar <header> karena backdrop-blur membuat position:fixed ikut header */}
       <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] text-[11px] font-medium text-muted backdrop-blur-xl md:hidden">
         {[
           { href: "/", icon: "home", label: "Beranda" },

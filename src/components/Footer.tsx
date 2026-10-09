@@ -20,6 +20,7 @@ export default async function Footer() {
           <Link href="/author" className="hover:text-ink">Para author</Link>
           <Link href="/event" className="hover:text-ink">Event</Link>
           {community_url && <a href={community_url} target="_blank" rel="noopener" className="hover:text-ink">Komunitas WhatsApp</a>}
+          <Link href="/kontak" className="hover:text-ink">Kontak</Link>
           <a href={INSTAGRAM_URL} target="_blank" rel="noopener" className="inline-flex items-center gap-1.5 hover:text-ink"><Icon name="instagram" className="h-4 w-4" />@wfchunters</a>
           {!free_mode && <Link href="/harga" className="hover:text-ink">Harga langganan</Link>}
         </div>
