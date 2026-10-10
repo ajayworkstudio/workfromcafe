@@ -3,8 +3,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import CafeCard from "@/components/CafeCard";
-import CafeSwipeStack, { type StackCafe } from "@/components/CafeSwipeStack";
-import { averageScore } from "@/lib/review";
+import CafeSwipeStack from "@/components/CafeSwipeStack";
+import { toStackCafe } from "@/lib/stackCafe";
 import HomeMotion from "@/components/HomeMotion";
 import Avatar from "@/components/Avatar";
 import AuthorBadge from "@/components/AuthorBadge";
@@ -13,7 +13,7 @@ import JsonLd from "@/components/JsonLd";
 import { ORGANIZATION } from "@/lib/seo";
 import Icon from "@/components/Icon";
 import type { Cafe, City } from "@/lib/types";
-import { APP_NAME, CAFE_LIST_SELECT, INSTAGRAM_URL, SITE_URL, coverUrl, isOpenNow, priceLabel } from "@/lib/utils";
+import { APP_NAME, CAFE_LIST_SELECT, INSTAGRAM_URL, SITE_URL } from "@/lib/utils";
 import { getViewer } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
 
@@ -34,26 +34,7 @@ export default async function Home() {
   ]);
   const cityList = (cities as City[] | null) ?? [];
   const latestList = (latest as Cafe[] | null) ?? [];
-  // Data ringkas untuk tumpukan kartu (komponen klien)
-  const stackCafes: StackCafe[] = latestList.map((c) => {
-    const tags = (c.tags ?? []).map((t) => t.tag);
-    const names = tags.map((t) => t?.name);
-    const vibe = tags.find((t) => t?.type === "vibe")?.name;
-    return {
-      id: c.id, slug: c.slug, name: c.name,
-      place: [c.area, c.city?.name].filter(Boolean).join(", "),
-      cover: coverUrl(c),
-      rating: c.my_rating != null ? Number(c.my_rating) : averageScore(c.scores),
-      price: priceLabel(c.price_range),
-      open: isOpenNow(c.opening_hours),
-      review: c.short_review,
-      chips: [
-        vibe,
-        names.includes("Wifi") || c.amenities?.wifi === true ? "Wifi" : null,
-        names.includes("Colokan") || c.amenities?.colokan === true ? "Colokan" : null,
-      ].filter((x): x is string => !!x),
-    };
-  });
+  const stackCafes = latestList.map(toStackCafe);
 
   return (
     <>

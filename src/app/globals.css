@@ -26,6 +26,13 @@
 }
 
 html { -webkit-tap-highlight-color: transparent; }
+
+/* Grid tanpa jumlah kolom (tampilan HP) memakai satu kolom selebar layar. Tanpa ini, kolom
+   otomatis ikut melebar mengikuti isi terpanjang (mis. nama kafe yang dipotong "…") dan
+   halaman bisa digeser ke samping. Kelas grid-cols-* tetap menang karena ada di lapisan utilities. */
+@layer base {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+}
 body {
   background: var(--color-canvas);
   color: var(--color-ink);

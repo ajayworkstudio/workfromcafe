@@ -15,7 +15,7 @@ export default function CafeCard({ cafe }: { cafe: Cafe }) {
   const vibe = (cafe.tags ?? []).map((t) => t.tag).find((t) => t?.type === "vibe");
 
   return (
-    <Link href={`/kafe/${cafe.slug}`} className="group block">
+    <Link href={`/kafe/${cafe.slug}`} className="group block min-w-0">
       <div className="relative aspect-[5/4] overflow-hidden rounded-[var(--radius-photo)] bg-tint">
         {cover ? (
           <Image src={cover} alt={cafe.name} fill sizes="(max-width:768px) 100vw, 33vw" className="object-cover transition duration-500 group-hover:scale-[1.03]" />

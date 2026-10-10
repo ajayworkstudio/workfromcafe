@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Avatar from "@/components/Avatar";
 import AuthorBadge from "@/components/AuthorBadge";
-import CafeCard from "@/components/CafeCard";
+import CafeSwipeStack from "@/components/CafeSwipeStack";
+import { toStackCafe } from "@/lib/stackCafe";
 import Icon from "@/components/Icon";
 import JsonLd from "@/components/JsonLd";
 import KuratorShare from "@/components/KuratorShare";
@@ -82,10 +83,10 @@ export default async function AuthorPage({ params }: { params: P }) {
             </div>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <h1 className="text-3xl font-extrabold md:text-4xl">{a.name}</h1>
+            <h1 className="min-w-0 break-words text-3xl font-extrabold md:text-4xl">{a.name}</h1>
             <AuthorBadge count={a.cafe_count} className="!text-sm" />
           </div>
-          {a.bio && <p className="mt-3 max-w-2xl whitespace-pre-line text-lg leading-relaxed text-ink/80">{a.bio}</p>}
+          {a.bio && <p className="mt-3 max-w-2xl whitespace-pre-line break-words text-lg leading-relaxed text-ink/80 [overflow-wrap:anywhere]">{a.bio}</p>}
 
           {/* Label pendek di HP supaya tiga kotak muat di layar sempit; label lengkap mulai layar sm */}
           <dl className="mt-6 grid max-w-2xl grid-cols-3 gap-2 sm:gap-3">
@@ -132,11 +133,17 @@ export default async function AuthorPage({ params }: { params: P }) {
         </div>
       )}
 
-      <h2 className="mt-12 text-2xl font-bold">Kafe rekomendasi {a.name.split(" ")[0]}</h2>
-      {cities.length > 1 && <p className="mt-1 text-sm text-muted">{cities.join(" · ")}</p>}
-      <div className="mt-6 grid gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
-        {cafes.map((c) => <CafeCard key={c.id} cafe={c} />)}
-      </div>
+      <section className="mt-12">
+        {cafes.length ? (
+          <CafeSwipeStack centered allHref={null} cafes={cafes.map(toStackCafe)}
+            title={`Kafe rekomendasi ${a.name.split(" ")[0]}`} subtitle={cities.length > 1 ? cities.join(" · ") : undefined} />
+        ) : (
+          <>
+            <h2 className="text-2xl font-bold">Kafe rekomendasi {a.name.split(" ")[0]}</h2>
+            <p className="mt-4 rounded-2xl border border-dashed border-line p-6 text-muted">Belum ada kafe rekomendasi yang tayang.</p>
+          </>
+        )}
+      </section>
 
       <div className="mt-14 flex flex-wrap items-center justify-between gap-4 rounded-3xl bg-brand-soft p-6 md:p-8">
         <div>

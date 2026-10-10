@@ -31,7 +31,15 @@ const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefe
   membuka ulasannya. Tombol dan panah keyboard melakukan hal yang sama, termasuk kembali ke kartu
   sebelumnya. Tidak ada arti suka/tidak suka: geser hanya berarti "lanjut".
 */
-export default function CafeSwipeStack({ cafes, title, allHref = "/kafe" }: { cafes: StackCafe[]; title: string; allHref?: string }) {
+export default function CafeSwipeStack({ cafes, title, subtitle, allHref = "/kafe", centered = false }: {
+  cafes: StackCafe[];
+  title: string;
+  subtitle?: string;
+  /** null menyembunyikan link "Lihat semua kafe" */
+  allHref?: string | null;
+  /** true: satu kolom di tengah (judul, tumpukan, tombol), dipakai di profil author */
+  centered?: boolean;
+}) {
   const [index, setIndex] = useState(0);
   const cards = useRef(new Map<string, HTMLElement>());
   const stackRef = useRef<HTMLDivElement>(null);
@@ -147,18 +155,19 @@ export default function CafeSwipeStack({ cafes, title, allHref = "/kafe" }: { ca
 
   return (
     // HP: judul, tumpukan, tombol (urutan DOM). Layar lebar: judul dan tombol di kiri, tumpukan di kanan.
-    <div className="grid gap-6 md:grid-cols-[1fr_minmax(0,400px)] md:grid-rows-[1fr_auto_1fr] md:gap-x-16 md:gap-y-0">
-      <div className="md:col-start-1 md:row-start-2">
-        <h2 className="text-2xl font-bold md:text-5xl md:font-extrabold md:leading-[1.05]">{title}</h2>
-        <p className="mt-4 hidden max-w-md text-lg text-ink/75 md:block">
+    <div className={centered ? "flex flex-col items-center gap-6 text-center" : "grid gap-6 md:grid-cols-[1fr_minmax(0,400px)] md:grid-rows-[1fr_auto_1fr] md:gap-x-16 md:gap-y-0"}>
+      <div className={centered ? "max-w-xl" : "md:col-start-1 md:row-start-2"}>
+        <h2 className={centered ? "text-2xl font-bold md:text-3xl" : "text-2xl font-bold md:text-5xl md:font-extrabold md:leading-[1.05]"}>{title}</h2>
+        {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
+        <p className={`mt-4 hidden max-w-md text-lg text-ink/75 ${centered ? "" : "md:block"}`}>
           Seret kartu ke kiri atau kanan untuk lanjut ke kafe berikutnya. Klik kartunya untuk membaca ulasan lengkap.
         </p>
       </div>
 
-      <div className="md:col-start-2 md:row-span-3 md:row-start-1">
-        <div ref={stackRef} role="region" aria-roledescription="tumpukan kartu" aria-label="Kafe yang baru ditambahkan"
+      <div className={centered ? "w-full" : "md:col-start-2 md:row-span-3 md:row-start-1"}>
+        <div ref={stackRef} role="region" aria-roledescription="tumpukan kartu" aria-label={title}
           tabIndex={0} onKeyDown={onKeyDown}
-          className="relative mx-auto aspect-[4/5] w-full max-w-[400px] rounded-[1.75rem] outline-offset-4"
+          className="relative mx-auto aspect-[4/5] w-full max-w-[400px] rounded-[1.75rem] text-left outline-offset-4"
           style={{ marginBottom: (VISIBLE - 1) * DEPTH_Y + 12 }}>
           {visible.map((c, k) => (
             <Link key={c.id} href={`/kafe/${c.slug}`}
@@ -203,11 +212,11 @@ export default function CafeSwipeStack({ cafes, title, allHref = "/kafe" }: { ca
             </Link>
           ))}
         </div>
-        <p className="mt-4 text-center text-sm text-muted md:hidden">Geser kartu ke kiri atau kanan. Ketuk untuk buka ulasan.</p>
+        <p className={`mt-4 text-center text-sm text-muted ${centered ? "" : "md:hidden"}`}>Geser kartu ke kiri atau kanan. Ketuk untuk buka ulasan.</p>
       </div>
 
-      <div className="md:col-start-1 md:row-start-3 md:self-start">
-        <div className="flex items-center justify-center gap-3 md:mt-0 md:justify-start">
+      <div className={centered ? "" : "md:col-start-1 md:row-start-3 md:self-start"}>
+        <div className={`flex items-center justify-center gap-3 md:mt-0 ${centered ? "" : "md:justify-start"}`}>
           <button type="button" onClick={back} disabled={n < 2} aria-label="Kafe sebelumnya"
             className="grid h-12 w-12 place-items-center rounded-full border border-line bg-surface transition-colors hover:border-brand disabled:opacity-40 disabled:hover:border-line">
             <Icon name="chevron" className="h-5 w-5 rotate-180" />
@@ -220,7 +229,7 @@ export default function CafeSwipeStack({ cafes, title, allHref = "/kafe" }: { ca
             <Icon name="chevron" className="h-5 w-5" />
           </button>
         </div>
-        <Link href={allHref} className="mt-4 flex min-h-11 items-center justify-center text-sm font-semibold text-brand hover:underline md:inline-flex md:justify-start">Lihat semua kafe</Link>
+        {allHref && <Link href={allHref} className={`mt-4 flex min-h-11 items-center justify-center text-sm font-semibold text-brand hover:underline ${centered ? "" : "md:inline-flex md:justify-start"}`}>Lihat semua kafe</Link>}
       </div>
     </div>
   );
