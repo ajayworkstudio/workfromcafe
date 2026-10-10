@@ -10,8 +10,10 @@ import { averageScore, reviewFromForm } from "@/lib/review";
 
 const str = (f: FormData, k: string) => ((f.get(k) as string) ?? "").trim() || null;
 
-export async function saveCafe(formData: FormData) {
-  await requireAdmin();
+type WriteResult = { cafeId: string; myRating: number | null; mailNote: string | null } | { error: string };
+
+/** Simpan isi form kafe ke database. Dipakai oleh tombol Simpan dan simpan otomatis. */
+async function writeCafe(formData: FormData): Promise<WriteResult> {
   const supabase = await createClient();
   const id = str(formData, "id");
   const name = String(formData.get("name")).trim();
@@ -58,10 +60,10 @@ export async function saveCafe(formData: FormData) {
   let cafeId = id;
   if (id) {
     const { error } = await supabase.from("cafes").update(cafe).eq("id", id);
-    if (error) redirect(`/admin/kafe/${id}?err=${encodeURIComponent(friendly(error.message))}`);
+    if (error) return { error: friendly(error.message) };
   } else {
     const { data, error } = await supabase.from("cafes").insert(cafe).select("id").single();
-    if (error) redirect(`/admin/kafe/baru?err=${encodeURIComponent(friendly(error.message))}`);
+    if (error) return { error: friendly(error.message) };
     cafeId = data!.id;
   }
 
@@ -85,8 +87,38 @@ export async function saveCafe(formData: FormData) {
 
   revalidateTag("authors");
   revalidatePath("/", "layout");
+  return { cafeId: cafeId!, myRating: cafe.my_rating, mailNote };
+}
+
+export async function saveCafe(formData: FormData) {
+  await requireAdmin();
+  const id = str(formData, "id");
+  const res = await writeCafe(formData);
+  if ("error" in res) redirect(`/admin/kafe/${id ?? "baru"}?err=${encodeURIComponent(res.error)}`);
   const okMsg = id ? "Perubahan disimpan." : "Kafe dibuat. Sekarang tambahkan foto dan menu.";
-  redirect(`/admin/kafe/${cafeId}?ok=${encodeURIComponent(mailNote ? `${okMsg} ${mailNote}` : okMsg)}`);
+  redirect(`/admin/kafe/${res.cafeId}?ok=${encodeURIComponent(res.mailNote ? `${okMsg} ${res.mailNote}` : okMsg)}`);
+}
+
+export type AutosaveResult = { ok: true; savedAt: string; myRating: number | null; note: string | null } | { ok: false; error: string };
+
+/** Simpan otomatis saat admin mengedit kafe yang sudah ada (tanpa pindah halaman). */
+export async function autosaveCafe(formData: FormData): Promise<AutosaveResult> {
+  try {
+    await requireAdmin();
+  } catch {
+    return { ok: false, error: "Sesi admin habis. Masuk lagi, lalu tekan Simpan perubahan." };
+  }
+  if (!str(formData, "id")) return { ok: false, error: "Kafe baru disimpan dengan tombol Simpan kafe." };
+  if (!str(formData, "name")) return { ok: false, error: "Nama kafe masih kosong, jadi belum disimpan." };
+  try {
+    const res = await writeCafe(formData);
+    if ("error" in res) return { ok: false, error: res.error };
+    // Simpan otomatis jalan berkali-kali: tampilkan catatan email hanya kalau email benar-benar terkirim
+    return { ok: true, savedAt: new Date().toISOString(), myRating: res.myRating, note: res.mailNote?.includes("terkirim") ? res.mailNote : null };
+  } catch (e) {
+    console.error("[autosaveCafe]", e);
+    return { ok: false, error: "Gangguan server saat menyimpan. Coba lagi sebentar lagi." };
+  }
 }
 
 function friendly(msg: string) {

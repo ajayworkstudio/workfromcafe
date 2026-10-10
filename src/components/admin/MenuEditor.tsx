@@ -103,7 +103,7 @@ export default function MenuEditor({ cafeId, initial }: { cafeId: string; initia
         ))}
       </div>
 
-      <form onSubmit={save} className="mt-4 grid gap-2 rounded-xl bg-tint p-3 md:grid-cols-[2fr_1fr_2fr_auto]" aria-label={editing ? "Edit menu" : "Tambah menu"}>
+      <form onSubmit={save} className="mt-4 grid grid-cols-1 gap-2 rounded-xl bg-tint p-3 md:grid-cols-[2fr_1fr_2fr_auto] [&>*]:min-w-0" aria-label={editing ? "Edit menu" : "Tambah menu"}>
         <input required placeholder="Nama menu" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className="input" />
         <input type="number" placeholder="Harga" value={draft.price} onChange={(e) => setDraft({ ...draft, price: e.target.value })} className="input" />
         <input placeholder="Catatan (opsional)" value={draft.note} onChange={(e) => setDraft({ ...draft, note: e.target.value })} className="input" />
@@ -113,7 +113,7 @@ export default function MenuEditor({ cafeId, initial }: { cafeId: string; initia
         <label className="flex items-center gap-2 text-sm text-muted md:col-span-2">
           <span className="sr-only">Foto menu</span>
           <input type="file" accept="image/*" onChange={(e) => setDraft({ ...draft, file: e.target.files?.[0] ?? null })}
-            className="text-sm file:mr-3 file:cursor-pointer file:rounded-full file:border file:border-line file:bg-surface file:px-4 file:py-2 file:text-sm file:font-semibold file:text-ink hover:file:border-mist" />
+            className="w-full min-w-0 text-sm file:mr-3 file:cursor-pointer file:rounded-full file:border file:border-line file:bg-surface file:px-4 file:py-2 file:text-sm file:font-semibold file:text-ink hover:file:border-mist" />
         </label>
         <div className="flex gap-2 md:col-span-2 md:justify-end">
           {editing && <button type="button" onClick={() => { setEditing(null); setDraft(empty); }} className="btn-ghost">Batal</button>}

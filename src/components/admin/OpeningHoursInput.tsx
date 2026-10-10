@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { DayKey, OpeningHours } from "@/lib/types";
 import { DAYS } from "@/lib/utils";
 
@@ -22,6 +22,22 @@ export default function OpeningHoursInput({ hours, isNew }: { hours?: OpeningHou
   const [rows, setRows] = useState<Record<DayKey, Row>>(
     () => Object.fromEntries(DAYS.map(({ key }) => [key, initial(hours, key, isNew)])) as Record<DayKey, Row>
   );
+  // Pulihkan dari draf kafe baru (dikirim oleh CafeAutosave)
+  useEffect(() => {
+    const onRestore = (e: Event) => {
+      const d = (e as CustomEvent<Record<string, string>>).detail ?? {};
+      setRows((r) => Object.fromEntries(DAYS.map(({ key }) => {
+        const v = d[`hours_${key}`];
+        const m = v?.match(/^(\d{2}:\d{2})-(\d{2}:\d{2})$/);
+        if (v === "closed") return [key, { ...r[key], mode: "closed" as Mode }];
+        if (v === "00:00-24:00") return [key, { ...r[key], mode: "allday" as Mode }];
+        if (m) return [key, { mode: "hours" as Mode, open: m[1], close: m[2] }];
+        return [key, r[key]];
+      })) as Record<DayKey, Row>);
+    };
+    window.addEventListener("cafe-draft-hours", onRestore);
+    return () => window.removeEventListener("cafe-draft-hours", onRestore);
+  }, []);
   const set = (key: DayKey, patch: Partial<Row>) => setRows((r) => ({ ...r, [key]: { ...r[key], ...patch } }));
   const copyMondayToAll = () => setRows((r) => Object.fromEntries(DAYS.map(({ key }) => [key, { ...r.mon }])) as Record<DayKey, Row>);
   const allDayEverywhere = () => setRows((r) => Object.fromEntries(DAYS.map(({ key }) => [key, { ...r[key], mode: "allday" as Mode }])) as Record<DayKey, Row>);

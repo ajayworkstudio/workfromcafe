@@ -1,7 +1,7 @@
 import { saveCafe } from "@/app/admin/kafe/actions";
 import type { Cafe, CafeDetails, City, Tag } from "@/lib/types";
 import { PRICE_RANGES } from "@/lib/utils";
-import SubmitButton from "./SubmitButton";
+import CafeAutosave from "./CafeAutosave";
 import CoordinateInput from "./CoordinateInput";
 import OpeningHoursInput from "./OpeningHoursInput";
 import { ScoreFields, AmenityFields } from "@/components/ReviewFields";
@@ -23,8 +23,8 @@ export default function CafeForm({
   return (
     <form action={saveCafe} className="space-y-5">
       {cafe && <input type="hidden" name="id" value={cafe.id} />}
-      {cafe && averageScore(cafe.scores) != null && (
-        <input type="hidden" name="prev_avg" value={Math.round(averageScore(cafe.scores)! * 10) / 10} />
+      {cafe && (
+        <input type="hidden" name="prev_avg" defaultValue={averageScore(cafe.scores) != null ? Math.round(averageScore(cafe.scores)! * 10) / 10 : ""} />
       )}
 
       <Section title="Info dasar" description="Terlihat oleh semua pengunjung.">
@@ -116,9 +116,7 @@ export default function CafeForm({
         <OpeningHoursInput hours={cafe?.opening_hours} isNew={!cafe} />
       </Section>
 
-      <div className="sticky bottom-20 z-10 flex justify-end rounded-2xl border border-line bg-surface/95 p-3 shadow-lg backdrop-blur md:bottom-4">
-        <SubmitButton>{cafe ? "Simpan perubahan" : "Simpan kafe"}</SubmitButton>
-      </div>
+      <CafeAutosave cafeId={cafe?.id} submitLabel={cafe ? "Simpan perubahan" : "Simpan kafe"} />
     </form>
   );
 }
