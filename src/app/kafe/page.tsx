@@ -3,6 +3,7 @@ import CityOptions from "@/components/CityOptions";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import NearbyGrid from "@/components/NearbyGrid";
+import AutoFilterForm from "@/components/AutoFilterForm";
 import type { Cafe, City, Tag } from "@/lib/types";
 import { CAFE_LIST_SELECT, PRICE_RANGES, isOpenNow } from "@/lib/utils";
 
@@ -60,21 +61,21 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
   return (
     <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 md:grid-cols-[260px_1fr]">
       <aside>
-        <form className="sticky top-24 space-y-5 md:pr-2">
+        <AutoFilterForm className="sticky top-24 space-y-5 md:pr-2">
           <div>
-            <label className="label">Cari</label>
-            <input name="q" defaultValue={sp.q} placeholder="Nama, area…" className="input" />
+            <label htmlFor="f-q" className="label">Cari</label>
+            <input id="f-q" type="search" name="q" defaultValue={sp.q} placeholder="Nama, area…" className="input" />
           </div>
           <div>
-            <label className="label">Kota</label>
-            <select name="kota" defaultValue={sp.kota ?? ""} className="input">
+            <label htmlFor="f-kota" className="label">Kota</label>
+            <select id="f-kota" name="kota" defaultValue={sp.kota ?? ""} className="input">
               <option value="">Semua kota</option>
               <CityOptions cities={(cities as City[] | null) ?? []} valueKey="slug" />
             </select>
           </div>
           <div>
-            <label className="label">Kisaran harga</label>
-            <select name="harga" defaultValue={sp.harga ?? ""} className="input">
+            <label htmlFor="f-harga" className="label">Kisaran harga</label>
+            <select id="f-harga" name="harga" defaultValue={sp.harga ?? ""} className="input">
               <option value="">Semua</option>
               {PRICE_RANGES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
             </select>
@@ -85,11 +86,10 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
             <input type="checkbox" name="buka" value="1" defaultChecked={sp.buka === "1"} className="accent-brand" />
             Buka sekarang
           </label>
-          <div className="flex gap-2">
-            <button className="btn-dark flex-1">Terapkan</button>
-            <Link href="/kafe" className="btn-ghost">Reset</Link>
-          </div>
-        </form>
+          {(sp.q || sp.kota || sp.harga || sp.buka || selectedTags.length > 0) && (
+            <Link href="/kafe" className="btn-ghost min-h-11 w-full">Hapus semua filter</Link>
+          )}
+        </AutoFilterForm>
       </aside>
 
       <section>

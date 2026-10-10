@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import AutoFilterForm from "@/components/AutoFilterForm";
 import { createClient } from "@/lib/supabase/server";
 import { toggleCafeFlag } from "./actions";
 import PageHeader from "@/components/admin/PageHeader";
@@ -38,10 +39,10 @@ export default async function AdminCafes({ searchParams }: { searchParams: SP })
         action={<Link href="/admin/kafe/baru" className="btn-primary"><Icon name="plus" className="h-4 w-4" />Tambah kafe</Link>} />
       <Flash ok={sp.ok} />
 
-      <form className="mb-5 flex flex-wrap gap-2">
+      <AutoFilterForm className="mb-5 flex flex-wrap gap-2">
         <div className="relative min-w-[200px] flex-1">
           <Icon name="search" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-          <input name="q" defaultValue={sp.q} placeholder="Cari nama atau area" aria-label="Cari kafe" className="input !pl-9" />
+          <input type="search" name="q" defaultValue={sp.q} placeholder="Cari nama atau area" aria-label="Cari kafe" className="input !pl-9" />
         </div>
         <select name="kota" defaultValue={sp.kota ?? ""} aria-label="Kota" className="input !w-auto">
           <option value="">Semua kota</option>
@@ -53,8 +54,7 @@ export default async function AdminCafes({ searchParams }: { searchParams: SP })
           <option value="draf">Draf</option>
           <option value="favorit">Favorit</option>
         </select>
-        <button className="btn-dark">Terapkan</button>
-      </form>
+      </AutoFilterForm>
 
       <div className="card divide-y divide-line">
         {rows.map((c) => {

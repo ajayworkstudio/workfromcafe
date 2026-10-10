@@ -7,6 +7,7 @@ import Flash from "@/components/admin/Flash";
 import SubmitButton from "@/components/admin/SubmitButton";
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import Icon from "@/components/Icon";
+import AutoFilterForm from "@/components/AutoFilterForm";
 import { rupiah } from "@/lib/utils";
 import { activateFromPayment } from "@/lib/subscription";
 import { planLabel } from "@/lib/settings";
@@ -129,14 +130,13 @@ export default async function Subscribers({ searchParams }: { searchParams: Prom
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <div>
-          <form className="mb-4 flex flex-wrap gap-2">
-            <input name="q" defaultValue={sp.q} placeholder="Cari nama atau email" aria-label="Cari pelanggan" className="input min-w-[180px] flex-1" />
+          <AutoFilterForm className="mb-4 flex flex-wrap gap-2">
+            <input type="search" name="q" defaultValue={sp.q} placeholder="Cari nama atau email" aria-label="Cari pelanggan" className="input min-w-[180px] flex-1" />
             <select name="tampil" defaultValue={sp.tampil ?? "aktif"} aria-label="Tampilkan" className="input !w-auto">
               <option value="aktif">Yang aktif</option>
               <option value="semua">Semua riwayat</option>
             </select>
-            <button className="btn-dark">Terapkan</button>
-          </form>
+          </AutoFilterForm>
 
           <div className="card divide-y divide-line">
             {rows.map((s) => {
