@@ -75,7 +75,9 @@ export default async function Subscribers({ searchParams }: { searchParams: Prom
   const supabase = await createClient();
   const nowIso = new Date().toISOString();
 
-  let query = supabase.from("subscriptions").select("id,plan,status,start_date,end_date,amount,user_id,midtrans_order_id").order("end_date", { ascending: false }).limit(300);
+  // Trial tidak ditampilkan: semua konten sudah gratis, jadi trial tidak berarti apa-apa (lihat migrasi 0016)
+  let query = supabase.from("subscriptions").select("id,plan,status,start_date,end_date,amount,user_id,midtrans_order_id")
+    .neq("plan", "trial").order("end_date", { ascending: false }).limit(300);
   if (sp.tampil !== "semua") query = query.eq("status", "active").gt("end_date", nowIso);
   const [{ data }, { data: pendingData }] = await Promise.all([
     query,
