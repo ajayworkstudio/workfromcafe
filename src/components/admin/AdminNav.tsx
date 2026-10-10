@@ -13,6 +13,7 @@ const ITEMS = [
   { href: "/admin/spreadsheet", label: "Spreadsheet", icon: "table" },
   { href: "/admin/kota", label: "Kota", icon: "pin" },
   { href: "/admin/tag", label: "Tag", icon: "tag" },
+  { href: "/admin/pengguna", label: "Pengguna", icon: "user" },
   { href: "/admin/pelanggan", label: "Pelanggan", icon: "users" },
   { href: "/admin/pengaturan", label: "Pengaturan", icon: "settings" },
 ];

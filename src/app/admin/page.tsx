@@ -51,7 +51,7 @@ export default async function AdminHome() {
         </div>
         <Stat label="Pelanggan aktif" value={s.active_subs} note={s.expiring_7d ? `${s.expiring_7d} berakhir dalam 7 hari` : "Tidak ada yang segera berakhir"} href="/admin/pelanggan" />
         <Stat label="Kafe" value={s.cafes} note={s.cafes_draft ? `${s.cafes_draft} masih draf` : "Semua sudah tayang"} href="/admin/kafe" />
-        <Stat label="Pengguna terdaftar" value={s.users} note="Gratis dan berlangganan" />
+        <Stat label="Pengguna terdaftar" value={s.users} note="Lihat daftar pengguna" href="/admin/pengguna" />
       </div>
 
       <div className="mt-10 flex items-baseline justify-between">
