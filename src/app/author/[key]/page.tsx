@@ -74,7 +74,7 @@ export default async function AuthorPage({ params }: { params: P }) {
         <div className="px-6 pb-7 md:px-10">
           <div className="-mt-12 flex flex-wrap items-end justify-between gap-4 md:-mt-14">
             <Avatar url={a.avatar_url} name={a.name} className="h-24 w-24 text-3xl ring-4 ring-surface md:h-28 md:w-28" />
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {isMe && <Link href="/akun" className="btn-ghost !py-2 text-sm"><Icon name="edit" className="h-4 w-4" />Edit profil</Link>}
               {a.instagram && (
                 <a href={`https://instagram.com/${a.instagram}`} target="_blank" rel="noopener" className="btn-ghost !py-2 text-sm"><Icon name="instagram" className="h-4 w-4" />@{a.instagram}</a>
@@ -87,23 +87,28 @@ export default async function AuthorPage({ params }: { params: P }) {
           </div>
           {a.bio && <p className="mt-3 max-w-2xl whitespace-pre-line text-lg leading-relaxed text-ink/80">{a.bio}</p>}
 
-          <dl className="mt-6 grid max-w-2xl grid-cols-3 gap-3">
+          {/* Label pendek di HP supaya tiga kotak muat di layar sempit; label lengkap mulai layar sm */}
+          <dl className="mt-6 grid max-w-2xl grid-cols-3 gap-2 sm:gap-3">
             {[
-              [String(a.cafe_count), "kafe direkomendasikan"],
-              [String(cities.length), cities.length === 1 ? "kota" : "kota dijelajahi"],
-              [new Date(a.first_at).toLocaleDateString("id-ID", { month: "short", year: "numeric" }), "author sejak"],
-            ].map(([v, l]) => (
-              <div key={l} className="rounded-2xl bg-canvas p-4">
-                <dt className="sr-only">{l}</dt>
-                <dd className="font-display text-2xl font-bold">{v}</dd>
-                <dd className="text-xs text-muted">{l}</dd>
+              { v: String(a.cafe_count), short: "kafe", full: "kafe direkomendasikan" },
+              { v: String(cities.length), short: "kota", full: cities.length === 1 ? "kota" : "kota dijelajahi" },
+              {
+                v: new Date(a.first_at).toLocaleDateString("id-ID", { year: "numeric" }),
+                short: `sejak ${new Date(a.first_at).toLocaleDateString("id-ID", { month: "short" })}`,
+                full: `author sejak ${new Date(a.first_at).toLocaleDateString("id-ID", { month: "long" })}`,
+              },
+            ].map((s) => (
+              <div key={s.full} className="min-w-0 rounded-2xl bg-canvas px-3 py-3 sm:p-4">
+                <dt className="sr-only">{s.full}</dt>
+                <dd className="font-display text-xl font-bold sm:text-2xl">{s.v}</dd>
+                <dd className="text-xs text-muted"><span className="sm:hidden">{s.short}</span><span className="hidden sm:inline">{s.full}</span></dd>
               </div>
             ))}
           </dl>
 
           {next && (
             <div className="mt-5 max-w-2xl">
-              <div className="flex justify-between text-xs text-muted">
+              <div className="flex flex-wrap justify-between gap-x-3 text-xs text-muted">
                 <span>{current?.name}</span>
                 <span>{toNext} kafe lagi menuju <b className="text-ink">{next.name}</b></span>
               </div>
