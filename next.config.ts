@@ -8,7 +8,10 @@ const nextConfig: NextConfig = {
   experimental: { serverActions: { bodySizeLimit: "5mb" } },
   serverExternalPackages: ["read-excel-file", "sharp"],
   // File yang dibaca saat membuat kartu Kurator harus ikut ter-deploy
-  outputFileTracingIncludes: { "/author/[key]/kartu": ["./src/assets/fonts/**", "./public/logo.png"] },
+  outputFileTracingIncludes: {
+    "/author/[key]/kartu": ["./src/assets/fonts/**", "./public/logo.png"],
+    "/author/[key]/opengraph-image": ["./src/assets/fonts/**", "./public/logo.png"],
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: supabaseHost },

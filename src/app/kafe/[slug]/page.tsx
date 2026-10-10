@@ -16,6 +16,7 @@ import Avatar from "@/components/Avatar";
 import AuthorBadge from "@/components/AuthorBadge";
 import { AMENITIES, averageScore, filledAspects, levelOf } from "@/lib/review";
 import { FavoriteButton, UnlockButton, VisitedButton } from "@/components/ActionButtons";
+import ShareButton from "@/components/ShareButton";
 import type { Cafe, CafeDetails, MenuItem } from "@/lib/types";
 import { APP_NAME, CAFE_LIST_SELECT, DAYS, formatSlot, SITE_URL, coverUrl, isOpenNow, priceLabel, rupiah } from "@/lib/utils";
 
@@ -213,6 +214,8 @@ export default async function CafeDetailPage({ params }: { params: P }) {
           <div className="mt-6 flex flex-wrap gap-2">
             <FavoriteButton cafeId={cafe.id} slug={cafe.slug} active={!!fav.data} loggedIn={!!viewer.user} />
             <VisitedButton cafeId={cafe.id} slug={cafe.slug} active={!!visit.data} loggedIn={!!viewer.user} />
+            <ShareButton url={`${SITE_URL}/kafe/${cafe.slug}`} title={cafe.name}
+              text={`${cafe.name}${cafe.city?.name ? ` (${cafe.city.name})` : ""} enak buat kerja. Cek ulasan, colokan, dan menunya di WFC Hunters:`} />
             {cafe.menu_url && (
               <a href={cafe.menu_url} target="_blank" rel="noopener" className="btn-primary"><Icon name="book" className="h-4 w-4" />Lihat menu</a>
             )}

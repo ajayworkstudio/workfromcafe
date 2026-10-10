@@ -23,8 +23,10 @@ const CREAM = "#f6f2ee";
 const TAN = "#d19f7d";
 const GOLD = "#e0a045";
 
+export type CardAssets = { fonts: { name: string; data: Buffer; weight: 400 | 600 | 800 }[]; logo: string };
 let assets: Promise<{ fonts: { name: string; data: Buffer; weight: 400 | 600 | 800 }[]; logo: string }> | null = null;
-function loadAssets() {
+/** Font Plus Jakarta Sans + logo, dimuat sekali per server. Dipakai kartu Kurator dan gambar pratinjau link. */
+export function loadAssets() {
   assets ??= (async () => {
     const dir = join(process.cwd(), "src/assets/fonts");
     const [f400, f600, f800, logo] = await Promise.all([
@@ -45,18 +47,24 @@ function loadAssets() {
   return assets;
 }
 
-/** Foto profil → PNG data URL (format webp tidak didukung pembuat gambar). */
-async function avatarDataUrl(url: string | null) {
+/**
+ * Gambar (URL penuh atau path di /public) → data URL JPEG/PNG yang sudah dipotong pas.
+ * Format webp tidak didukung pembuat gambar, jadi selalu dikonversi lewat sharp.
+ */
+export async function imageDataUrl(url: string | null, width: number, height: number, format: "png" | "jpeg" = "png") {
   if (!url) return null;
   try {
-    const res = await fetch(url, { cache: "force-cache" });
-    if (!res.ok) return null;
-    const png = await sharp(Buffer.from(await res.arrayBuffer())).resize(400, 400, { fit: "cover" }).png().toBuffer();
-    return `data:image/png;base64,${png.toString("base64")}`;
+    const buf = url.startsWith("/")
+      ? await readFile(join(process.cwd(), "public", url))
+      : Buffer.from(await (await fetch(url, { cache: "force-cache" })).arrayBuffer());
+    const img = sharp(buf).resize(width, height, { fit: "cover" });
+    const out = format === "jpeg" ? await img.jpeg({ quality: 82 }).toBuffer() : await img.png().toBuffer();
+    return `data:image/${format};base64,${out.toString("base64")}`;
   } catch {
     return null;
   }
 }
+const avatarDataUrl = (url: string | null) => imageDataUrl(url, 400, 400);
 
 function Star({ size, color }: { size: number; color: string }) {
   return (

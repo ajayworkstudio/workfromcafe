@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Avatar from "@/components/Avatar";
@@ -9,6 +10,7 @@ import { toStackCafe } from "@/lib/stackCafe";
 import Icon from "@/components/Icon";
 import JsonLd from "@/components/JsonLd";
 import KuratorShare from "@/components/KuratorShare";
+import ShareButton from "@/components/ShareButton";
 import { breadcrumb } from "@/lib/seo";
 import { getAuthors, levelFor } from "@/lib/author";
 import { getViewer } from "@/lib/auth";
@@ -31,7 +33,9 @@ export async function generateMetadata({ params }: { params: P }): Promise<Metad
     title,
     description,
     alternates: { canonical: `/author/${a.username ?? a.id}` },
-    openGraph: { type: "profile", title, description, url: `/author/${a.username ?? a.id}`, images: a.avatar_url ? [a.avatar_url] : undefined },
+    // Gambar pratinjau dibuat oleh opengraph-image.tsx (foto author + kafe rekomendasinya)
+    openGraph: { type: "profile", title, description, url: `/author/${a.username ?? a.id}` },
+    twitter: { card: "summary_large_image", title, description },
   };
 }
 
@@ -71,11 +75,16 @@ export default async function AuthorPage({ params }: { params: P }) {
         breadcrumb([{ name: "Beranda", path: "/" }, { name: "Para author", path: "/author" }, { name: a.name, path: `/author/${a.username ?? a.id}` }]),
       ]} />
       <section className="overflow-hidden rounded-3xl border border-line bg-surface">
-        <div className="h-24 bg-gradient-to-r from-brand via-brand to-tan md:h-32" aria-hidden />
+        {/* Banner author: rasio asli 8:3 di HP; di layar lebar tingginya dibatasi dan sisi kiri-kanan (ornamen) terpotong, tulisan tetap di tengah */}
+        <div className="relative aspect-[8/3] w-full md:aspect-auto md:h-[300px]">
+          <Image src="/author-banner.webp" alt="WFC Hunters Contributor: good places, better stories" fill priority sizes="(max-width: 1152px) 100vw, 1152px" className="object-cover" />
+        </div>
         <div className="px-6 pb-7 md:px-10">
           <div className="-mt-12 flex flex-wrap items-end justify-between gap-4 md:-mt-14">
             <Avatar url={a.avatar_url} name={a.name} className="h-24 w-24 text-3xl ring-4 ring-surface md:h-28 md:w-28" />
             <div className="flex flex-wrap gap-2">
+              <ShareButton align="right" className="btn-ghost !py-2 text-sm" url={profileUrl} title={`${a.name} di WFC Hunters`}
+                text={isMe ? `Ini ${a.cafe_count} kafe enak buat kerja yang aku rekomendasikan di WFC Hunters:` : `${a.cafe_count} kafe enak buat kerja rekomendasi ${a.name} di WFC Hunters:`} />
               {isMe && <Link href="/akun" className="btn-ghost !py-2 text-sm"><Icon name="edit" className="h-4 w-4" />Edit profil</Link>}
               {a.instagram && (
                 <a href={`https://instagram.com/${a.instagram}`} target="_blank" rel="noopener" className="btn-ghost !py-2 text-sm"><Icon name="instagram" className="h-4 w-4" />@{a.instagram}</a>
