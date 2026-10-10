@@ -80,7 +80,7 @@ export default async function AuthorPage({ params }: { params: P }) {
           <Image src="/author-banner.webp" alt="WFC Hunters Contributor: good places, better stories" fill priority sizes="(max-width: 1152px) 100vw, 1152px" className="object-cover" />
         </div>
         <div className="px-6 pb-7 md:px-10">
-          <div className="-mt-12 flex flex-wrap items-end justify-between gap-4 md:-mt-14">
+          <div className="relative z-10 -mt-12 flex flex-wrap items-end justify-between gap-4 md:-mt-14">
             <Avatar url={a.avatar_url} name={a.name} className="h-24 w-24 text-3xl ring-4 ring-surface md:h-28 md:w-28" />
             <div className="flex flex-wrap gap-2">
               <ShareButton align="right" className="btn-ghost !py-2 text-sm" url={profileUrl} title={`${a.name} di WFC Hunters`}
