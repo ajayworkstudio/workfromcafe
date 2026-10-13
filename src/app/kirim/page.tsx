@@ -20,8 +20,8 @@ const STEPS = [
   { icon: "star", title: "Tayang & naik level", text: "Namamu tampil di kafe, kamu dapat profil author publik, dan naik level sampai Kurator Utama." },
 ];
 
-export default async function SubmissionsPage({ searchParams }: { searchParams: Promise<{ terkirim?: string }> }) {
-  const [{ terkirim }, viewer, settings] = await Promise.all([searchParams, getViewer(), getSettings()]);
+export default async function SubmissionsPage({ searchParams }: { searchParams: Promise<{ terkirim?: string; tayang?: string }> }) {
+  const [{ terkirim, tayang }, viewer, settings] = await Promise.all([searchParams, getViewer(), getSettings()]);
   let subs: (Submission & { cafe: { slug: string; is_published: boolean } | null })[] = [];
   if (viewer.user) {
     const supabase = await createClient();
@@ -36,8 +36,12 @@ export default async function SubmissionsPage({ searchParams }: { searchParams: 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       {terkirim && (
-        <p role="status" className="mb-6 rounded-xl bg-ok/10 p-4 text-sm text-ok">
-          Terima kasih! Rekomendasimu sudah terkirim dan akan dicek admin. Statusnya bisa kamu pantau di halaman ini.
+        <p role="status" className="mb-6 rounded-xl bg-ok/10 p-4 text-sm text-[#2f7049]">
+          {tayang ? (
+            <>Terima kasih! Rekomendasimu lolos semua cek dan <b>langsung tayang</b>. <Link href={`/kafe/${tayang}`} className="font-semibold underline">Lihat halaman kafenya</Link>.</>
+          ) : (
+            "Terima kasih! Rekomendasimu sudah terkirim dan akan dicek admin. Statusnya bisa kamu pantau di halaman ini."
+          )}
         </p>
       )}
 

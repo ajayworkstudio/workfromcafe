@@ -4,6 +4,9 @@ import PageHeader from "@/components/admin/PageHeader";
 import Flash from "@/components/admin/Flash";
 import Icon from "@/components/Icon";
 import { RELATIONS, STATUS_META, type Submission } from "@/lib/submission";
+import AutoReviewPanel from "@/components/admin/AutoReviewPanel";
+import { AUTO_NOTE, evaluateSubmission, loadReviewContext } from "@/lib/autoReview";
+import { getSettings } from "@/lib/settings";
 
 const TABS = [
   { key: "pending", label: "Menunggu" },
@@ -20,11 +23,14 @@ export default async function SubmissionsAdmin({ searchParams }: { searchParams:
     ...TABS.map((t) => supabase.from("cafe_submissions").select("id", { count: "exact", head: true }).eq("status", t.key)),
   ]);
   const subs = (data as Submission[] | null) ?? [];
+  const [ctx, settings] = await Promise.all([loadReviewContext(supabase), getSettings()]);
+  const opts = { trustNewAuthors: settings.auto_trust_new, dailyLimit: settings.auto_daily_limit };
 
   return (
     <>
       <PageHeader title="Rekomendasi author" description="Kafe yang dikirim pengguna. Terima untuk membuat draf kafe, lalu rapikan sebelum tayang." />
       <Flash ok={sp.ok} err={sp.err ?? (error ? "Tabel rekomendasi belum ada. Jalankan migrasi 0008_rekomendasi_author.sql di Supabase." : undefined)} />
+      {!error && <AutoReviewPanel p={ctx.patterns} settings={settings} />}
 
       <div className="mb-5 flex gap-1.5 overflow-x-auto">
         {TABS.map((t, i) => (
@@ -42,6 +48,9 @@ export default async function SubmissionsAdmin({ searchParams }: { searchParams:
           {subs.map((s) => {
             const d = s.data;
             const filled = Object.keys(d.scores ?? {}).filter((k) => k !== "notes").length;
+            const ev = s.status === "pending" ? evaluateSubmission(s, ctx, opts) : null;
+            const failed = ev?.checks.filter((c) => c.hard && !c.ok) ?? [];
+            const auto = s.status === "approved" && (s.admin_note ?? "").startsWith(AUTO_NOTE);
             return (
               <li key={s.id}>
                 <Link href={`/admin/rekomendasi/${s.id}`} className="card flex gap-4 p-4 transition-colors hover:border-brand">
@@ -53,6 +62,7 @@ export default async function SubmissionsAdmin({ searchParams }: { searchParams:
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="truncate font-sans text-base font-bold tracking-normal">{d.name}</h2>
                       <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${STATUS_META[s.status].className}`}>{STATUS_META[s.status].label}</span>
+                      {auto && <span className="rounded-full bg-ink px-2 py-0.5 text-[11px] font-semibold text-white">Otomatis</span>}
                       {d.relation !== "pengunjung" && (
                         <span className="rounded-full bg-tint px-2 py-0.5 text-[11px] font-semibold">{RELATIONS.find((r) => r.value === d.relation)?.label}</span>
                       )}
@@ -64,6 +74,12 @@ export default async function SubmissionsAdmin({ searchParams }: { searchParams:
                       <span>{new Date(s.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span>
                       <span>{d.photos?.length ?? 0} foto · {d.menu?.length ?? 0} menu · {filled}/8 penilaian</span>
                     </p>
+                    {ev && (
+                      <p className={`mt-2 rounded-lg px-2.5 py-1.5 text-xs ${ev.pass ? "bg-ok/10 text-[#2f7049]" : "bg-gold/15 text-[#7a4f00]"}`}>
+                        <b>Skor {ev.score}.</b>{" "}
+                        {ev.pass ? "Lolos semua cek wajib, layak disetujui." : `Perlu kamu cek: ${failed.map((c) => c.issue).join(", ")}.`}
+                      </p>
+                    )}
                   </div>
                 </Link>
               </li>

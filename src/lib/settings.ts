@@ -23,6 +23,12 @@ export type Settings = {
   events_public: boolean;
   /** true = semua fitur gratis untuk semua orang; langganan, trial, dan halaman harga disembunyikan. */
   free_mode: boolean;
+  /** true = rekomendasi author yang lolos semua cek wajib langsung tayang tanpa menunggu admin */
+  auto_approve: boolean;
+  /** true = author yang belum pernah disetujui juga boleh tayang otomatis */
+  auto_trust_new: boolean;
+  /** Maksimal kiriman tayang otomatis per author per 24 jam */
+  auto_daily_limit: number;
 };
 
 export const DEFAULT_COMMUNITY_URL = "https://chat.whatsapp.com/J08g0t98OCG3ZLNMz8SsgR";
@@ -59,6 +65,9 @@ export const getSettings = cache(async (): Promise<Settings> => {
     events_public: m.get("events_public") === "true",
     community_url: m.has("community_url") ? (m.get("community_url") ?? "") : DEFAULT_COMMUNITY_URL,
     free_mode: (m.get("free_mode") ?? "true") === "true",
+    auto_approve: m.get("auto_approve") === "true",
+    auto_trust_new: m.get("auto_trust_new") === "true",
+    auto_daily_limit: Math.max(1, Math.min(20, num("auto_daily_limit", 3))),
   };
 });
 

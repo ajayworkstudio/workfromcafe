@@ -7,6 +7,7 @@ import { DAYS } from "@/lib/utils";
 import { reviewFromForm } from "@/lib/review";
 import { MAX_MENU, MAX_PHOTOS, RELATIONS, type Relation, type SubmissionData, type SubmissionMenuItem } from "@/lib/submission";
 import type { OpeningHours } from "@/lib/types";
+import { tryAutoApprove } from "@/lib/autoApprove";
 
 export type SubmitState = { error: string } | null;
 
@@ -127,20 +128,22 @@ export async function submitRecommendation(_prev: SubmitState, f: FormData): Pro
     photos,
   };
 
-  const { error } = await supabase.from("cafe_submissions").insert({
+  const { data: inserted, error } = await supabase.from("cafe_submissions").insert({
     user_id: user.id,
     author_name: authorName,
     author_instagram: clean(f.get("author_instagram"), 40)?.replace(/^@/, "") ?? null,
     data,
-  });
+  }).select("id").single();
   if (error) {
     if (/cafe_submissions/.test(error.message) && /exist|find/.test(error.message))
       return { error: "Fitur ini belum aktif di database. Admin perlu menjalankan migrasi 0008." };
     return { error: `Gagal mengirim: ${error.message}` };
   }
 
+  // Persetujuan otomatis (kalau dinyalakan admin): kiriman yang lolos semua cek langsung tayang
+  const auto = await tryAutoApprove(inserted.id);
   revalidatePath("/kirim");
-  redirect("/kirim?terkirim=1");
+  redirect(auto.status === "published" ? `/kirim?terkirim=1&tayang=${encodeURIComponent(auto.slug)}` : "/kirim?terkirim=1");
 }
 
 /** Author menarik kiriman yang belum direview (beserta fotonya). */

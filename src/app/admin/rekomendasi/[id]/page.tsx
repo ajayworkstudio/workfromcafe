@@ -9,6 +9,8 @@ import { averageScore } from "@/lib/review";
 import { RELATIONS, STATUS_META, type Submission } from "@/lib/submission";
 import { DAYS, formatSlot, priceLabel, rupiah } from "@/lib/utils";
 import { approveSubmission, rejectSubmission } from "../actions";
+import { evaluateSubmission, loadReviewContext } from "@/lib/autoReview";
+import { getSettings } from "@/lib/settings";
 
 export default async function SubmissionDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ err?: string }> }) {
   const [{ id }, sp] = await Promise.all([params, searchParams]);
@@ -25,6 +27,9 @@ export default async function SubmissionDetail({ params, searchParams }: { param
     supabase.from("cafe_submissions").select("id", { count: "exact", head: true }).eq("user_id", s.user_id),
     supabase.from("cafe_submissions").select("id", { count: "exact", head: true }).eq("user_id", s.user_id).eq("status", "approved"),
   ]);
+
+  const [ctx, settings] = await Promise.all([loadReviewContext(supabase), getSettings()]);
+  const ev = s.status === "pending" ? evaluateSubmission(s, ctx, { trustNewAuthors: settings.auto_trust_new, dailyLimit: settings.auto_daily_limit }) : null;
 
   const mapsUrl = d.lat && d.lng ? `https://www.google.com/maps/search/?api=1&query=${d.lat},${d.lng}` : d.maps_link;
   const relation = RELATIONS.find((r) => r.value === d.relation);
@@ -114,6 +119,31 @@ export default async function SubmissionDetail({ params, searchParams }: { param
         </div>
 
         <aside className="space-y-4 xl:sticky xl:top-24 xl:self-start">
+          {ev && (
+            <section className="card p-5">
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="font-bold">{ev.pass ? "Layak disetujui" : "Perlu kamu cek"}</p>
+                <p className="text-sm font-semibold tabular-nums text-muted">Skor {ev.score}</p>
+              </div>
+              <ul className="mt-3 space-y-2 text-sm">
+                {ev.checks.map((c) => (
+                  <li key={c.key} className="flex gap-2">
+                    <span aria-hidden className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] font-bold ${c.ok ? "bg-ok/15 text-[#2f7049]" : c.hard ? "bg-[#b4533a]/15 text-[#8c3b25]" : "bg-tint text-muted"}`}>{c.ok ? "✓" : "!"}</span>
+                    <span>
+                      <span className="font-medium">{c.label}</span>{!c.hard && <span className="text-muted"> (pendukung)</span>}
+                      <span className="sr-only">{c.ok ? ": lolos" : ": belum"}</span>
+                      <span className="block text-muted">{c.detail}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-xs text-muted">
+                {settings.auto_approve
+                  ? ev.pass ? "Lolos semua cek wajib. Kiriman berikutnya seperti ini akan tayang otomatis." : "Tidak tayang otomatis karena ada cek wajib yang belum lolos."
+                  : "Persetujuan otomatis sedang mati. Nyalakan di halaman Rekomendasi."}
+              </p>
+            </section>
+          )}
           <section className="card p-5">
             <p className="label">Author</p>
             <p className="font-bold">{s.author_name}</p>
