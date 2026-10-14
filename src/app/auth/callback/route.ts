@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { safeNext } from "@/lib/safeNext";
 
 /**
  * Tujuan setelah login Google dan setelah klik link konfirmasi email bawaan Supabase.
@@ -11,7 +12,7 @@ export async function GET(request: Request) {
   const code = searchParams.get("code");
   const fromEmail = searchParams.get("src") === "email";
   const rawNext = searchParams.get("next") ?? "/";
-  const next = rawNext.startsWith("/") ? rawNext : "/";
+  const next = safeNext(rawNext);
 
   if (code) {
     const supabase = await createClient();

@@ -19,6 +19,8 @@ type Props = {
 export default function ContactBox({ defaultName, defaultEmail, communityUrl, defaultTopic, headingLevel = "h2" }: Props) {
   const [state, action] = useActionState<ContactState, FormData>(sendContact, null);
   const [round, setRound] = useState(0); // kunci untuk mengosongkan form setelah "kirim pesan lain"
+  const [startedAt, setStartedAt] = useState(0);
+  useEffect(() => { setStartedAt(Date.now()); }, [round]);
   // Isian dikendalikan state supaya tidak hilang saat server mengembalikan pesan error
   // (React mengosongkan form setiap kali action selesai).
   const [body, setBody] = useState("");
@@ -71,6 +73,8 @@ export default function ContactBox({ defaultName, defaultEmail, communityUrl, de
       ) : (
         <form key={round} action={action} noValidate className="space-y-4">
           <input type="hidden" name="page" value={page} />
+          {/* Waktu form mulai dibuka: bot yang mengirim dalam <3 detik ditolak sebagai spam */}
+          <input type="hidden" name="t" value={startedAt} />
           {/* Kolom jebakan bot, tersembunyi dari pengguna dan pembaca layar */}
           <div aria-hidden className="absolute -left-[9999px] h-px w-px overflow-hidden">
             <label>Website<input name="website" tabIndex={-1} autoComplete="off" /></label>

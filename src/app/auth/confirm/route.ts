@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { safeNext } from "@/lib/safeNext";
 
 /**
  * Link konfirmasi email (daftar, ganti email, reset sandi).
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     const { error } = await supabase.auth.verifyOtp({ type, token_hash });
     if (!error) {
-      const dest = next?.startsWith("/") ? next : "/akun?terkonfirmasi=1";
+      const dest = safeNext(next, "/akun?terkonfirmasi=1");
       return NextResponse.redirect(`${origin}${dest}`);
     }
   }

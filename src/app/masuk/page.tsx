@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import LoginForm from "./LoginForm";
 import { getSettings } from "@/lib/settings";
+import { safeNext } from "@/lib/safeNext";
 
 export const metadata: Metadata = { title: "Masuk", robots: { index: false, follow: false } };
 
@@ -28,7 +29,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             : "Login tidak berhasil. Coba lagi, atau pakai cara masuk yang lain."}
         </p>
       )}
-      <LoginForm next={next?.startsWith("/") ? next : "/"} initialMode={daftar ? "daftar" : "login"} />
+      <LoginForm next={safeNext(next)} initialMode={daftar ? "daftar" : "login"} />
     </div>
   );
 }

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { safeNext } from "@/lib/safeNext";
 
 function GoogleLogo() {
   return (
@@ -59,7 +60,7 @@ export default function LoginForm({ next, initialMode = "login" }: { next: strin
     if (mode === "login") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) setMsg({ type: "error", text: "Email atau kata sandi tidak cocok." });
-      else { router.push(next); router.refresh(); }
+      else { router.push(safeNext(next)); router.refresh(); }
     } else {
       const { error } = await supabase.auth.signUp({
         email, password, options: { emailRedirectTo: `${redirectTo()}&src=email`, data: { full_name: name } },

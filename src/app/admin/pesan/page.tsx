@@ -6,6 +6,7 @@ import PageHeader from "@/components/admin/PageHeader";
 import Flash from "@/components/admin/Flash";
 import { CONTACT_TOPICS } from "@/lib/contact";
 import { timeAgo } from "@/lib/utils";
+import { spamReason } from "@/lib/spam";
 
 type Row = { id: string; topic: string; name: string; email: string; body: string; page: string | null; is_read: boolean; created_at: string };
 
@@ -21,6 +22,17 @@ async function act(formData: FormData) {
   revalidatePath("/admin");
 }
 
+async function deleteSpam() {
+  "use server";
+  await requireAdmin();
+  const supabase = await createClient();
+  const { data } = await supabase.from("contact_messages").select("id,name,email,body").limit(1000);
+  const ids = ((data as Pick<Row, "id" | "name" | "email" | "body">[] | null) ?? []).filter((r) => spamReason(r)).map((r) => r.id);
+  if (ids.length) await supabase.from("contact_messages").delete().in("id", ids);
+  revalidatePath("/admin/pesan");
+  revalidatePath("/admin");
+}
+
 export default async function MessagesAdmin({ searchParams }: { searchParams: Promise<{ tampil?: string }> }) {
   const { tampil } = await searchParams;
   const unreadOnly = tampil !== "semua";
@@ -31,16 +43,22 @@ export default async function MessagesAdmin({ searchParams }: { searchParams: Pr
   const { data, error } = await q;
   const rows = (data as Row[] | null) ?? [];
   const topicLabel = (v: string) => CONTACT_TOPICS.find((t) => t.value === v)?.label ?? v;
+  const spamCount = rows.filter((r) => spamReason(r)).length;
 
   return (
     <>
       <PageHeader title="Pesan masuk" description="Pesan dari kotak kontak di beranda dan halaman /kontak. Balas lewat email pengirim." />
       <Flash err={error ? "Tabel pesan belum ada. Jalankan migrasi 0015_pesan_kontak.sql di Supabase." : undefined} />
-      <div className="mb-5 flex gap-1.5">
+      <div className="mb-5 flex flex-wrap items-center gap-1.5">
         {[["", "Belum dibaca"], ["semua", "Semua"]].map(([k, l]) => (
           <Link key={k} href={k ? `/admin/pesan?tampil=${k}` : "/admin/pesan"}
             className={`rounded-full px-4 py-2 text-sm font-medium ${(tampil ?? "") === k ? "bg-ink text-white" : "bg-surface text-muted hover:text-ink"}`}>{l}</Link>
         ))}
+        {spamCount > 0 && (
+          <form action={deleteSpam} className="sm:ml-auto">
+            <button className="btn-ghost min-h-11 text-sm text-[#b4533a]">Hapus {spamCount} kemungkinan spam</button>
+          </form>
+        )}
       </div>
       {!error && !rows.length ? (
         <p className="rounded-2xl border border-dashed border-line p-8 text-center text-muted">
@@ -48,17 +66,20 @@ export default async function MessagesAdmin({ searchParams }: { searchParams: Pr
         </p>
       ) : (
         <ul className="space-y-3">
-          {rows.map((r) => (
-            <li key={r.id} className={`card p-5 ${r.is_read ? "" : "border-brand/40"}`}>
+          {rows.map((r) => {
+            const spam = spamReason(r);
+            return (
+            <li key={r.id} className={`card min-w-0 p-5 ${spam ? "opacity-70" : r.is_read ? "" : "border-brand/40"}`}>
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                <p className="font-semibold">{r.name} <span className="font-normal text-muted">&lt;{r.email}&gt;</span></p>
+                <p className="min-w-0 break-words font-semibold">{r.name} <span className="font-normal text-muted">&lt;{r.email}&gt;</span></p>
                 <p className="text-sm text-muted">{timeAgo(r.created_at)}</p>
               </div>
               <p className="mt-1 flex flex-wrap gap-2 text-sm">
                 <span className="chip">{topicLabel(r.topic)}</span>
+                {spam && <span className="chip !bg-[#b4533a]/10 !text-[#8c3b25]" title={spam}>Kemungkinan spam: {spam}</span>}
                 {r.page && <span className="text-muted">dari {r.page}</span>}
               </p>
-              <p className="mt-3 whitespace-pre-wrap">{r.body}</p>
+              <p className="mt-3 whitespace-pre-wrap break-words">{r.body}</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <a href={`mailto:${r.email}?subject=${encodeURIComponent("Re: pesanmu ke WFC Hunters")}`} className="btn-primary !py-1.5 text-sm">Balas lewat email</a>
                 <form action={act}>
@@ -71,7 +92,8 @@ export default async function MessagesAdmin({ searchParams }: { searchParams: Pr
                 </form>
               </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </>

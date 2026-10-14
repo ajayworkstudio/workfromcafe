@@ -7,6 +7,7 @@ import { getViewer } from "@/lib/auth";
 import { mailConfigured, sendMail } from "@/lib/mail";
 import { CONTACT_TOPICS, type ContactState } from "@/lib/contact";
 import { SITE_URL } from "@/lib/utils";
+import { spamReason } from "@/lib/spam";
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
@@ -25,6 +26,15 @@ export async function sendContact(_prev: ContactState, f: FormData): Promise<Con
   if (name.length < 2) return { ok: false, error: "Tulis namamu (minimal 2 huruf).", field: "name" };
   if (!EMAIL_RE.test(email)) return { ok: false, error: "Alamat email belum benar. Balasan akan dikirim ke sini.", field: "email" };
   if (body.length < 10) return { ok: false, error: "Pesannya terlalu pendek. Ceritakan sedikit lebih banyak (minimal 10 huruf).", field: "body" };
+
+  // Spam: pura-pura berhasil supaya bot tidak belajar cara lolos, tapi pesannya tidak disimpan
+  const started = Number(f.get("t"));
+  const elapsedMs = Number.isFinite(started) && started > 0 ? Date.now() - started : null;
+  const spam = spamReason({ name, email, body, elapsedMs });
+  if (spam) {
+    console.warn("[sendContact] spam ditolak:", spam);
+    return { ok: true, name: name.split(" ")[0] };
+  }
 
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY)
     return { ok: false, error: "Kotak pesan belum bisa dipakai saat ini. Coba hubungi lewat Instagram @wfchunters dulu ya." };
