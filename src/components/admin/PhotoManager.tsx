@@ -76,9 +76,10 @@ export default function PhotoManager({ cafeId, initial }: { cafeId: string; init
           <div key={p.id} className="group relative aspect-square overflow-hidden rounded-xl bg-tint">
             <Image src={p.url} alt="" fill sizes="200px" className="object-cover" />
             {p.is_cover && <span className="absolute left-2 top-2 rounded-full bg-surface px-2 py-0.5 text-[11px] font-semibold">Sampul</span>}
-            <div className="absolute inset-x-0 bottom-0 flex gap-1 bg-ink/75 p-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100">
-              {!p.is_cover && <button onClick={() => setCover(p.id)} className="flex-1 rounded-lg bg-surface px-1 py-1 text-[11px] font-semibold">Jadikan sampul</button>}
-              <button onClick={() => remove(p)} className="rounded-lg bg-red-600 px-2 py-1 text-[11px] font-semibold text-white">Hapus</button>
+            {/* Layar sentuh (HP/iPad) tidak punya hover: tombol selalu tampil. Dengan mouse muncul saat diarahkan. */}
+            <div className="absolute inset-x-0 bottom-0 flex gap-1.5 bg-ink/75 p-1.5 [@media(hover:hover)]:opacity-0 group-hover:opacity-100 focus-within:opacity-100">
+              {!p.is_cover && <button type="button" onClick={() => setCover(p.id)} className="min-h-10 flex-1 rounded-lg bg-surface px-1 text-xs font-semibold">Jadikan sampul</button>}
+              <button type="button" onClick={() => remove(p)} aria-label="Hapus foto" className="min-h-10 rounded-lg bg-[#b4533a] px-3 text-xs font-semibold text-white">Hapus</button>
             </div>
           </div>
         ))}
