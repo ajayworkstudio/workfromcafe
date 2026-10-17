@@ -26,7 +26,7 @@ export default function ProfileEditor({ userId, email, profile, ready, usernameR
     setUploading(true);
     try {
       const supabase = createClient();
-      const blob = await compressImage(file, 480, 0.85);
+      const blob = await compressImage(file, 400, 0.8);
       const path = uniqueName(`avatars/${userId}`);
       const { error } = await supabase.storage.from("cafe-photos").upload(path, blob, { contentType: "image/webp" });
       if (error) throw new Error(/row-level|policy|security/i.test(error.message) ? "Unggah foto belum diizinkan. Admin perlu menjalankan migrasi 0009." : error.message);

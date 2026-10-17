@@ -26,7 +26,7 @@ export default function MenuEditor({ cafeId, initial }: { cafeId: string; initia
     try {
       let photo_url: string | undefined;
       if (draft.file) {
-        const blob = await compressImage(draft.file, 800);
+        const blob = await compressImage(draft.file, 640);
         const path = uniqueName(`${cafeId}/menu`);
         const { error } = await supabase.storage.from("cafe-photos").upload(path, blob, { contentType: "image/webp" });
         if (error) throw error;

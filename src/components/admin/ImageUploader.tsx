@@ -14,7 +14,7 @@ export default function ImageUploader({ name, initial, folder, label = "Unggah g
     setBusy(true); setErr(null);
     try {
       const supabase = createClient();
-      const blob = await compressImage(file, 1600, 0.82);
+      const blob = await compressImage(file);
       const path = uniqueName(folder);
       const { error } = await supabase.storage.from("cafe-photos").upload(path, blob, { contentType: "image/webp" });
       if (error) throw error;

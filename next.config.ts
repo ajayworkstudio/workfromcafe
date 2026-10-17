@@ -50,11 +50,9 @@ const nextConfig: NextConfig = {
     "/author/[key]/opengraph-image": ["./src/assets/fonts/**", "./public/logo.png"],
   },
   images: {
-    remotePatterns: [
-      { protocol: "https", hostname: supabaseHost },
-      // Foto dari link di spreadsheet bisa dari domain mana saja
-      { protocol: "https", hostname: "**" },
-    ],
+    // Gambar sudah dikompres saat diunggah (src/lib/compressImage.ts), jadi tidak lewat
+    // optimasi gambar Vercel yang kuotanya terbatas di paket gratis.
+    unoptimized: true,
   },
   async headers() {
     return [
