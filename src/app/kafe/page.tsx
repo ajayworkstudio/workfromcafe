@@ -6,6 +6,7 @@ import NearbyGrid from "@/components/NearbyGrid";
 import AutoFilterForm from "@/components/AutoFilterForm";
 import type { Cafe, City, Tag } from "@/lib/types";
 import { CAFE_LIST_SELECT, PRICE_RANGES, isOpenNow } from "@/lib/utils";
+import type { LiveSummary } from "@/lib/reports";
 
 type SPMeta = Promise<Record<string, string | string[] | undefined>>;
 
@@ -21,17 +22,20 @@ export async function generateMetadata({ searchParams }: { searchParams: SPMeta 
   };
 }
 
-type SP = Promise<{ q?: string; kota?: string; tag?: string | string[]; harga?: string; buka?: string }>;
+type SP = Promise<{ q?: string; kota?: string; tag?: string | string[]; harga?: string; buka?: string; sepi?: string }>;
 
 export default async function CafesPage({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams;
   const selectedTags = ([] as string[]).concat(sp.tag ?? []);
   const supabase = await createClient();
 
-  const [{ data: cities }, { data: tags }] = await Promise.all([
+  const [{ data: cities }, { data: tags }, { data: liveRows }] = await Promise.all([
     supabase.from("cities").select("*").eq("is_active", true).order("name"),
     supabase.from("tags").select("*").order("name"),
+    // Kondisi 3 jam terakhir dari laporan pengunjung (kosong kalau migrasi 0018 belum dijalankan)
+    supabase.rpc("cafe_reports_live"),
   ]);
+  const live = Object.fromEntries(((liveRows as LiveSummary[] | null) ?? []).map((r) => [r.cafe_id, r]));
 
   let query = supabase.from("cafes").select(CAFE_LIST_SELECT).order("my_rating", { ascending: false, nullsFirst: false });
   if (sp.q) {
@@ -54,6 +58,7 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
     });
   }
   if (sp.buka === "1") cafes = cafes.filter((c) => isOpenNow(c.opening_hours));
+  if (sp.sepi === "1") cafes = cafes.filter((c) => live[c.id]?.crowd === 1);
 
   const vibe = (tags as Tag[] | null)?.filter((t) => t.type === "vibe") ?? [];
   const facility = (tags as Tag[] | null)?.filter((t) => t.type === "facility") ?? [];
@@ -86,7 +91,11 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
             <input type="checkbox" name="buka" value="1" defaultChecked={sp.buka === "1"} className="accent-brand" />
             Buka sekarang
           </label>
-          {(sp.q || sp.kota || sp.harga || sp.buka || selectedTags.length > 0) && (
+          <label className="flex items-center gap-2 text-sm font-medium">
+            <input type="checkbox" name="sepi" value="1" defaultChecked={sp.sepi === "1"} className="accent-brand" />
+            Sepi sekarang <span className="font-normal text-muted">(laporan 3 jam terakhir)</span>
+          </label>
+          {(sp.q || sp.kota || sp.harga || sp.buka || sp.sepi || selectedTags.length > 0) && (
             <Link href="/kafe" className="btn-ghost min-h-11 w-full">Hapus semua filter</Link>
           )}
         </AutoFilterForm>
@@ -95,8 +104,12 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
       <section>
         <h1 className="text-4xl font-extrabold">Jelajah kafe</h1>
         <p className="mt-1 text-muted">{cafes.length} kafe cocok</p>
-        <NearbyGrid cafes={cafes} />
-        {!cafes.length && <p className="mt-6 rounded-2xl bg-tint p-8 text-center text-muted">Tidak ada kafe yang cocok. Coba kurangi filternya.</p>}
+        <NearbyGrid cafes={cafes} live={live} />
+        {!cafes.length && (
+          <p className="mt-6 rounded-2xl bg-tint p-8 text-center text-muted">
+            {sp.sepi === "1" ? "Belum ada kafe yang dilaporkan sepi dalam 3 jam terakhir. Coba matikan filter Sepi sekarang." : "Tidak ada kafe yang cocok. Coba kurangi filternya."}
+          </p>
+        )}
       </section>
     </div>
   );

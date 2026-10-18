@@ -19,6 +19,8 @@ import { FavoriteButton, UnlockButton, VisitedButton } from "@/components/Action
 import ShareButton from "@/components/ShareButton";
 import BackButton from "@/components/BackButton";
 import SectionTabs from "@/components/SectionTabs";
+import ConditionCard from "@/components/ConditionCard";
+import type { CafeReport } from "@/lib/reports";
 import type { Cafe, CafeDetails, MenuItem } from "@/lib/types";
 import { APP_NAME, CAFE_LIST_SELECT, DAYS, formatSlot, SITE_URL, coverUrl, isOpenNow, priceLabel, rupiah } from "@/lib/utils";
 
@@ -69,7 +71,7 @@ export default async function CafeDetailPage({ params }: { params: P }) {
   type AuthorCard = { name: string | null; avatar_url: string | null; bio: string | null; instagram: string | null; username?: string | null; cafe_count?: number; href?: string | null };
 
   // RLS yang menentukan: baris ini hanya kembali kalau pengguna berhak.
-  const [{ data: details }, { data: menu }, fav, visit, left, { data: card }] = await Promise.all([
+  const [{ data: details }, { data: menu }, fav, visit, left, { data: card }, { data: reportRows }] = await Promise.all([
     supabase.from("cafe_details").select("*").eq("cafe_id", cafe.id).maybeSingle(),
     supabase.from("menu_items").select("*").eq("cafe_id", cafe.id).order("sort_order"),
     viewer.user
@@ -83,7 +85,10 @@ export default async function CafeDetailPage({ params }: { params: P }) {
     cafe.contributor_id
       ? supabase.rpc("author_card", { p_id: cafe.contributor_id }).maybeSingle<AuthorCard>()
       : Promise.resolve({ data: null as AuthorCard | null }),
+    // Laporan kondisi terbaru (kosong kalau migrasi 0018 belum dijalankan)
+    supabase.rpc("cafe_reports_recent", { p_cafe_id: cafe.id }),
   ]);
+  const reports = (reportRows as CafeReport[] | null) ?? [];
 
   // Fallback ke data saat rekomendasi diterima kalau profil belum publik
   let author: AuthorCard | null = null;
@@ -234,6 +239,9 @@ export default async function CafeDetailPage({ params }: { params: P }) {
           </div>
 
           {cafe.short_review && <p className="mt-5 max-w-2xl text-lg leading-relaxed md:mt-6 md:text-xl">{cafe.short_review}</p>}
+
+          <ConditionCard cafe={{ id: cafe.id, slug: cafe.slug, name: cafe.name, lat: cafe.lat, lng: cafe.lng }} reports={reports}
+            viewer={{ id: viewer.user?.id ?? null, isAdmin: viewer.isAdmin }} />
 
           {!!tags.length && (
             <div className="mt-5 flex flex-wrap gap-1.5">

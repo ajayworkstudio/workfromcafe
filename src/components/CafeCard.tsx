@@ -4,8 +4,11 @@ import type { Cafe } from "@/lib/types";
 import { coverUrl, isOpenNow, priceLabel } from "@/lib/utils";
 import Icon from "./Icon";
 import { averageScore } from "@/lib/review";
+import { CROWD, reportAgo, type LiveSummary } from "@/lib/reports";
 
-export default function CafeCard({ cafe }: { cafe: Cafe }) {
+const LIVE_DOT = { 1: "bg-ok", 2: "bg-gold", 3: "bg-[#b4533a]" } as const;
+
+export default function CafeCard({ cafe, live }: { cafe: Cafe; /** Ringkasan laporan kondisi 3 jam terakhir */ live?: LiveSummary }) {
   const cover = coverUrl(cafe);
   const open = isOpenNow(cafe.opening_hours);
   const tagNames = (cafe.tags ?? []).map((t) => t.tag?.name);
@@ -41,6 +44,15 @@ export default function CafeCard({ cafe }: { cafe: Cafe }) {
           </span>
         )}
       </div>
+      {live && (
+        <p className="mt-1.5 flex items-center gap-1.5 text-sm font-semibold">
+          <span className={`h-2 w-2 shrink-0 rounded-full ${LIVE_DOT[live.crowd]}`} />
+          <span className="min-w-0 truncate">
+            {CROWD[live.crowd].label}{live.download_mbps != null && ` · ${Math.round(Number(live.download_mbps))} Mbps`}
+            <span className="font-normal text-muted" suppressHydrationWarning> · {reportAgo(live.last_at)}</span>
+          </span>
+        </p>
+      )}
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         <span className="chip">{priceLabel(cafe.price_range)}</span>
         {vibe && <span className="chip">{vibe.name}</span>}

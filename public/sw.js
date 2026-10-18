@@ -19,8 +19,8 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(req.url);
   if (url.origin !== location.origin) return;
 
-  // Jangan tangani alur login & API sama sekali
-  if (url.pathname.startsWith("/auth") || url.pathname.startsWith("/masuk") || url.pathname.startsWith("/api") || url.searchParams.has("code")) return;
+  // Jangan tangani alur login, API, dan file tes kecepatan wifi sama sekali
+  if (url.pathname.startsWith("/auth") || url.pathname.startsWith("/masuk") || url.pathname.startsWith("/api") || url.pathname.startsWith("/speedtest") || url.searchParams.has("code")) return;
 
   // Aset statis Next.js & ikon: cache-first
   if (url.pathname.startsWith("/_next/static") || url.pathname.startsWith("/icons")) {
