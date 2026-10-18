@@ -6,7 +6,7 @@ import Icon from "./Icon";
   Tombol "Bagikan" + menu: aplikasi lain lewat menu bagikan bawaan HP (termasuk Instagram,
   yang tidak punya link bagikan untuk web), salin link, WhatsApp, Telegram, X, Facebook.
 */
-export default function ShareButton({ url, title, text, align = "left", className = "btn-ghost", iconOnly = false }: {
+export default function ShareButton({ url, title, text, align = "left", className = "btn-ghost", iconOnly = false, storyUrl }: {
   url: string;
   title: string;
   /** Kalimat pembuka yang ikut terkirim bersama link (WhatsApp, Telegram, X) */
@@ -15,6 +15,8 @@ export default function ShareButton({ url, title, text, align = "left", classNam
   className?: string;
   /** Hanya ikon (mis. tombol bulat di atas foto); nama tombol tetap terbaca pembaca layar */
   iconOnly?: boolean;
+  /** Alamat gambar kartu Story (PNG 1080×1920). Kalau diisi, menu punya pilihan "Kartu Story Instagram". */
+  storyUrl?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -49,6 +51,35 @@ export default function ShareButton({ url, title, text, align = "left", classNam
     setTimeout(() => setCopied(false), 2200);
   };
 
+  const [story, setStory] = useState<"idle" | "busy" | "saved" | "error">("idle");
+  // Kartu Story: dibagikan sebagai file gambar (HP) atau diunduh (komputer), lalu diunggah ke Story dari galeri
+  const shareStory = async () => {
+    if (!storyUrl) return;
+    setStory("busy");
+    try {
+      const res = await fetch(storyUrl);
+      if (!res.ok) throw new Error();
+      const file = new File([await res.blob()], `wfchunters-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-story.png`, { type: "image/png" });
+      const download = () => {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(file); a.download = file.name; a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+        setStory("saved");
+      };
+      if (!navigator.canShare?.({ files: [file] })) return download();
+      try {
+        await navigator.share({ files: [file], text: `${text} ${url}` });
+        setStory("idle"); setOpen(false);
+      } catch (e) {
+        // Safari bisa menolak kalau pembuatan gambar terlalu lama setelah ketukan: unduh saja
+        if ((e as Error).name === "NotAllowedError") download();
+        else setStory("idle");
+      }
+    } catch {
+      setStory("error");
+    }
+  };
+
   const native = async () => {
     try { await navigator.share({ title, text, url }); setOpen(false); } catch { /* dibatalkan pengguna */ }
   };
@@ -75,6 +106,16 @@ export default function ShareButton({ url, title, text, align = "left", classNam
       {open && (
         <div id={menuId} role="dialog" aria-label={`Bagikan ${title}`}
           className={`absolute top-full z-30 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-2xl border border-line bg-surface p-1.5 shadow-[0_18px_40px_-20px_rgba(31,22,18,.45)] ${side === "right" ? "right-0" : "left-0"}`}>
+          {storyUrl && (
+            <button type="button" data-share-item onClick={shareStory} disabled={story === "busy"} className={item}>
+              <Icon name="image" className="h-5 w-5 text-[#c13584]" />
+              <span className="min-w-0">
+                {story === "busy" ? "Menyiapkan kartu…" : "Kartu Story Instagram"}
+                {story === "saved" && <span className="block text-xs font-normal text-muted">Terunduh. Unggah ke Story dari galeri.</span>}
+                {story === "error" && <span className="block text-xs font-normal text-[#8c3b25]">Kartu belum bisa dibuat. Coba lagi.</span>}
+              </span>
+            </button>
+          )}
           {canNative && (
             <button type="button" data-share-item onClick={native} className={item}>
               <Icon name="instagram" className="h-5 w-5 text-[#c13584]" />Instagram &amp; aplikasi lain

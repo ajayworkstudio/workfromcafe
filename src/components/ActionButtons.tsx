@@ -8,10 +8,10 @@ export function FavoriteButton({ cafeId, slug, active, loggedIn, round = false }
   const [pending, start] = useTransition();
   const router = useRouter();
   const toggle = () => (loggedIn ? start(async () => { await toggleFavorite(cafeId, slug); }) : router.push(`/masuk?next=/kafe/${slug}`));
-  // Tombol bulat putih di atas foto kafe (tampilan HP)
+  // Tombol bulat kaca di atas foto kafe (tampilan HP)
   if (round) return (
     <button disabled={pending} aria-pressed={active} aria-label={active ? "Hapus dari simpanan" : "Simpan kafe"} onClick={toggle}
-      className={`grid h-11 w-11 place-items-center rounded-full bg-surface shadow-[0_6px_18px_-8px_rgba(31,22,18,.5)] ${active ? "text-[#b4533a]" : "text-ink"}`}>
+      className={`glass-dark grid h-11 w-11 place-items-center rounded-full ${active ? "text-gold" : "text-foam"}`}>
       <Icon name="heart" filled={active} className="h-5 w-5" />
     </button>
   );

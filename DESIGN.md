@@ -21,8 +21,16 @@ Dial: ENERGY 2 / RHYTHM 3 / MOTION 2
 | `tan` | `#d19f7d` | Teks sekunder di atas bidang gelap. |
 | `gold` | `#e0a045` | Satu-satunya aksen: rating, level author, label "Segera". Jangan dipakai sebagai dekorasi umum. |
 | `ok` | `#3e8e5e` | Status positif (gratis, buka sekarang). Hanya penanda status. |
+| `espresso` | `#160f0c` | Latar gelap hero kaca di beranda. |
+| `foam` | `#fff7f0` | Teks dan pil terang di atas latar espresso / kaca gelap. |
 
 Palet inti: brand + ink + canvas, aksen gold. Hijau WhatsApp hanya di tombol komunitas karena itu warna layanan tujuannya.
+
+## Kaca (glass)
+
+- Kaca hanya dipakai di atas foto kafe atau latar espresso, tempat blur benar-benar terlihat: hero beranda, tombol di atas foto kafe, label kondisi live, navbar bawah HP. Isi panjang (penilaian, ulasan, komentar) tetap di lembar krem terang supaya nyaman dibaca.
+- Utilitas `glass` (kaca terang tipis) dan `glass-dark` (kaca gelap pekat) di `globals.css`. Keduanya jadi bidang pekat kalau browser tidak mendukung blur atau pengguna meminta transparansi dikurangi.
+- Hero beranda adalah kartu gelap membulat (bukan pita lebar penuh) supaya tidak menempel kaku dengan header terang.
 
 ## Tipografi
 
@@ -51,7 +59,7 @@ Palet inti: brand + ink + canvas, aksen gold. Hijau WhatsApp hanya di tombol kom
 
 ## Tema
 
-Terang saja. Alasan: foto kafe dan warna kopi paling terbaca di latar krem, dan produk dibuka siang hari di kafe. Tidak ada toggle gelap untuk saat ini.
+Terang sebagai dasar, dengan zona gelap espresso untuk hero kaca di beranda. Alasan: foto kafe dan warna kopi paling terbaca di latar krem, kaca butuh latar gelap/foto supaya terlihat. Tidak ada toggle gelap untuk saat ini.
 
 ## Bahasa
 

@@ -11,7 +11,7 @@ type P = { id: string; url: string };
  * - Layar lebar: 1 foto besar + 2 kecil (atau 1 besar + 1 kecil untuk 2 foto), tombol "Lihat semua foto".
  * - Klik foto mana pun membuka tampilan layar penuh dengan navigasi panah/geser/keyboard.
  */
-export default function PhotoGallery({ photos, name, overlay }: { photos: P[]; name: string; /** Tombol bulat di atas foto (HP) */ overlay?: ReactNode }) {
+export default function PhotoGallery({ photos, name, overlay, badge }: { photos: P[]; name: string; /** Tombol bulat di atas foto (HP) */ overlay?: ReactNode; /** Label kaca di kiri bawah foto (HP), mis. kondisi live */ badge?: ReactNode }) {
   const [open, setOpen] = useState<number | null>(null);
   const [slide, setSlide] = useState(0);
   const track = useRef<HTMLDivElement>(null);
@@ -56,10 +56,11 @@ export default function PhotoGallery({ photos, name, overlay }: { photos: P[]; n
           ))}
         </div>
         {overlay && <div className="pointer-events-none absolute inset-x-4 top-4 flex justify-between gap-2 [&>*]:pointer-events-auto">{overlay}</div>}
+        {badge && <div className="pointer-events-none absolute bottom-11 left-4 right-20">{badge}</div>}
         {n > 1 && (
           <>
             <span className="absolute bottom-11 right-4 rounded-full bg-ink/75 px-2.5 py-1 text-xs font-semibold text-white">{slide + 1}/{n}</span>
-            <div className="absolute inset-x-0 bottom-12 flex justify-center gap-1.5" aria-hidden>
+            <div className={`absolute inset-x-0 bottom-12 justify-center gap-1.5 ${badge ? "hidden" : "flex"}`} aria-hidden>
               {photos.slice(0, 8).map((p, i) => <span key={p.id} className={`h-1.5 rounded-full transition-all ${i === slide ? "w-4 bg-white" : "w-1.5 bg-white/60"}`} />)}
             </div>
           </>

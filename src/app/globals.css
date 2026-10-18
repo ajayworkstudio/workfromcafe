@@ -18,6 +18,8 @@
   --color-tan: #d19f7d;
   --color-gold: #e0a045;
   --color-ok: #3e8e5e;
+  --color-espresso: #160f0c;
+  --color-foam: #fff7f0;
 
   --font-display: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", system-ui, sans-serif;
   --font-sans: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", system-ui, sans-serif;
@@ -55,6 +57,33 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; }
 @utility label { @apply mb-1.5 block text-sm font-medium text-muted; }
 @utility chip { @apply inline-flex items-center gap-1 rounded-full bg-tint px-2.5 py-1 text-xs font-medium text-muted; }
 @utility card { @apply rounded-2xl border border-line bg-surface; }
+
+/* Kaca buram. Dipakai di atas foto kafe atau latar espresso, di mana blur benar-benar terlihat.
+   glass: kaca terang tipis (tombol, chip, kolom cari di atas foto)
+   glass-dark: kaca gelap yang lebih pekat (navbar, panel info), teks di atasnya tetap terbaca di foto terang */
+@utility glass {
+  background-color: rgb(255 248 240 / 0.15);
+  border: 1px solid rgb(255 255 255 / 0.24);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.22);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  backdrop-filter: blur(22px) saturate(140%);
+}
+@utility glass-dark {
+  background-color: rgb(36 25 20 / 0.8);
+  border: 1px solid rgb(255 255 255 / 0.16);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 18px 40px -18px rgb(0 0 0 / 0.65);
+  -webkit-backdrop-filter: blur(26px) saturate(150%);
+  backdrop-filter: blur(26px) saturate(150%);
+}
+/* Browser tanpa blur, atau pengguna yang meminta transparansi dikurangi: kaca jadi bidang pekat supaya teks tetap terbaca */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass { background-color: rgb(58 42 34 / 0.9); }
+  .glass-dark { background-color: rgb(36 25 20 / 0.95); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass { background-color: rgb(58 42 34 / 0.92); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .glass-dark { background-color: rgb(36 25 20 / 0.96); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
 
 .leaflet-container { font-family: var(--font-sans); }
 

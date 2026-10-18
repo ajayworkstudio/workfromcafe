@@ -4,6 +4,8 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import CafeCard from "@/components/CafeCard";
 import CafePhotoCard from "@/components/CafePhotoCard";
+import LiveCafeCard from "@/components/LiveCafeCard";
+import type { LiveSummary } from "@/lib/reports";
 import CafeSwipeStack from "@/components/CafeSwipeStack";
 import { toStackCafe } from "@/lib/stackCafe";
 import HomeMotion from "@/components/HomeMotion";
@@ -13,7 +15,7 @@ import { authorHref, getAuthors, pickFeatured } from "@/lib/author";
 import JsonLd from "@/components/JsonLd";
 import { ORGANIZATION } from "@/lib/seo";
 import Icon from "@/components/Icon";
-import type { Cafe, City } from "@/lib/types";
+import type { Cafe, City, Tag } from "@/lib/types";
 import { APP_NAME, CAFE_LIST_SELECT, INSTAGRAM_URL, SITE_URL } from "@/lib/utils";
 import { getViewer } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
@@ -27,12 +29,27 @@ export default async function Home() {
   const free = settings.free_mode;
   const featuredAuthor = pickFeatured(await getAuthors(), settings.featured_author);
   const showTrial = !free && !viewer.user && settings.trial_days > 0;
-  const [{ data: cities }, { data: featured }, { data: latest, error: latestErr }, { count }] = await Promise.all([
+  const [{ data: cities }, { data: featured }, { data: latest, error: latestErr }, { count }, { data: vibeRows }, { data: liveRows }] = await Promise.all([
     supabase.from("cities").select("*").eq("is_active", true).order("name"),
     supabase.from("cafes").select(CAFE_LIST_SELECT).eq("is_featured", true).order("visited_at", { ascending: false }).limit(6),
     supabase.from("cafes").select(CAFE_LIST_SELECT).order("created_at", { ascending: false }).limit(6),
     supabase.from("cafes").select("id", { count: "exact", head: true }),
+    supabase.from("tags").select("*").eq("type", "vibe").order("name"),
+    // Kondisi 3 jam terakhir dari laporan pengunjung (kosong kalau migrasi 0018 belum dijalankan)
+    supabase.rpc("cafe_reports_live"),
   ]);
+  const vibes = (vibeRows as Tag[] | null) ?? [];
+  // "Lagi sepi sekarang" kalau ada kafe yang dilaporkan sepi; kalau tidak, kondisi terbaru apa pun
+  const liveAll = ((liveRows as LiveSummary[] | null) ?? []).sort((a, b) => a.crowd - b.crowd || +new Date(b.last_at) - +new Date(a.last_at));
+  const quiet = liveAll.filter((l) => l.crowd === 1);
+  const livePick = (quiet.length ? quiet : liveAll).slice(0, 8);
+  const liveTitle = quiet.length ? "Lagi sepi sekarang" : "Kondisi terbaru";
+  const { data: liveCafeRows } = livePick.length
+    ? await supabase.from("cafes").select(CAFE_LIST_SELECT).in("id", livePick.map((l) => l.cafe_id))
+    : { data: [] };
+  const liveCafes = livePick
+    .map((live) => ({ live, cafe: ((liveCafeRows as Cafe[] | null) ?? []).find((c) => c.id === live.cafe_id) }))
+    .filter((x): x is { live: LiveSummary; cafe: Cafe } => !!x.cafe);
   const cityList = (cities as City[] | null) ?? [];
   const latestList = (latest as Cafe[] | null) ?? [];
   const stackCafes = latestList.map(toStackCafe);
@@ -60,61 +77,86 @@ export default async function Home() {
       }} />
       <HomeMotion />
 
-      <section data-hero className="relative isolate overflow-hidden">
-        {/* Di HP tidak ada foto latar: foto kafe asli tampil di kartu besar di bawahnya. Di layar lebar foto di kanan memudar ke kiri. */}
-        <div className="absolute inset-y-0 left-[38%] right-0 -z-10 hidden overflow-hidden md:block" aria-hidden>
+      {/* Hero kaca: foto kafe di belakang, panel & tombol kaca buram di atasnya. Kartu gelap membulat supaya
+          tidak terasa seperti pita gelap yang menempel di header terang. */}
+      <section data-hero className="relative isolate mx-2 mt-2 overflow-hidden rounded-[2rem] bg-espresso text-foam md:mx-4 md:rounded-[2.5rem]">
+        <div className="absolute inset-0 -z-10 overflow-hidden" aria-hidden>
           {/* Lapisan foto sedikit lebih besar supaya parallax tidak memperlihatkan tepi kosong */}
           <div data-parallax className="absolute -inset-y-[8%] inset-x-0">
-            <Image src="/hero-cafe.webp" alt="" fill priority sizes="(max-width:768px) 100vw, 62vw" className="object-cover object-[38%_center]" />
+            <Image src="/hero-cafe.webp" alt="" fill priority sizes="100vw" className="object-cover object-[38%_center] md:object-[70%_center]" />
           </div>
-          <div className="absolute inset-0 bg-gradient-to-r from-canvas via-canvas/55 to-canvas/0" />
-          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-canvas to-canvas/0" />
+          <div className="absolute inset-0 bg-gradient-to-b from-espresso/45 via-espresso/60 to-espresso md:bg-gradient-to-r md:from-espresso md:via-espresso/70 md:to-espresso/15" />
         </div>
 
-        <div className="mx-auto max-w-6xl px-4 pb-4 pt-5 md:pb-16 md:pt-24">
+        <div className="mx-auto max-w-6xl px-4 pb-6 pt-7 md:px-8 md:pb-14 md:pt-20">
           <div className="hero-in max-w-2xl">
-            {viewer.name && <p className="mb-1 text-lg font-bold md:hidden">Halo, {viewer.name.split(" ")[0]}</p>}
-            <h1 className="text-[clamp(1.75rem,7vw,5.2rem)] font-extrabold leading-[1.05] md:leading-[0.95]">
+            {viewer.name && (
+              <p className="glass mb-5 inline-flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-4 text-sm font-bold">
+                <span className="grid h-8 w-8 place-items-center rounded-full bg-tan text-ink">{viewer.name.trim().charAt(0).toUpperCase()}</span>
+                Halo, {viewer.name.split(" ")[0]}
+              </p>
+            )}
+            <h1 className="text-[clamp(2rem,7vw,5.2rem)] font-extrabold leading-[1.02] [text-shadow:0_2px_18px_rgb(0_0_0/0.35)] md:leading-[0.95]">
               Kerja dari kafe mana hari ini?
             </h1>
-            <p className="mt-3 max-w-xl text-ink/75 md:mt-5 md:text-lg">
+            <p className="mt-3 max-w-xl text-foam/85 md:mt-5 md:text-lg">
               {count ?? 0} kafe di kota-kota besar Pulau Jawa yang sudah dicoba langsung. Lengkap dengan colokan, wifi, dan menu rekomendasi.
             </p>
-            <form action="/kafe" className="mt-6 flex max-w-xl items-center gap-2 rounded-full border border-line bg-surface p-1.5 pl-5 shadow-[0_8px_30px_-12px_rgba(20,26,23,.18)] focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/15 md:mt-8">
-              <Icon name="search" className="h-5 w-5 shrink-0 text-muted" />
-              <input name="q" type="search" enterKeyHint="search" aria-label="Cari kafe" placeholder="Cari nama kafe atau area" className="min-w-0 flex-1 bg-transparent py-2 text-base outline-none placeholder:text-muted" />
-              <button className="btn-primary hidden min-h-11 shrink-0 md:inline-flex">Cari</button>
+            <form action="/kafe" className="glass mt-6 flex max-w-xl items-center gap-2 rounded-full p-1.5 pl-5 focus-within:ring-4 focus-within:ring-gold/40 md:mt-8">
+              <Icon name="search" className="h-5 w-5 shrink-0 text-foam" />
+              <input name="q" type="search" enterKeyHint="search" aria-label="Cari kafe" placeholder="Cari kafe, area, atau suasana" className="min-w-0 flex-1 bg-transparent py-2 text-base text-foam outline-none placeholder:text-foam/75" />
+              <button className="btn hidden min-h-11 shrink-0 bg-gold text-ink hover:bg-[#eab25e] md:inline-flex">Cari</button>
               {/* HP: tombol bulat ke halaman Jelajah yang punya filter lengkap; pencarian jalan lewat tombol Cari di keyboard */}
-              <Link href="/kafe" aria-label="Filter lengkap" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand text-white md:hidden">
+              <Link href="/kafe" aria-label="Filter lengkap" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gold text-ink md:hidden">
                 <Icon name="sliders" className="h-5 w-5" />
               </Link>
             </form>
-            {showTrial && (
-              <p className="mt-5 flex flex-wrap items-center gap-3 text-sm">
-                <Link href="/masuk?daftar=1" className="btn-dark !py-2"><Icon name="gift" className="h-4 w-4" />Coba gratis {settings.trial_days} hari</Link>
-                <span className="text-muted">Daftar pakai email, tanpa bayar.</span>
-              </p>
-            )}
           </div>
 
-          {!!cityList.length && (
-            <>
-            <h2 className="mt-7 text-lg font-bold md:hidden">Pilih kotanya</h2>
-            <nav aria-label="Kota" className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] md:mx-0 md:mt-8 md:px-0">
-              {cityList.map((c) => (
-                <Link key={c.id} href={`/kota/${c.slug}`}
-                  className="flex min-h-11 shrink-0 items-center rounded-full border border-line bg-surface px-4 text-sm font-medium transition-colors hover:border-brand hover:bg-brand hover:text-white">
-                  {c.name}
+          {!!vibes.length && (
+            <nav aria-label="Suasana" className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:px-0">
+              {vibes.map((t) => (
+                <Link key={t.id} href={`/kafe?tag=${encodeURIComponent(t.name)}`}
+                  className="glass flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-semibold transition-colors hover:bg-foam hover:text-ink">
+                  {t.name}
                 </Link>
               ))}
             </nav>
+          )}
+
+          {!!cityList.length && (
+            <>
+              <h2 className="mt-6 text-lg font-bold">Pilih kotanya</h2>
+              <nav aria-label="Kota" className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:px-0">
+                {cityList.map((c) => (
+                  <Link key={c.id} href={`/kota/${c.slug}`}
+                    className="flex min-h-11 shrink-0 items-center rounded-full bg-foam px-4 text-sm font-semibold text-ink transition-colors hover:bg-gold">
+                    {c.name}
+                  </Link>
+                ))}
+              </nav>
             </>
+          )}
+
+          {!!liveCafes.length && (
+            <div className="mt-8">
+              <div className="flex items-baseline justify-between gap-4">
+                <h2 className="flex items-center gap-2 text-lg font-bold md:text-xl">
+                  <span className="h-2 w-2 rounded-full bg-[#6fd09a] shadow-[0_0_0_4px_rgb(111_208_154/0.22)]" />
+                  {liveTitle}
+                </h2>
+                <Link href={liveTitle === "Lagi sepi sekarang" ? "/kafe?sepi=1" : "/kafe"} className="glass-dark flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-semibold text-foam">Lihat semua</Link>
+              </div>
+              <div className="-mx-4 mt-3 flex snap-x gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:px-0">
+                {liveCafes.map(({ cafe, live }) => <LiveCafeCard key={cafe.id} cafe={cafe} live={live} />)}
+              </div>
+            </div>
           )}
         </div>
       </section>
 
       {!!featured?.length && (
-        <section className="mx-auto max-w-6xl px-4 pt-4 md:pt-10">
+        <section className="mx-auto max-w-6xl px-4 pt-8 md:pt-14">
           <div className="flex items-baseline justify-between gap-4">
             <h2 className="text-xl font-bold md:text-3xl">Yang paling sering aku datangi</h2>
             <Link href="/kafe" className="shrink-0 py-2 text-sm font-semibold text-brand hover:underline">Lihat semua</Link>

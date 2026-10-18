@@ -20,7 +20,7 @@ import ShareButton from "@/components/ShareButton";
 import BackButton from "@/components/BackButton";
 import SectionTabs from "@/components/SectionTabs";
 import ConditionCard from "@/components/ConditionCard";
-import type { CafeReport } from "@/lib/reports";
+import { CROWD, reportAgo, summarize, type CafeReport } from "@/lib/reports";
 import type { Cafe, CafeDetails, MenuItem } from "@/lib/types";
 import { APP_NAME, CAFE_LIST_SELECT, DAYS, formatSlot, SITE_URL, coverUrl, isOpenNow, priceLabel, rupiah } from "@/lib/utils";
 
@@ -179,7 +179,8 @@ export default async function CafeDetailPage({ params }: { params: P }) {
   ];
 
   const shareText = `${cafe.name}${cafe.city?.name ? ` (${cafe.city.name})` : ""} enak buat kerja. Cek ulasan, colokan, dan menunya di WFC Hunters:`;
-  const round = "grid h-11 w-11 place-items-center rounded-full bg-surface text-ink shadow-[0_6px_18px_-8px_rgba(31,22,18,.5)]";
+  const round = "glass-dark grid h-11 w-11 place-items-center rounded-full text-foam";
+  const live = summarize(reports);
   const showMenu = unlocked && (items.length > 0 || !free);
   const tabs = [
     filledAspects(cafe.scores).length || overall != null ? { id: "penilaian", label: "Penilaian" } : null,
@@ -198,10 +199,15 @@ export default async function CafeDetailPage({ params }: { params: P }) {
       <PhotoGallery photos={photos.map((p) => ({ id: p.id, url: p.url }))} name={cafe.name} overlay={<>
         <BackButton fallback={cafe.city ? `/kota/${cafe.city.slug}` : "/kafe"} className={round} />
         <span className="flex gap-2">
-          <ShareButton url={`${SITE_URL}/kafe/${cafe.slug}`} title={cafe.name} text={shareText} iconOnly className={round} />
+          <ShareButton url={`${SITE_URL}/kafe/${cafe.slug}`} title={cafe.name} text={shareText} storyUrl={`/kafe/${cafe.slug}/story`} iconOnly className={round} />
           <FavoriteButton cafeId={cafe.id} slug={cafe.slug} active={!!fav.data} loggedIn={!!viewer.user} round />
         </span>
-      </>} />
+      </>} badge={live ? (
+        <span className="glass-dark inline-flex max-w-full items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-foam">
+          <span className={`h-2 w-2 shrink-0 rounded-full ${live.crowd === 1 ? "bg-[#6fd09a]" : live.crowd === 2 ? "bg-gold" : "bg-[#e07a5f]"}`} />
+          <span className="truncate">{CROWD[live.crowd].label}{live.download != null && ` · ${live.download} Mbps`} · {reportAgo(live.lastAt)}</span>
+        </span>
+      ) : undefined} />
 
       {/* HP: lembar isi membulat yang naik menimpa tepi bawah foto. Layar lebar: tata letak dua kolom biasa. */}
       {/* Di HP lembar ini blok biasa dan kolom isinya "contents", supaya tab yang menempel di atas
@@ -256,7 +262,7 @@ export default async function CafeDetailPage({ params }: { params: P }) {
             </span>
             <VisitedButton cafeId={cafe.id} slug={cafe.slug} active={!!visit.data} loggedIn={!!viewer.user} />
             <span className="hidden md:contents">
-              <ShareButton url={`${SITE_URL}/kafe/${cafe.slug}`} title={cafe.name} text={shareText} />
+              <ShareButton url={`${SITE_URL}/kafe/${cafe.slug}`} title={cafe.name} text={shareText} storyUrl={`/kafe/${cafe.slug}/story`} />
             </span>
             {cafe.menu_url && (
               <a href={cafe.menu_url} target="_blank" rel="noopener" className="btn-primary"><Icon name="book" className="h-4 w-4" />Lihat menu</a>

@@ -38,7 +38,7 @@ export default function CafePhotoCard({ cafe, priority = false }: { cafe: Cafe; 
             <Icon name="star" filled className="h-3.5 w-3.5 text-gold" />{rating.toFixed(1)}
           </span>
         )}
-        <span className="mt-4 flex h-14 items-center justify-between rounded-full bg-white/15 pl-6 pr-1.5 font-semibold backdrop-blur-md">
+        <span className="glass mt-4 flex h-14 items-center justify-between rounded-full pl-6 pr-1.5 font-semibold">
           Lihat kafe
           <span className="grid h-11 w-11 place-items-center rounded-full bg-surface text-ink transition-transform group-hover:translate-x-0.5">
             <Icon name="arrow" className="h-5 w-5" />
