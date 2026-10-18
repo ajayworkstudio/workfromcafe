@@ -65,7 +65,7 @@ drop trigger if exists cafe_reports_limit on public.cafe_reports;
 create trigger cafe_reports_limit before insert on public.cafe_reports
   for each row execute function public.cafe_reports_limit();
 
--- Laporan terbaru satu kafe + nama & foto pelapor (24 jam terakhir, maksimal 10)
+-- 10 laporan terbaru satu kafe + nama & foto pelapor (yang lebih dari 3 jam tampil sebagai "terakhir dilaporkan")
 create or replace function public.cafe_reports_recent(p_cafe_id uuid)
 returns table (
   id uuid, crowd smallint, plugs smallint, download_mbps numeric, upload_mbps numeric, ping_ms integer,
