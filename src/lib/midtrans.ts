@@ -30,9 +30,12 @@ export async function createSnapTransaction(payload: Record<string, unknown>) {
 
 /** Verifikasi signature notifikasi: SHA512(order_id + status_code + gross_amount + server_key) */
 export function verifySignature(n: { order_id: string; status_code: string; gross_amount: string; signature_key: string }) {
+  // Tanpa server key, signature bisa dihitung siapa saja (hash dari "undefined"): tolak semua notifikasi.
+  const key = process.env.MIDTRANS_SERVER_KEY?.trim();
+  if (!key) return false;
   const expected = crypto
     .createHash("sha512")
-    .update(n.order_id + n.status_code + n.gross_amount + process.env.MIDTRANS_SERVER_KEY)
+    .update(n.order_id + n.status_code + n.gross_amount + key)
     .digest("hex");
   const a = Buffer.from(expected);
   const b = Buffer.from(n.signature_key ?? "");
