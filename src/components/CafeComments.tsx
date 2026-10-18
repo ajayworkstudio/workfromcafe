@@ -48,7 +48,7 @@ export default async function CafeComments({
   );
 
   return (
-    <section id="komentar" className="mt-12 scroll-mt-24">
+    <section id="komentar" className="mt-12 scroll-mt-32 md:scroll-mt-24">
       <h2 className="flex items-baseline gap-2 text-2xl font-bold">
         Komentar <span className="text-base font-medium text-muted">{rows.length || ""}</span>
       </h2>

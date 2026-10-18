@@ -32,7 +32,7 @@ export default function CafeScorecard({
 
   return (
     <section className="mt-12" aria-labelledby="penilaian">
-      <h2 id="penilaian" className="text-2xl font-bold">Cocok buat kerja?</h2>
+      <h2 id="penilaian" className="scroll-mt-32 text-2xl font-bold md:scroll-mt-24">Cocok buat kerja?</h2>
       <p className="mt-1 text-sm text-muted">
         {byContributor ? `Dinilai oleh ${byContributor} saat kerja di sini` : "Aku nilai langsung saat duduk dan kerja di sini"}{visited ? `, terakhir ${visited}` : ""}.
       </p>

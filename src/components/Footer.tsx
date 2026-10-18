@@ -7,7 +7,7 @@ import Icon from "./Icon";
 export default async function Footer() {
   const { free_mode, community_url } = await getSettings();
   return (
-    <footer className="mt-20 border-t border-line pb-24 pt-8 text-sm text-muted md:pb-10">
+    <footer className="mt-20 border-t border-line pb-28 pt-8 text-sm text-muted md:pb-10">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-3">
           <Wordmark height={34} />

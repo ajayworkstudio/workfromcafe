@@ -32,7 +32,7 @@ export default async function MapPage() {
     .map((c) => ({ slug: c.slug, name: c.name, lat: c.lat, lng: c.lng, city: c.city?.name ?? "", rating: c.my_rating }));
 
   return (
-    <div className="h-[calc(100dvh-4rem-64px)] md:h-[calc(100dvh-4rem)]">
+    <div className="h-[calc(100dvh-4rem-5.5rem)] md:h-[calc(100dvh-4rem)]">
       <CafeMapLoader cafes={cafes} />
     </div>
   );

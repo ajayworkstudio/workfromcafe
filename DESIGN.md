@@ -38,6 +38,7 @@ Palet inti: brand + ink + canvas, aksen gold. Hijau WhatsApp hanya di tombol kom
 ## Komposisi
 
 - Beranda: hero foto, grid kafe pilihan, tumpukan kartu "Baru ditambahkan", lalu kartu ajakan: author bulan ini lebar penuh, komunitas dan peta berdampingan. Kotak kontak hanya di /kontak.
+- HP: navigasi bawah berupa pil gelap mengambang; menu aktif melebar jadi pil terang berisi ikon + nama. Beranda HP tanpa foto latar: judul, kolom cari + tombol filter bulat, pil kota, lalu kartu foto tinggi yang digeser ke samping. Detail kafe HP: foto selebar layar dengan tombol bulat (kembali, bagikan, simpan), lembar isi membulat yang menimpa tepi bawah foto, dan tab pil yang menempel untuk melompat antarbagian.
 - Radius: kartu 1.5–2rem, foto `--radius-photo`, tombol bulat penuh. Input tetap kotak membulat kecil (bukan pil).
 - Bayangan hanya untuk kolom pencarian di hero (elemen yang paling penting untuk diisi). Kartu lain cukup border tipis.
 

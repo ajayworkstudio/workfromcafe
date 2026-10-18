@@ -6,13 +6,15 @@ import Icon from "./Icon";
   Tombol "Bagikan" + menu: aplikasi lain lewat menu bagikan bawaan HP (termasuk Instagram,
   yang tidak punya link bagikan untuk web), salin link, WhatsApp, Telegram, X, Facebook.
 */
-export default function ShareButton({ url, title, text, align = "left", className = "btn-ghost" }: {
+export default function ShareButton({ url, title, text, align = "left", className = "btn-ghost", iconOnly = false }: {
   url: string;
   title: string;
   /** Kalimat pembuka yang ikut terkirim bersama link (WhatsApp, Telegram, X) */
   text: string;
   align?: "left" | "right";
   className?: string;
+  /** Hanya ikon (mis. tombol bulat di atas foto); nama tombol tetap terbaca pembaca layar */
+  iconOnly?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -67,8 +69,8 @@ export default function ShareButton({ url, title, text, align = "left", classNam
         const r = trigger.current?.getBoundingClientRect();
         if (r) setSide(r.left + r.width / 2 < window.innerWidth / 2 ? "left" : "right");
         setOpen((o) => !o);
-      }} aria-expanded={open} aria-controls={menuId} className={className}>
-        <Icon name="share" className="h-4 w-4" />Bagikan
+      }} aria-expanded={open} aria-controls={menuId} aria-label={iconOnly ? "Bagikan" : undefined} className={className}>
+        <Icon name="share" className={iconOnly ? "h-5 w-5" : "h-4 w-4"} />{!iconOnly && "Bagikan"}
       </button>
       {open && (
         <div id={menuId} role="dialog" aria-label={`Bagikan ${title}`}

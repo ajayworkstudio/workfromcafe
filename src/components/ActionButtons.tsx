@@ -4,9 +4,17 @@ import { useRouter } from "next/navigation";
 import { toggleFavorite, toggleVisited, unlockCafe } from "@/app/kafe/[slug]/actions";
 import Icon from "./Icon";
 
-export function FavoriteButton({ cafeId, slug, active, loggedIn }: { cafeId: string; slug: string; active: boolean; loggedIn: boolean }) {
+export function FavoriteButton({ cafeId, slug, active, loggedIn, round = false }: { cafeId: string; slug: string; active: boolean; loggedIn: boolean; round?: boolean }) {
   const [pending, start] = useTransition();
   const router = useRouter();
+  const toggle = () => (loggedIn ? start(async () => { await toggleFavorite(cafeId, slug); }) : router.push(`/masuk?next=/kafe/${slug}`));
+  // Tombol bulat putih di atas foto kafe (tampilan HP)
+  if (round) return (
+    <button disabled={pending} aria-pressed={active} aria-label={active ? "Hapus dari simpanan" : "Simpan kafe"} onClick={toggle}
+      className={`grid h-11 w-11 place-items-center rounded-full bg-surface shadow-[0_6px_18px_-8px_rgba(31,22,18,.5)] ${active ? "text-[#b4533a]" : "text-ink"}`}>
+      <Icon name="heart" filled={active} className="h-5 w-5" />
+    </button>
+  );
   return (
     <button
       disabled={pending}

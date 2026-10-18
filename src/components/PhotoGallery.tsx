@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import Icon from "./Icon";
 
@@ -11,7 +11,7 @@ type P = { id: string; url: string };
  * - Layar lebar: 1 foto besar + 2 kecil (atau 1 besar + 1 kecil untuk 2 foto), tombol "Lihat semua foto".
  * - Klik foto mana pun membuka tampilan layar penuh dengan navigasi panah/geser/keyboard.
  */
-export default function PhotoGallery({ photos, name }: { photos: P[]; name: string }) {
+export default function PhotoGallery({ photos, name, overlay }: { photos: P[]; name: string; /** Tombol bulat di atas foto (HP) */ overlay?: ReactNode }) {
   const [open, setOpen] = useState<number | null>(null);
   const [slide, setSlide] = useState(0);
   const track = useRef<HTMLDivElement>(null);
@@ -33,8 +33,9 @@ export default function PhotoGallery({ photos, name }: { photos: P[]; name: stri
 
   if (!photos.length) {
     return (
-      <div className="grid aspect-[4/3] place-items-center rounded-[var(--radius-photo)] bg-tint text-mist md:aspect-auto md:h-[420px]">
+      <div className="relative -mx-4 grid aspect-[4/3] place-items-center bg-tint text-mist md:mx-0 md:aspect-auto md:h-[420px] md:rounded-[var(--radius-photo)]">
         <Icon name="cup" className="h-16 w-16" />
+        {overlay && <div className="pointer-events-none absolute inset-x-4 top-4 flex justify-between gap-2 md:hidden [&>*]:pointer-events-auto">{overlay}</div>}
       </div>
     );
   }
@@ -44,20 +45,21 @@ export default function PhotoGallery({ photos, name }: { photos: P[]; name: stri
 
   return (
     <>
-      {/* HP: carousel */}
-      <div className="relative md:hidden">
-        <div ref={track} className="flex snap-x snap-mandatory overflow-x-auto rounded-[var(--radius-photo)] [scrollbar-width:none]"
+      {/* HP: carousel selebar layar, tanpa sudut; lembar isi di bawahnya menimpa tepi bawah foto */}
+      <div className="relative -mx-4 md:hidden">
+        <div ref={track} className="flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none]"
           onScroll={(e) => { const el = e.currentTarget; setSlide(Math.round(el.scrollLeft / el.clientWidth)); }}>
           {photos.map((p, i) => (
-            <button key={p.id} type="button" onClick={() => setOpen(i)} className="relative aspect-[4/3] w-full shrink-0 snap-center bg-tint" aria-label={`Foto ${i + 1} dari ${n}`}>
+            <button key={p.id} type="button" onClick={() => setOpen(i)} className="relative aspect-[4/3.6] w-full shrink-0 snap-center bg-tint" aria-label={`Foto ${i + 1} dari ${n}`}>
               <Image src={p.url} alt={`${name}, foto ${i + 1}`} fill priority={i === 0} sizes="100vw" className="object-cover" />
             </button>
           ))}
         </div>
+        {overlay && <div className="pointer-events-none absolute inset-x-4 top-4 flex justify-between gap-2 [&>*]:pointer-events-auto">{overlay}</div>}
         {n > 1 && (
           <>
-            <span className="absolute bottom-3 right-3 rounded-full bg-ink/75 px-2.5 py-1 text-xs font-semibold text-white">{slide + 1}/{n}</span>
-            <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1.5" aria-hidden>
+            <span className="absolute bottom-11 right-4 rounded-full bg-ink/75 px-2.5 py-1 text-xs font-semibold text-white">{slide + 1}/{n}</span>
+            <div className="absolute inset-x-0 bottom-12 flex justify-center gap-1.5" aria-hidden>
               {photos.slice(0, 8).map((p, i) => <span key={p.id} className={`h-1.5 rounded-full transition-all ${i === slide ? "w-4 bg-white" : "w-1.5 bg-white/60"}`} />)}
             </div>
           </>

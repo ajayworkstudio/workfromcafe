@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import CafeCard from "@/components/CafeCard";
+import CafePhotoCard from "@/components/CafePhotoCard";
 import CafeSwipeStack from "@/components/CafeSwipeStack";
 import { toStackCafe } from "@/lib/stackCafe";
 import HomeMotion from "@/components/HomeMotion";
@@ -60,28 +61,33 @@ export default async function Home() {
       <HomeMotion />
 
       <section data-hero className="relative isolate overflow-hidden">
-        {/* Gambar latar + gradasi: di HP gambar di atas memudar ke bawah, di layar lebar gambar di kanan memudar ke kiri */}
-        <div className="absolute inset-x-0 top-0 -z-10 h-[300px] overflow-hidden md:inset-y-0 md:left-[38%] md:right-0 md:h-auto" aria-hidden>
+        {/* Di HP tidak ada foto latar: foto kafe asli tampil di kartu besar di bawahnya. Di layar lebar foto di kanan memudar ke kiri. */}
+        <div className="absolute inset-y-0 left-[38%] right-0 -z-10 hidden overflow-hidden md:block" aria-hidden>
           {/* Lapisan foto sedikit lebih besar supaya parallax tidak memperlihatkan tepi kosong */}
           <div data-parallax className="absolute -inset-y-[8%] inset-x-0">
             <Image src="/hero-cafe.webp" alt="" fill priority sizes="(max-width:768px) 100vw, 62vw" className="object-cover object-[38%_center]" />
           </div>
-          <div className="absolute inset-0 bg-gradient-to-b from-canvas/10 via-canvas/40 to-canvas md:bg-gradient-to-r md:from-canvas md:via-canvas/55 md:to-canvas/0" />
-          <div className="absolute inset-x-0 bottom-0 hidden h-32 bg-gradient-to-t from-canvas to-canvas/0 md:block" />
+          <div className="absolute inset-0 bg-gradient-to-r from-canvas via-canvas/55 to-canvas/0" />
+          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-canvas to-canvas/0" />
         </div>
 
-        <div className="mx-auto max-w-6xl px-4 pb-6 pt-[210px] md:pb-16 md:pt-24">
+        <div className="mx-auto max-w-6xl px-4 pb-4 pt-5 md:pb-16 md:pt-24">
           <div className="hero-in max-w-2xl">
-            <h1 className="text-[clamp(2.6rem,7vw,5.2rem)] font-extrabold leading-[0.95]">
+            {viewer.name && <p className="mb-1 text-lg font-bold md:hidden">Halo, {viewer.name.split(" ")[0]}</p>}
+            <h1 className="text-[clamp(1.75rem,7vw,5.2rem)] font-extrabold leading-[1.05] md:leading-[0.95]">
               Kerja dari kafe mana hari ini?
             </h1>
-            <p className="mt-5 max-w-xl text-lg text-ink/75">
+            <p className="mt-3 max-w-xl text-ink/75 md:mt-5 md:text-lg">
               {count ?? 0} kafe di kota-kota besar Pulau Jawa yang sudah dicoba langsung. Lengkap dengan colokan, wifi, dan menu rekomendasi.
             </p>
-            <form action="/kafe" className="mt-8 flex max-w-xl items-center gap-2 rounded-full border border-line bg-surface p-1.5 pl-5 shadow-[0_8px_30px_-12px_rgba(20,26,23,.18)] focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/15">
+            <form action="/kafe" className="mt-6 flex max-w-xl items-center gap-2 rounded-full border border-line bg-surface p-1.5 pl-5 shadow-[0_8px_30px_-12px_rgba(20,26,23,.18)] focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/15 md:mt-8">
               <Icon name="search" className="h-5 w-5 shrink-0 text-muted" />
-              <input name="q" aria-label="Cari kafe" placeholder="Cari nama kafe atau area" className="min-w-0 flex-1 bg-transparent py-2 text-base outline-none placeholder:text-muted" />
-              <button className="btn-primary min-h-11 shrink-0">Cari</button>
+              <input name="q" type="search" enterKeyHint="search" aria-label="Cari kafe" placeholder="Cari nama kafe atau area" className="min-w-0 flex-1 bg-transparent py-2 text-base outline-none placeholder:text-muted" />
+              <button className="btn-primary hidden min-h-11 shrink-0 md:inline-flex">Cari</button>
+              {/* HP: tombol bulat ke halaman Jelajah yang punya filter lengkap; pencarian jalan lewat tombol Cari di keyboard */}
+              <Link href="/kafe" aria-label="Filter lengkap" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand text-white md:hidden">
+                <Icon name="sliders" className="h-5 w-5" />
+              </Link>
             </form>
             {showTrial && (
               <p className="mt-5 flex flex-wrap items-center gap-3 text-sm">
@@ -92,7 +98,9 @@ export default async function Home() {
           </div>
 
           {!!cityList.length && (
-            <nav aria-label="Kota" className="mt-8 flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none]">
+            <>
+            <h2 className="mt-7 text-lg font-bold md:hidden">Pilih kotanya</h2>
+            <nav aria-label="Kota" className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] md:mx-0 md:mt-8 md:px-0">
               {cityList.map((c) => (
                 <Link key={c.id} href={`/kota/${c.slug}`}
                   className="flex min-h-11 shrink-0 items-center rounded-full border border-line bg-surface px-4 text-sm font-medium transition-colors hover:border-brand hover:bg-brand hover:text-white">
@@ -100,17 +108,26 @@ export default async function Home() {
                 </Link>
               ))}
             </nav>
+            </>
           )}
         </div>
       </section>
 
       {!!featured?.length && (
-        <section className="mx-auto max-w-6xl px-4 pt-10">
+        <section className="mx-auto max-w-6xl px-4 pt-4 md:pt-10">
           <div className="flex items-baseline justify-between gap-4">
-            <h2 className="text-2xl font-bold md:text-3xl">Yang paling sering aku datangi</h2>
+            <h2 className="text-xl font-bold md:text-3xl">Yang paling sering aku datangi</h2>
             <Link href="/kafe" className="shrink-0 py-2 text-sm font-semibold text-brand hover:underline">Lihat semua</Link>
           </div>
-          <div className="mt-6 grid gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
+          {/* HP: kartu foto besar yang digeser ke samping; kartu berikutnya mengintip di kanan sebagai tanda bisa digeser */}
+          <div className="-mx-4 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:hidden">
+            {(featured as Cafe[]).map((c, i) => (
+              <div key={c.id} className="w-[84%] shrink-0 snap-center">
+                <CafePhotoCard cafe={c} priority={i === 0} />
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 hidden gap-x-5 gap-y-9 sm:grid sm:grid-cols-2 lg:grid-cols-3">
             {(featured as Cafe[]).map((c) => <CafeCard key={c.id} cafe={c} />)}
           </div>
         </section>

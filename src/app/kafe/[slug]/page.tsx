@@ -17,6 +17,8 @@ import AuthorBadge from "@/components/AuthorBadge";
 import { AMENITIES, averageScore, filledAspects, levelOf } from "@/lib/review";
 import { FavoriteButton, UnlockButton, VisitedButton } from "@/components/ActionButtons";
 import ShareButton from "@/components/ShareButton";
+import BackButton from "@/components/BackButton";
+import SectionTabs from "@/components/SectionTabs";
 import type { Cafe, CafeDetails, MenuItem } from "@/lib/types";
 import { APP_NAME, CAFE_LIST_SELECT, DAYS, formatSlot, SITE_URL, coverUrl, isOpenNow, priceLabel, rupiah } from "@/lib/utils";
 
@@ -171,25 +173,53 @@ export default async function CafeDetailPage({ params }: { params: P }) {
     ]),
   ];
 
+  const shareText = `${cafe.name}${cafe.city?.name ? ` (${cafe.city.name})` : ""} enak buat kerja. Cek ulasan, colokan, dan menunya di WFC Hunters:`;
+  const round = "grid h-11 w-11 place-items-center rounded-full bg-surface text-ink shadow-[0_6px_18px_-8px_rgba(31,22,18,.5)]";
+  const showMenu = unlocked && (items.length > 0 || !free);
+  const tabs = [
+    filledAspects(cafe.scores).length || overall != null ? { id: "penilaian", label: "Penilaian" } : null,
+    unlocked && d?.full_review ? { id: "ulasan", label: "Ulasan" } : null,
+    showMenu ? { id: "menu", label: "Menu" } : null,
+    { id: "info", label: "Alamat & jam" },
+    { id: "komentar", label: "Komentar" },
+  ].filter((t): t is { id: string; label: string } => !!t);
+
   const today = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Jakarta", weekday: "short" }).format(new Date()).toLowerCase().slice(0, 3);
 
   return (
-    <article className="mx-auto max-w-6xl px-4 pb-10 pt-6">
+    <article className="mx-auto max-w-6xl px-4 pb-10 md:pt-6">
       <JsonLd data={jsonLd} />
 
-      <PhotoGallery photos={photos.map((p) => ({ id: p.id, url: p.url }))} name={cafe.name} />
+      <PhotoGallery photos={photos.map((p) => ({ id: p.id, url: p.url }))} name={cafe.name} overlay={<>
+        <BackButton fallback={cafe.city ? `/kota/${cafe.city.slug}` : "/kafe"} className={round} />
+        <span className="flex gap-2">
+          <ShareButton url={`${SITE_URL}/kafe/${cafe.slug}`} title={cafe.name} text={shareText} iconOnly className={round} />
+          <FavoriteButton cafeId={cafe.id} slug={cafe.slug} active={!!fav.data} loggedIn={!!viewer.user} round />
+        </span>
+      </>} />
 
-      <div className="mt-8 grid gap-10 md:grid-cols-[1fr_320px]">
-        <div className="min-w-0">
+      {/* HP: lembar isi membulat yang naik menimpa tepi bawah foto. Layar lebar: tata letak dua kolom biasa. */}
+      {/* Di HP lembar ini blok biasa dan kolom isinya "contents", supaya tab yang menempel di atas
+          tetap menempel sampai komentar (elemen sticky hanya menempel di dalam induknya). */}
+      <div className="relative -mx-4 -mt-8 rounded-t-[2rem] bg-canvas px-4 pt-3 md:mx-0 md:mt-8 md:grid md:grid-cols-[1fr_320px] md:gap-10 md:rounded-none md:px-0 md:pt-0">
+        <span className="mx-auto mb-4 block h-1 w-10 rounded-full bg-line md:hidden" aria-hidden />
+        <div className="contents md:block md:min-w-0">
           <Link href={`/kota/${cafe.city?.slug}`} className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-brand">
             <Icon name="pin" className="h-4 w-4" />
             {[cafe.area, cafe.city?.name].filter(Boolean).join(", ")}
           </Link>
-          <h1 className="mt-2 text-4xl font-extrabold leading-[1.05] md:text-5xl">{cafe.name}</h1>
+          <div className="mt-2 flex items-start justify-between gap-3">
+            <h1 className="min-w-0 text-[1.75rem] font-extrabold leading-[1.1] md:text-5xl">{cafe.name}</h1>
+            {overall != null && (
+              <a href="#penilaian" className="mt-1.5 flex shrink-0 items-center gap-1 rounded-full border border-line bg-surface px-2.5 py-1 text-sm font-semibold md:hidden">
+                <Icon name="star" filled className="h-3.5 w-3.5 text-gold" />{overall.toFixed(1)}
+              </a>
+            )}
+          </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
             {overall != null && (
-              <a href="#penilaian" className="flex items-center gap-1.5 font-semibold hover:text-brand">
+              <a href="#penilaian" className="hidden items-center gap-1.5 font-semibold hover:text-brand md:flex">
                 <Icon name="star" filled className="h-4 w-4 text-gold" />
                 {overall.toFixed(1)} <span className="font-normal text-muted">{cafe.contributor_name ? `dari ${cafe.contributor_name.split(" ")[0]}` : "dari aku"}</span>
               </a>
@@ -203,7 +233,7 @@ export default async function CafeDetailPage({ params }: { params: P }) {
             )}
           </div>
 
-          {cafe.short_review && <p className="mt-6 max-w-2xl text-xl leading-relaxed">{cafe.short_review}</p>}
+          {cafe.short_review && <p className="mt-5 max-w-2xl text-lg leading-relaxed md:mt-6 md:text-xl">{cafe.short_review}</p>}
 
           {!!tags.length && (
             <div className="mt-5 flex flex-wrap gap-1.5">
@@ -212,10 +242,14 @@ export default async function CafeDetailPage({ params }: { params: P }) {
           )}
 
           <div className="mt-6 flex flex-wrap gap-2">
-            <FavoriteButton cafeId={cafe.id} slug={cafe.slug} active={!!fav.data} loggedIn={!!viewer.user} />
+            {/* Simpan & Bagikan di HP sudah ada sebagai tombol bulat di atas foto */}
+            <span className="hidden md:contents">
+              <FavoriteButton cafeId={cafe.id} slug={cafe.slug} active={!!fav.data} loggedIn={!!viewer.user} />
+            </span>
             <VisitedButton cafeId={cafe.id} slug={cafe.slug} active={!!visit.data} loggedIn={!!viewer.user} />
-            <ShareButton url={`${SITE_URL}/kafe/${cafe.slug}`} title={cafe.name}
-              text={`${cafe.name}${cafe.city?.name ? ` (${cafe.city.name})` : ""} enak buat kerja. Cek ulasan, colokan, dan menunya di WFC Hunters:`} />
+            <span className="hidden md:contents">
+              <ShareButton url={`${SITE_URL}/kafe/${cafe.slug}`} title={cafe.name} text={shareText} />
+            </span>
             {cafe.menu_url && (
               <a href={cafe.menu_url} target="_blank" rel="noopener" className="btn-primary"><Icon name="book" className="h-4 w-4" />Lihat menu</a>
             )}
@@ -227,13 +261,15 @@ export default async function CafeDetailPage({ params }: { params: P }) {
             )}
           </div>
 
+          <SectionTabs tabs={tabs} />
+
           <CafeScorecard scores={cafe.scores} amenities={cafe.amenities} overall={overall} visitedAt={cafe.visited_at} byContributor={cafe.contributor_name} />
 
           {/* ===== Konten premium (terbuka untuk semua saat mode gratis) ===== */}
           {unlocked ? (
             <>
               {d?.full_review && (
-                <section className="mt-12 max-w-2xl">
+                <section id="ulasan" className="mt-12 max-w-2xl scroll-mt-32">
                   <h2 className="text-2xl font-bold">Ulasan lengkap</h2>
                   <p className="mt-3 whitespace-pre-line text-[1.05rem] leading-relaxed text-ink/85">{d.full_review}</p>
                 </section>
@@ -244,7 +280,7 @@ export default async function CafeDetailPage({ params }: { params: P }) {
                   {d?.best_time && <div className="rounded-2xl bg-brand-soft p-5"><p className="text-sm font-semibold text-brand">Waktu terbaik</p><p className="mt-1">{d.best_time}</p></div>}
                 </section>
               )}
-              {(items.length > 0 || !free) && <section className="mt-12">
+              {showMenu && <section id="menu" className="mt-12 scroll-mt-32">
                 <h2 className="text-2xl font-bold">Menu Rekomendasi</h2>
                 <ul className="mt-4 divide-y divide-line border-y border-line">
                   {items.map((m) => (
@@ -289,13 +325,10 @@ export default async function CafeDetailPage({ params }: { params: P }) {
             </section>
           )}
 
-          {/* Komentar dimuat menyusul supaya halaman kafe tampil lebih dulu */}
-          <Suspense fallback={<div className="mt-12 h-40 animate-pulse rounded-2xl bg-tint" aria-label="Memuat komentar" />}>
-            <CafeComments cafeId={cafe.id} slug={cafe.slug} viewerId={viewer.user?.id ?? null} viewerIsAdmin={viewer.isAdmin} contributorId={cafe.contributor_id} />
-          </Suspense>
         </div>
 
-        <aside className="space-y-6 md:sticky md:top-24 md:self-start">
+        {/* Di HP alamat & jam tampil sebelum komentar; di layar lebar tetap kolom kanan yang menempel */}
+        <aside id="info" className="mt-10 scroll-mt-32 space-y-6 md:sticky md:mt-0 md:top-24 md:col-start-2 md:row-span-2 md:row-start-1 md:self-start">
           <div>
             <h2 className="flex items-center gap-2 font-sans text-sm font-semibold tracking-normal text-muted"><Icon name="pin" className="h-4 w-4" />Alamat</h2>
             <p className="mt-1.5">{cafe.address ?? "-"}</p>
@@ -346,6 +379,13 @@ export default async function CafeDetailPage({ params }: { params: P }) {
             </p>
           )}
         </aside>
+
+        <div className="min-w-0 md:col-start-1 md:-mt-10">
+          {/* Komentar dimuat menyusul supaya halaman kafe tampil lebih dulu */}
+          <Suspense fallback={<div className="mt-12 h-40 animate-pulse rounded-2xl bg-tint" aria-label="Memuat komentar" />}>
+            <CafeComments cafeId={cafe.id} slug={cafe.slug} viewerId={viewer.user?.id ?? null} viewerIsAdmin={viewer.isAdmin} contributorId={cafe.contributor_id} />
+          </Suspense>
+        </div>
       </div>
     </article>
   );

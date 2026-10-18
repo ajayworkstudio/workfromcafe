@@ -5,6 +5,7 @@ import { getSettings } from "@/lib/settings";
 import Icon from "./Icon";
 import Wordmark from "./Wordmark";
 import Avatar from "./Avatar";
+import BottomNav from "./BottomNav";
 
 export default async function Header() {
   const [v, settings] = await Promise.all([getViewer(), getSettings()]);
@@ -59,20 +60,7 @@ export default async function Header() {
     </header>
 
       {/* Navigasi bawah untuk HP, di luar <header> karena backdrop-blur membuat position:fixed ikut header */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] text-[11px] font-medium text-muted backdrop-blur-xl md:hidden">
-        {[
-          { href: "/", icon: "home", label: "Beranda" },
-          { href: "/kafe", icon: "search", label: "Jelajah" },
-          { href: "/kirim", icon: "send", label: "Kirim" },
-          { href: "/peta", icon: "map", label: "Peta" },
-          { href: v.user ? "/akun" : "/masuk", icon: "user", label: "Akun" },
-        ].map((i) => (
-          <Link key={i.label} href={i.href} className="flex flex-col items-center gap-1 py-2.5 hover:text-ink">
-            <Icon name={i.icon} className="h-[22px] w-[22px]" />
-            {i.label}
-          </Link>
-        ))}
-      </nav>
+      <BottomNav loggedIn={!!v.user} />
     </>
   );
 }
