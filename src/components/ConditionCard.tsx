@@ -23,7 +23,7 @@ export default function ConditionCard({ cafe, reports, viewer }: Props) {
   const fresh = reports.filter((r) => isFresh(r.created_at)).slice(0, 3);
   const last = reports[0];
   const sheet = {
-    cafeId: cafe.id, slug: cafe.slug, cafeName: cafe.name, loggedIn: !!viewer.id,
+    cafeId: cafe.id, slug: cafe.slug, cafeName: cafe.name, loggedIn: !!viewer.id, isAdmin: viewer.isAdmin,
     lat: cafe.lat != null ? Number(cafe.lat) : null, lng: cafe.lng != null ? Number(cafe.lng) : null,
     className: "btn-primary min-h-12 w-full",
   };

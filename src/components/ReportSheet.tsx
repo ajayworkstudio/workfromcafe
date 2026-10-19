@@ -9,6 +9,8 @@ import { onCellular, runSpeedTest, type SpeedPhase, type SpeedResult } from "@/l
 
 type Props = {
   cafeId: string; slug: string; cafeName: string; loggedIn: boolean;
+  /** Admin boleh mencoba alur & tes wifi dari mana saja (lokasi tidak dicek) */
+  isAdmin?: boolean;
   lat: number | null; lng: number | null;
   label: string; className?: string;
 };
@@ -26,7 +28,7 @@ const CROWD_OPTS = [
 const fmtDist = (m: number) => (m >= 1000 ? `${(m / 1000).toFixed(1).replace(".", ",")} km` : `${Math.round(m)} m`);
 
 /** Tombol "Lapor kondisi" + lembar 2 langkah: keramaian & colokan, lalu tes wifi dan kirim. */
-export default function ReportSheet({ cafeId, slug, cafeName, loggedIn, lat, lng, label, className }: Props) {
+export default function ReportSheet({ cafeId, slug, cafeName, loggedIn, isAdmin = false, lat, lng, label, className }: Props) {
   const router = useRouter();
   const titleId = useId();
   const [open, setOpen] = useState(false);
@@ -121,7 +123,7 @@ export default function ReportSheet({ cafeId, slug, cafeName, loggedIn, lat, lng
     );
   }
 
-  const locBlocked = hasCoords && loc.state !== "near";
+  const locBlocked = hasCoords && loc.state !== "near" && !isAdmin;
   const testing = phase === "ping" || phase === "download" || phase === "upload";
   const shown = result?.download ?? live;
   const gauge = Math.min(shown / 100, 1); // busur penuh = 100 Mbps
@@ -155,7 +157,12 @@ export default function ReportSheet({ cafeId, slug, cafeName, loggedIn, lat, lng
 
             {step === 1 && (
               <div className="mt-5 space-y-5">
-                {hasCoords && (
+                {isAdmin && loc.state !== "near" && (
+                  <p className="rounded-2xl bg-gold/15 px-3 py-2.5 text-sm font-semibold text-[#8a5a00]">
+                    Mode admin: lokasi tidak dicek. Tutup lembar ini setelah tes wifi kalau tidak ingin laporannya tersimpan.
+                  </p>
+                )}
+                {hasCoords && !(isAdmin && loc.state !== "near") && (
                   <div role="status" className={`flex items-center gap-2 rounded-2xl px-3 py-2.5 text-sm font-semibold ${
                     loc.state === "near" ? "bg-[#eef6f1] text-[#2f7049]" : loc.state === "checking" || loc.state === "idle" ? "bg-tint text-muted" : "bg-[#b4533a]/10 text-[#8c3b25]"
                   }`}>

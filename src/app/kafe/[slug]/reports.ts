@@ -2,6 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { REPORT_RADIUS_M, distanceM } from "@/lib/reports";
+import { getViewer } from "@/lib/auth";
 
 export type ReportInput = {
   cafeId: string; slug: string;
@@ -32,7 +33,9 @@ export async function submitReport(input: ReportInput): Promise<ReportResult> {
 
   // Harus di dekat kafe. Toleransi mengikuti akurasi GPS HP (maksimal 200 m tambahan).
   let distance: number | null = null;
-  if (cafe.lat != null && cafe.lng != null) {
+  // Admin boleh melapor dari mana saja (untuk mencoba fitur); laporannya bisa dihapus dari halaman kafe
+  const { isAdmin } = await getViewer();
+  if (cafe.lat != null && cafe.lng != null && !isAdmin) {
     const lat = Number(input.lat), lng = Number(input.lng);
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return { ok: false, error: "Izinkan akses lokasi supaya laporan bisa dikirim.", code: "far" };
     distance = Math.round(distanceM({ lat, lng }, { lat: Number(cafe.lat), lng: Number(cafe.lng) }));
