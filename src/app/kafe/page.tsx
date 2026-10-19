@@ -65,7 +65,7 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
   const vibe = (tags as Tag[] | null)?.filter((t) => t.type === "vibe") ?? [];
   const facility = (tags as Tag[] | null)?.filter((t) => t.type === "facility") ?? [];
   const cityList = (cities as City[] | null) ?? [];
-  const sheetCount = (sp.harga ? 1 : 0) + selectedTags.length;
+  const sheetCount = (sp.kota ? 1 : 0) + (sp.harga ? 1 : 0) + selectedTags.length;
   const anyFilter = !!(sp.q || sp.kota || sp.harga || sp.buka || sp.sepi || selectedTags.length);
 
   return (
@@ -90,6 +90,9 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
                 className="min-h-10 min-w-0 flex-1 bg-transparent text-base text-foam outline-none placeholder:text-foam/75" />
             </label>
             <FilterSheet count={sheetCount} total={cafes.length} resetHref="/kafe">
+              <ChipGroup title="Kota" type="radio" name="kota"
+                options={[{ value: "", label: "Semua kota" }, ...cityList.map((c) => ({ value: c.slug, label: c.name }))]}
+                selected={[sp.kota ?? ""]} />
               <ChipGroup title="Kisaran harga" type="radio" name="harga"
                 options={[{ value: "", label: "Semua" }, ...PRICE_RANGES.map((r) => ({ value: String(r.value), label: r.label }))]}
                 selected={[sp.harga ?? ""]} />
@@ -98,15 +101,10 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
             </FilterSheet>
           </div>
 
-          {/* Pilihan cepat: kondisi sekarang + kota */}
-          <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:flex-wrap md:px-0">
+          {/* Pilihan cepat: kondisi sekarang. Kota ada di lembar Filter. */}
+          <div className="mt-4 flex flex-wrap gap-2">
             <QuickChip type="checkbox" name="sepi" value="1" checked={sp.sepi === "1"} dot>Sepi sekarang</QuickChip>
             <QuickChip type="checkbox" name="buka" value="1" checked={sp.buka === "1"}>Buka sekarang</QuickChip>
-            <span className="mx-1 w-px shrink-0 self-stretch bg-foam/25" aria-hidden />
-            <QuickChip type="radio" name="kota" value="" checked={!sp.kota}>Semua kota</QuickChip>
-            {cityList.map((c) => (
-              <QuickChip key={c.id} type="radio" name="kota" value={c.slug} checked={sp.kota === c.slug}>{c.name}</QuickChip>
-            ))}
           </div>
           </div>
         </section>
