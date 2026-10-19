@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
-import CityOptions from "@/components/CityOptions";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import NearbyGrid from "@/components/NearbyGrid";
 import AutoFilterForm from "@/components/AutoFilterForm";
+import FilterSheet from "@/components/FilterSheet";
+import Icon from "@/components/Icon";
+import Image from "next/image";
 import type { Cafe, City, Tag } from "@/lib/types";
 import { CAFE_LIST_SELECT, PRICE_RANGES, isOpenNow } from "@/lib/utils";
 import type { LiveSummary } from "@/lib/reports";
@@ -62,52 +64,63 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
 
   const vibe = (tags as Tag[] | null)?.filter((t) => t.type === "vibe") ?? [];
   const facility = (tags as Tag[] | null)?.filter((t) => t.type === "facility") ?? [];
+  const cityList = (cities as City[] | null) ?? [];
+  const sheetCount = (sp.harga ? 1 : 0) + selectedTags.length;
+  const anyFilter = !!(sp.q || sp.kota || sp.harga || sp.buka || sp.sepi || selectedTags.length);
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 md:grid-cols-[260px_1fr]">
-      <aside>
-        <AutoFilterForm className="sticky top-24 space-y-5 md:pr-2">
-          <div>
-            <label htmlFor="f-q" className="label">Cari</label>
-            <input id="f-q" type="search" name="q" defaultValue={sp.q} placeholder="Nama, area…" className="input" />
+    <div className="mx-auto max-w-6xl px-2 pt-2 md:px-4">
+      <AutoFilterForm>
+        {/* Kepala kaca: cari, tombol filter, dan pilihan cepat. Filter lengkap ada di lembar Filter. */}
+        {/* Tanpa "isolate"/z-index di sini: lembar Filter (fixed) harus berada di atas daftar kafe, bukan terkurung di kepala ini */}
+        <section className="relative overflow-hidden rounded-[2rem] bg-espresso px-4 pb-5 pt-6 text-foam md:rounded-[2.5rem] md:px-8 md:pb-7 md:pt-10">
+          <div className="absolute inset-0" aria-hidden>
+            <Image src="/hero-cafe.webp" alt="" fill priority sizes="100vw" className="object-cover object-[38%_center] md:object-[70%_center]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-espresso/55 via-espresso/70 to-espresso md:bg-gradient-to-r md:from-espresso md:via-espresso/75 md:to-espresso/30" />
           </div>
-          <div>
-            <label htmlFor="f-kota" className="label">Kota</label>
-            <select id="f-kota" name="kota" defaultValue={sp.kota ?? ""} className="input">
-              <option value="">Semua kota</option>
-              <CityOptions cities={(cities as City[] | null) ?? []} valueKey="slug" />
-            </select>
-          </div>
-          <div>
-            <label htmlFor="f-harga" className="label">Kisaran harga</label>
-            <select id="f-harga" name="harga" defaultValue={sp.harga ?? ""} className="input">
-              <option value="">Semua</option>
-              {PRICE_RANGES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
-            </select>
-          </div>
-          <TagGroup title="Suasana" tags={vibe} selected={selectedTags} />
-          <TagGroup title="Fasilitas" tags={facility} selected={selectedTags} />
-          <label className="flex items-center gap-2 text-sm font-medium">
-            <input type="checkbox" name="buka" value="1" defaultChecked={sp.buka === "1"} className="accent-brand" />
-            Buka sekarang
-          </label>
-          <label className="flex items-center gap-2 text-sm font-medium">
-            <input type="checkbox" name="sepi" value="1" defaultChecked={sp.sepi === "1"} className="accent-brand" />
-            Sepi sekarang <span className="font-normal text-muted">(laporan 3 jam terakhir)</span>
-          </label>
-          {(sp.q || sp.kota || sp.harga || sp.buka || sp.sepi || selectedTags.length > 0) && (
-            <Link href="/kafe" className="btn-ghost min-h-11 w-full">Hapus semua filter</Link>
-          )}
-        </AutoFilterForm>
-      </aside>
 
-      <section>
-        <h1 className="text-4xl font-extrabold">Jelajah kafe</h1>
-        <p className="mt-1 text-muted">{cafes.length} kafe cocok</p>
+          <div className="relative">
+          <h1 className="text-3xl font-extrabold md:text-5xl">Jelajah kafe</h1>
+
+          <div className="mt-4 flex max-w-2xl items-center gap-2">
+            <label className="glass flex min-w-0 flex-1 items-center gap-2 rounded-full py-1.5 pl-4 pr-1.5 focus-within:ring-4 focus-within:ring-gold/40">
+              <Icon name="search" className="h-5 w-5 shrink-0" />
+              <span className="sr-only">Cari kafe</span>
+              <input type="search" name="q" defaultValue={sp.q} enterKeyHint="search" placeholder="Nama kafe atau area"
+                className="min-h-10 min-w-0 flex-1 bg-transparent text-base text-foam outline-none placeholder:text-foam/75" />
+            </label>
+            <FilterSheet count={sheetCount} total={cafes.length} resetHref="/kafe">
+              <ChipGroup title="Kisaran harga" type="radio" name="harga"
+                options={[{ value: "", label: "Semua" }, ...PRICE_RANGES.map((r) => ({ value: String(r.value), label: r.label }))]}
+                selected={[sp.harga ?? ""]} />
+              <ChipGroup title="Suasana" type="checkbox" name="tag" options={vibe.map((t) => ({ value: t.name, label: t.name }))} selected={selectedTags} />
+              <ChipGroup title="Fasilitas" type="checkbox" name="tag" options={facility.map((t) => ({ value: t.name, label: t.name }))} selected={selectedTags} />
+            </FilterSheet>
+          </div>
+
+          {/* Pilihan cepat: kondisi sekarang + kota */}
+          <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:flex-wrap md:px-0">
+            <QuickChip type="checkbox" name="sepi" value="1" checked={sp.sepi === "1"} dot>Sepi sekarang</QuickChip>
+            <QuickChip type="checkbox" name="buka" value="1" checked={sp.buka === "1"}>Buka sekarang</QuickChip>
+            <span className="mx-1 w-px shrink-0 self-stretch bg-foam/25" aria-hidden />
+            <QuickChip type="radio" name="kota" value="" checked={!sp.kota}>Semua kota</QuickChip>
+            {cityList.map((c) => (
+              <QuickChip key={c.id} type="radio" name="kota" value={c.slug} checked={sp.kota === c.slug}>{c.name}</QuickChip>
+            ))}
+          </div>
+          </div>
+        </section>
+      </AutoFilterForm>
+
+      <section className="px-2 pt-6 md:px-0">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <p className="text-lg font-bold">{cafes.length} kafe cocok</p>
+          {anyFilter && <Link href="/kafe" className="py-2 text-sm font-semibold text-brand hover:underline">Hapus semua filter</Link>}
+        </div>
         <NearbyGrid cafes={cafes} live={live} />
         {!cafes.length && (
           <p className="mt-6 rounded-2xl bg-tint p-8 text-center text-muted">
-            {sp.sepi === "1" ? "Belum ada kafe yang dilaporkan sepi dalam 3 jam terakhir. Coba matikan filter Sepi sekarang." : "Tidak ada kafe yang cocok. Coba kurangi filternya."}
+            {sp.sepi === "1" ? "Belum ada kafe yang dilaporkan sepi dalam 3 jam terakhir. Coba matikan Sepi sekarang." : "Tidak ada kafe yang cocok. Coba kurangi filternya."}
           </p>
         )}
       </section>
@@ -115,18 +128,34 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
   );
 }
 
-function TagGroup({ title, tags, selected }: { title: string; tags: Tag[]; selected: string[] }) {
+/** Chip di kepala kaca. Checkbox/radio asli (tersembunyi) supaya ikut terkirim bersama form dan bisa dipakai dengan keyboard. */
+function QuickChip({ type, name, value, checked, dot, children }: { type: "checkbox" | "radio"; name: string; value: string; checked: boolean; dot?: boolean; children: React.ReactNode }) {
   return (
-    <div>
-      <span className="label">{title}</span>
-      <div className="flex flex-wrap gap-1.5">
-        {tags.map((t) => (
-          <label key={t.id} className="cursor-pointer">
-            <input type="checkbox" name="tag" value={t.name} defaultChecked={selected.includes(t.name)} className="peer sr-only" />
-            <span className="chip transition-colors hover:text-ink peer-checked:bg-brand peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand">{t.name}</span>
+    <label className="shrink-0 cursor-pointer">
+      <input type={type} name={name} value={value} defaultChecked={checked} className="peer sr-only" />
+      <span className="glass flex min-h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors peer-checked:border-foam peer-checked:bg-foam peer-checked:text-ink peer-focus-visible:ring-2 peer-focus-visible:ring-gold">
+        {dot && <span className="h-2 w-2 rounded-full bg-[#6fd09a]" aria-hidden />}
+        {children}
+      </span>
+    </label>
+  );
+}
+
+function ChipGroup({ title, type, name, options, selected }: { title: string; type: "checkbox" | "radio"; name: string; options: { value: string; label: string }[]; selected: string[] }) {
+  if (!options.length) return null;
+  return (
+    <fieldset>
+      <legend className="mb-2.5 font-bold">{title}</legend>
+      <div className="flex flex-wrap gap-2">
+        {options.map((o) => (
+          <label key={o.value || "semua"} className="cursor-pointer">
+            <input type={type} name={name} value={o.value} defaultChecked={selected.includes(o.value)} className="peer sr-only" />
+            <span className="flex min-h-11 items-center rounded-full border border-line bg-surface px-4 text-sm font-medium transition-colors hover:border-mist peer-checked:border-ink peer-checked:bg-ink peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand peer-focus-visible:ring-offset-2">
+              {o.label}
+            </span>
           </label>
         ))}
       </div>
-    </div>
+    </fieldset>
   );
 }

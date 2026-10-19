@@ -46,7 +46,11 @@ export default function AutoFilterForm({ children, className, delay = 450 }: { c
     const sp = new URLSearchParams(params);
     for (const el of Array.from(ref.current.elements) as (HTMLInputElement | HTMLSelectElement)[]) {
       if (!el.name) continue;
-      if (el instanceof HTMLInputElement && (el.type === "checkbox" || el.type === "radio")) el.checked = sp.getAll(el.name).includes(el.value);
+      if (el instanceof HTMLInputElement && (el.type === "checkbox" || el.type === "radio")) {
+        const vals = sp.getAll(el.name);
+        // Pilihan radio bernilai kosong ("Semua") aktif kalau parameternya tidak ada di alamat
+        el.checked = el.type === "radio" && el.value === "" ? vals.length === 0 : vals.includes(el.value);
+      }
       else if (el instanceof HTMLSelectElement) { const v = sp.get(el.name); if (v != null) el.value = v; else el.selectedIndex = 0; }
       else el.value = sp.get(el.name) ?? "";
     }
