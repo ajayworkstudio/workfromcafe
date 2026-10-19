@@ -1,3 +1,5 @@
+import { after } from "next/server";
+import { ensureThumbs } from "./thumbs";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { slugify } from "./utils";
 import { averageScore } from "./review";
@@ -86,6 +88,9 @@ export async function createCafeFromSubmission(
   await db.from("cafe_submissions").update({
     status: "approved", cafe_id: cafe.id, reviewed_at: new Date().toISOString(), admin_note: opts.note,
   }).eq("id", sub.id);
+
+  // Thumbnail dibuat setelah respons terkirim supaya tombol Setujui tidak menunggu
+  if (d.photos?.length) after(() => ensureThumbs({ cafeId: cafe.id, limit: 20 }));
 
   return { cafeId: cafe.id, slug };
 }

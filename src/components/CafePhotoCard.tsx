@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Cafe } from "@/lib/types";
-import { coverUrl, isOpenNow } from "@/lib/utils";
+import { coverThumb, isOpenNow } from "@/lib/utils";
 import { averageScore } from "@/lib/review";
 import Icon from "./Icon";
 
@@ -10,7 +10,7 @@ import Icon from "./Icon";
  * lalu bilah "Lihat kafe" sebagai tanda kartu bisa diketuk. Dipakai di carousel beranda.
  */
 export default function CafePhotoCard({ cafe, priority = false }: { cafe: Cafe; priority?: boolean }) {
-  const cover = coverUrl(cafe);
+  const cover = coverThumb(cafe);
   const rating = cafe.my_rating != null ? Number(cafe.my_rating) : averageScore(cafe.scores);
   const open = isOpenNow(cafe.opening_hours);
 

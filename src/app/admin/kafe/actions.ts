@@ -7,6 +7,7 @@ import { notifyAuthorLevel } from "@/lib/levelNotify";
 import { DAYS, slugify } from "@/lib/utils";
 import type { OpeningHours } from "@/lib/types";
 import { averageScore, reviewFromForm } from "@/lib/review";
+import { ensureThumbs } from "@/lib/thumbs";
 
 const str = (f: FormData, k: string) => ((f.get(k) as string) ?? "").trim() || null;
 
@@ -154,4 +155,22 @@ export async function toggleCafeFlag(formData: FormData) {
   }
   revalidateTag("authors");
   revalidatePath("/", "layout");
+}
+
+/** Thumbnail untuk foto yang baru diunggah lewat pengelola foto. */
+export async function makeThumbs(cafeId: string) {
+  await requireAdmin();
+  await ensureThumbs({ cafeId, limit: 20 });
+  revalidatePath("/", "layout");
+}
+
+/** Tombol "Buat thumbnail" di daftar kafe admin: foto lama dibuatkan bertahap, 15 per klik. */
+export async function backfillThumbs() {
+  await requireAdmin();
+  const r = await ensureThumbs({ limit: 15 });
+  revalidatePath("/", "layout");
+  const msg = r.left > 0
+    ? `${r.made} thumbnail dibuat. Masih ${r.left} foto lagi, klik tombolnya sekali lagi.`
+    : `${r.made} thumbnail dibuat. Semua foto sudah punya versi kecil.`;
+  redirect(`/admin/kafe?ok=${encodeURIComponent(r.failed ? `${msg} ${r.failed} foto gagal diproses.` : msg)}`);
 }

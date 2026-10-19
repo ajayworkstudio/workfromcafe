@@ -49,8 +49,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </html>
     );
   }
+  const storage = process.env.NEXT_PUBLIC_SUPABASE_URL;
   return (
     <html lang="id">
+      <head>{storage && <link rel="preconnect" href={new URL(storage).origin} />}</head>
       <body className="flex min-h-dvh flex-col antialiased">
         <Header />
         <TrialBanner />

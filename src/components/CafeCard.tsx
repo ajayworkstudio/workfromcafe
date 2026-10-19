@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Cafe } from "@/lib/types";
-import { coverUrl, isOpenNow, priceLabel } from "@/lib/utils";
+import { coverThumb, isOpenNow, priceLabel } from "@/lib/utils";
 import Icon from "./Icon";
 import { averageScore } from "@/lib/review";
 import { CROWD, reportAgo, type LiveSummary } from "@/lib/reports";
@@ -9,7 +9,7 @@ import { CROWD, reportAgo, type LiveSummary } from "@/lib/reports";
 const LIVE_DOT = { 1: "bg-ok", 2: "bg-gold", 3: "bg-[#b4533a]" } as const;
 
 export default function CafeCard({ cafe, live }: { cafe: Cafe; /** Ringkasan laporan kondisi 3 jam terakhir */ live?: LiveSummary }) {
-  const cover = coverUrl(cafe);
+  const cover = coverThumb(cafe);
   const open = isOpenNow(cafe.opening_hours);
   const tagNames = (cafe.tags ?? []).map((t) => t.tag?.name);
   const rating = cafe.my_rating != null ? Number(cafe.my_rating) : averageScore(cafe.scores);

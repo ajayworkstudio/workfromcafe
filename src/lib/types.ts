@@ -12,7 +12,7 @@ export type City = {
 
 export type Tag = { id: string; name: string; type: "vibe" | "facility" };
 
-export type Photo = { id: string; url: string; is_cover: boolean; sort_order: number };
+export type Photo = { id: string; url: string; thumb_url?: string | null; is_cover: boolean; sort_order: number };
 
 export type OpeningHours = Partial<Record<DayKey, [string, string] | null>>;
 export type DayKey = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";

@@ -71,6 +71,13 @@ export function coverUrl(cafe: Pick<Cafe, "photos">): string | null {
   return cover?.url ?? null;
 }
 
+/** Foto sampul versi kecil untuk kartu di daftar; kembali ke foto asli kalau thumbnail belum dibuat. */
+export function coverThumb(cafe: Pick<Cafe, "photos">): string | null {
+  const photos = cafe.photos ?? [];
+  const cover = photos.find((p) => p.is_cover) ?? [...photos].sort((a, b) => a.sort_order - b.sort_order)[0];
+  return cover?.thumb_url || cover?.url || null;
+}
+
 export function slugify(s: string) {
   return s
     .toLowerCase()
@@ -81,7 +88,7 @@ export function slugify(s: string) {
 }
 
 export const CAFE_LIST_SELECT =
-  "*, city:cities(*), photos:cafe_photos(id,url,is_cover,sort_order), tags:cafe_tags(tag:tags(*))";
+  "*, city:cities(*), photos:cafe_photos(*), tags:cafe_tags(tag:tags(*))"; // photos(*): ikut thumb_url kalau migrasi 0019 sudah jalan
 
 /** "baru saja", "5 menit lalu", "3 hari lalu", lalu tanggal untuk yang lebih lama. */
 export function timeAgo(iso: string) {

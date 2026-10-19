@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { compressImage, uniqueName } from "@/lib/compressImage";
 import type { Photo } from "@/lib/types";
+import { makeThumbs } from "@/app/admin/kafe/actions";
 
 export default function PhotoManager({ cafeId, initial }: { cafeId: string; initial: Photo[] }) {
   const supabase = createClient();
@@ -33,6 +34,7 @@ export default function PhotoManager({ cafeId, initial }: { cafeId: string; init
         if (e2) throw e2;
         setPhotos((p) => [...p, data as Photo]);
       }
+      await makeThumbs(cafeId).catch(() => {}); // gagal pun foto tetap tampil, hanya pakai ukuran penuh
       router.refresh();
     } catch (e) {
       setErr((e as Error).message);

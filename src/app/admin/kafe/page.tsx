@@ -2,11 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import AutoFilterForm from "@/components/AutoFilterForm";
 import { createClient } from "@/lib/supabase/server";
-import { toggleCafeFlag } from "./actions";
+import { backfillThumbs, toggleCafeFlag } from "./actions";
 import PageHeader from "@/components/admin/PageHeader";
 import Flash from "@/components/admin/Flash";
 import Icon from "@/components/Icon";
-import { coverUrl, priceLabel } from "@/lib/utils";
+import { coverThumb, priceLabel } from "@/lib/utils";
 import type { City, Photo } from "@/lib/types";
 
 type SP = Promise<{ q?: string; kota?: string; status?: string; ok?: string }>;
@@ -22,7 +22,7 @@ export default async function AdminCafes({ searchParams }: { searchParams: SP })
 
   let query = supabase
     .from("cafes")
-    .select("id,name,slug,area,is_published,is_featured,my_rating,price_range,updated_at,city:cities(name),photos:cafe_photos(id,url,is_cover,sort_order),menu_items(count)")
+    .select("id,name,slug,area,is_published,is_featured,my_rating,price_range,updated_at,city:cities(name),photos:cafe_photos(*),menu_items(count)")
     .order("updated_at", { ascending: false });
   if (sp.q) query = query.or(`name.ilike.%${sp.q.replace(/[%,()]/g, " ")}%,area.ilike.%${sp.q.replace(/[%,()]/g, " ")}%`);
   if (sp.kota) query = query.eq("city_id", sp.kota);
@@ -30,7 +30,10 @@ export default async function AdminCafes({ searchParams }: { searchParams: SP })
   if (sp.status === "draf") query = query.eq("is_published", false);
   if (sp.status === "favorit") query = query.eq("is_featured", true);
 
-  const [{ data }, { data: cities }] = await Promise.all([query, supabase.from("cities").select("id,name").order("name")]);
+  const [{ data }, { data: cities }, noThumb] = await Promise.all([
+    query, supabase.from("cities").select("id,name").order("name"),
+    supabase.from("cafe_photos").select("id", { count: "exact", head: true }).is("thumb_url", null),
+  ]);
   const rows = (data ?? []) as unknown as Row[];
 
   return (
@@ -38,6 +41,14 @@ export default async function AdminCafes({ searchParams }: { searchParams: SP })
       <PageHeader title="Kafe" description={`${rows.length} kafe${sp.q || sp.kota || sp.status ? " cocok dengan filter" : ""}`}
         action={<Link href="/admin/kafe/baru" className="btn-primary"><Icon name="plus" className="h-4 w-4" />Tambah kafe</Link>} />
       <Flash ok={sp.ok} />
+      {noThumb.error
+        ? <p className="mb-5 rounded-xl bg-tint px-4 py-3 text-sm">Foto di daftar kafe masih ukuran penuh. Jalankan migrasi <code>0019_thumbnail_foto.sql</code> supaya thumbnail bisa dibuat.</p>
+        : (noThumb.count ?? 0) > 0 && (
+          <form action={backfillThumbs} className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-tint px-4 py-3 text-sm">
+            <span>{noThumb.count} foto belum punya versi kecil, jadi daftar kafe lebih lambat dimuat.</span>
+            <button className="btn-primary">Buat thumbnail</button>
+          </form>
+        )}
 
       <AutoFilterForm className="mb-5 flex flex-wrap gap-2">
         <div className="relative min-w-[200px] flex-1">
@@ -58,7 +69,7 @@ export default async function AdminCafes({ searchParams }: { searchParams: SP })
 
       <div className="card divide-y divide-line">
         {rows.map((c) => {
-          const cover = coverUrl(c);
+          const cover = coverThumb(c);
           return (
             <div key={c.id} className="flex flex-wrap items-center gap-4 p-3 sm:flex-nowrap">
               <Link href={`/admin/kafe/${c.id}`} className="relative h-16 w-20 shrink-0 overflow-hidden rounded-xl bg-tint">

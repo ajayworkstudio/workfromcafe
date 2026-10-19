@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Cafe } from "@/lib/types";
-import { coverUrl } from "@/lib/utils";
+import { coverThumb } from "@/lib/utils";
 import { CROWD, reportAgo, type LiveSummary } from "@/lib/reports";
 import Icon from "./Icon";
 
@@ -9,7 +9,7 @@ const CROWD_CHIP = { 1: "bg-[#6fd09a]/25 text-[#c8f3da]", 2: "bg-gold/30 text-[#
 
 /** Kartu foto kecil dengan panel kaca berisi kondisi live, untuk deretan "Lagi sepi sekarang" di hero beranda. */
 export default function LiveCafeCard({ cafe, live }: { cafe: Cafe; live: LiveSummary }) {
-  const cover = coverUrl(cafe);
+  const cover = coverThumb(cafe);
   return (
     <Link href={`/kafe/${cafe.slug}`} className="group relative block h-64 w-[15rem] shrink-0 snap-start overflow-hidden rounded-[1.75rem] bg-ink text-foam">
       {cover
