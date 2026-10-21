@@ -1,4 +1,5 @@
 import { INSTAGRAM_URL } from "@/lib/utils";
+import AdminBadge from "@/components/AdminBadge";
 import Link from "next/link";
 import { getViewer } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
@@ -51,6 +52,7 @@ export default async function Header() {
                 {v.isPremium && !free && <span className="absolute -bottom-0.5 -right-0.5 grid h-4 w-4 place-items-center rounded-full bg-gold text-ink ring-2 ring-canvas"><Icon name="star" filled className="h-2.5 w-2.5" /></span>}
               </span>
               <span className="hidden sm:inline">{v.name?.split(" ")[0] ?? "Akun"}</span>
+              {v.isAdmin && <AdminBadge className="hidden sm:inline-flex" />}
             </Link>
           ) : (
             <Link href="/masuk" className="btn-dark !py-2">Masuk</Link>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import AdminBadge from "@/components/AdminBadge";
 import { cache, Suspense } from "react";
 import JsonLd from "@/components/JsonLd";
 import { breadcrumb, clip } from "@/lib/seo";
@@ -68,7 +69,7 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
   if (!cafe) notFound();
 
   const supabase = await createClient();
-  type AuthorCard = { name: string | null; avatar_url: string | null; bio: string | null; instagram: string | null; username?: string | null; cafe_count?: number; href?: string | null };
+  type AuthorCard = { name: string | null; avatar_url: string | null; bio: string | null; instagram: string | null; username?: string | null; cafe_count?: number; href?: string | null; is_admin?: boolean };
 
   // RLS yang menentukan: baris ini hanya kembali kalau pengguna berhak.
   // Author kafe ini boleh mengedit rekomendasinya (perubahan langsung tayang)
@@ -104,6 +105,7 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
       bio: card?.bio ?? null,
       instagram: card?.instagram || cafe.contributor_instagram || null,
       cafe_count: card?.cafe_count ?? 0,
+      is_admin: !!card?.is_admin,
       href: card?.cafe_count != null && cafe.contributor_id ? `/author/${card.username ?? cafe.contributor_id}` : null,
     };
   }
@@ -382,6 +384,7 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
                     : <p className="truncate font-semibold">{author.name}</p>}
                   <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
                     {!!author.cafe_count && <AuthorBadge count={author.cafe_count} />}
+                    {author.is_admin && <AdminBadge />}
                     {author.instagram && (
                       <a href={`https://instagram.com/${author.instagram}`} target="_blank" rel="noopener" className="text-brand hover:underline">@{author.instagram}</a>
                     )}

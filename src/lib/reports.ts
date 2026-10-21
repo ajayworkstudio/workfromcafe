@@ -19,7 +19,7 @@ export const PLUGS = {
 export type CafeReport = {
   id: string; crowd: 1 | 2 | 3; plugs: 1 | 2 | 3 | null;
   download_mbps: number | null; upload_mbps: number | null; ping_ms: number | null;
-  note: string | null; created_at: string; user_id: string; author_name: string; author_avatar: string | null;
+  note: string | null; created_at: string; user_id: string; author_name: string; author_avatar: string | null; author_is_admin?: boolean;
 };
 
 export type LiveSummary = { cafe_id: string; crowd: 1 | 2 | 3; plugs: 1 | 2 | 3 | null; download_mbps: number | null; reports: number; last_at: string };

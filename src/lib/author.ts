@@ -4,7 +4,7 @@ import { createPublicClient } from "./supabase/server";
 
 export type PublicAuthor = {
   id: string; name: string; avatar_url: string | null; bio: string | null; instagram: string | null; username: string | null;
-  cafe_count: number; month_count: number; first_at: string; last_at: string;
+  cafe_count: number; month_count: number; first_at: string; last_at: string; is_admin?: boolean;
 };
 
 /** Level author berdasarkan jumlah kafe yang sudah tayang. */

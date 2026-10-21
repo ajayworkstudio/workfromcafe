@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import AdminBadge from "@/components/AdminBadge";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -63,6 +64,12 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         <p className="mb-6 rounded-xl bg-ok/10 p-4 text-sm text-ok">
           Terima kasih! Pembayaran sedang dikonfirmasi. Status langganan akan aktif otomatis dalam beberapa saat. Muat ulang halaman ini.
         </p>
+      )}
+      {viewer.isAdmin && (
+        <Link href="/admin" className="card mb-3 flex items-center justify-between gap-3 p-4 transition-colors hover:border-brand">
+          <span className="flex items-center gap-2 text-sm"><AdminBadge className="!text-xs" />Akun ini pengelola WFC Hunters</span>
+          <span className="text-sm font-semibold text-brand">Buka panel admin →</span>
+        </Link>
       )}
       <ProfileEditor userId={viewer.user.id} email={viewer.user.email} profile={profile} ready={ready} usernameReady={usernameReady} siteUrl={SITE_URL} />
       {myAuthor && (

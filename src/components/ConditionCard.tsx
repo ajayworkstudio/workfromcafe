@@ -1,4 +1,5 @@
 import Avatar from "./Avatar";
+import AdminBadge from "@/components/AdminBadge";
 import Icon from "./Icon";
 import ReportSheet from "./ReportSheet";
 import { deleteReport } from "@/app/kafe/[slug]/reports";
@@ -81,7 +82,7 @@ export default function ConditionCard({ cafe, reports, viewer }: Props) {
             <Avatar url={r.author_avatar} name={r.author_name} className="mt-0.5 h-7 w-7 shrink-0 text-xs" />
             <div className="min-w-0 flex-1">
               <p className="break-words">
-                <b>{r.author_name.split(" ")[0]}</b> · {CROWD[r.crowd].label}
+                <b>{r.author_name.split(" ")[0]}</b>{r.author_is_admin && <AdminBadge className="ml-1.5" />} · {CROWD[r.crowd].label}
                 {r.download_mbps != null && <> · {Math.round(Number(r.download_mbps))} Mbps</>}
               </p>
               {r.note && <p className="break-words text-muted">{r.note}</p>}

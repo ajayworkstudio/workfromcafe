@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import AdminBadge from "@/components/AdminBadge";
 import Link from "next/link";
 import Avatar from "@/components/Avatar";
 import AuthorBadge from "@/components/AuthorBadge";
@@ -42,7 +43,7 @@ export default async function AuthorsPage() {
                   {i < 3 && <span className="absolute -right-1 -top-1 grid h-6 w-6 place-items-center rounded-full bg-gold text-xs font-bold text-ink ring-2 ring-surface">{i + 1}</span>}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-bold">{a.name}</p>
+                  <p className="flex min-w-0 items-center gap-1.5 font-bold"><span className="truncate">{a.name}</span>{a.is_admin && <AdminBadge />}</p>
                   <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
                     <AuthorBadge count={a.cafe_count} />
                     <span>{a.cafe_count} kafe</span>

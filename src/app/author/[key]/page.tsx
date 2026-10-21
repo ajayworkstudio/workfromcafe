@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import AdminBadge from "@/components/AdminBadge";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -94,6 +95,7 @@ export default async function AuthorPage({ params }: { params: P }) {
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <h1 className="min-w-0 break-words text-3xl font-extrabold md:text-4xl">{a.name}</h1>
             <AuthorBadge count={a.cafe_count} className="!text-sm" />
+            {a.is_admin && <AdminBadge className="!px-2.5 !py-1 !text-xs" />}
           </div>
           {a.bio && <p className="mt-3 max-w-2xl whitespace-pre-line break-words text-lg leading-relaxed text-ink/80 [overflow-wrap:anywhere]">{a.bio}</p>}
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AdminBadge from "@/components/AdminBadge";
 import { createClient } from "@/lib/supabase/server";
 import { deleteComment } from "@/app/kafe/[slug]/comments";
 import { timeAgo } from "@/lib/utils";
@@ -22,7 +23,7 @@ export default async function CafeComments({
   const replies = (id: string) => rows.filter((r) => r.parent_id === id);
 
   const Badge = ({ r }: { r: Row }) =>
-    r.author_is_admin ? <span className="rounded-full bg-ink px-2 py-0.5 text-[10px] font-semibold text-white">Admin</span>
+    r.author_is_admin ? <AdminBadge />
       : contributorId && r.user_id === contributorId ? <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-semibold text-brand">Author</span>
       : null;
 
