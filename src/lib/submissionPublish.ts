@@ -5,7 +5,19 @@ import { slugify } from "./utils";
 import { averageScore } from "./review";
 import { guessProvince, MAP_CENTER } from "./region";
 import { autoUsername } from "./author";
-import type { Submission } from "./submission";
+import type { Submission, SubmissionData } from "./submission";
+
+/** Kota: pakai yang dipilih, atau cari/buat dari nama kota (kota baru belum aktif). */
+export async function resolveCityId(db: SupabaseClient, d: SubmissionData): Promise<string | { error: string }> {
+  if (d.city_id) return d.city_id;
+  const { data: found } = await db.from("cities").select("id").ilike("name", d.city_name).maybeSingle();
+  if (found) return found.id as string;
+  const { data: city, error } = await db.from("cities")
+    .insert({ name: d.city_name, slug: slugify(d.city_name), province: guessProvince(d.lat, d.lng), lat: d.lat ?? MAP_CENTER[0], lng: d.lng ?? MAP_CENTER[1], is_active: false })
+    .select("id").single();
+  if (error) return { error: `Gagal membuat kota ${d.city_name}: ${error.message}` };
+  return city.id as string;
+}
 
 /**
  * Buat kafe dari rekomendasi author (beserta detail, menu, foto), lalu tandai kiriman sebagai diterima.
@@ -18,19 +30,9 @@ export async function createCafeFromSubmission(
 ): Promise<{ cafeId: string; slug: string } | { error: string }> {
   const d = sub.data;
 
-  // Kota: pakai yang dipilih, atau cari/buat dari nama kota
-  let cityId = d.city_id;
-  if (!cityId) {
-    const { data: found } = await db.from("cities").select("id").ilike("name", d.city_name).maybeSingle();
-    if (found) cityId = found.id;
-    else {
-      const { data: city, error } = await db.from("cities")
-        .insert({ name: d.city_name, slug: slugify(d.city_name), province: guessProvince(d.lat, d.lng), lat: d.lat ?? MAP_CENTER[0], lng: d.lng ?? MAP_CENTER[1], is_active: false })
-        .select("id").single();
-      if (error) return { error: `Gagal membuat kota ${d.city_name}: ${error.message}` };
-      cityId = city.id;
-    }
-  }
+  const city = await resolveCityId(db, d);
+  if (typeof city !== "string") return city;
+  const cityId = city;
 
   // Slug unik
   const base = slugify(d.name) || "kafe";

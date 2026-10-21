@@ -5,8 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 import { compressImage, uniqueName } from "@/lib/compressImage";
 import { parseCoords } from "@/lib/coords";
 import { PRICE_RANGES } from "@/lib/utils";
-import { MAX_MENU, MAX_PHOTOS, RELATIONS } from "@/lib/submission";
-import { submitRecommendation, type SubmitState } from "../actions";
+import { MAX_MENU, MAX_PHOTOS, RELATIONS, type SubmissionData } from "@/lib/submission";
+import { saveRecommendation, submitRecommendation, type SubmitState } from "../actions";
 import { AmenityFields, ScoreFields } from "@/components/ReviewFields";
 import OpeningHoursInput from "@/components/admin/OpeningHoursInput";
 import Icon from "@/components/Icon";
@@ -37,24 +37,33 @@ function Block({ title, hint, children }: { title: string; hint?: string; childr
   );
 }
 
-export default function SubmitForm({ userId, defaultName, cities }: { userId: string; defaultName: string; cities: City[] }) {
-  const [state, action] = useActionState<SubmitState, FormData>(submitRecommendation, null);
-  const supabase = createClient();
+/** Isian awal saat author mengedit rekomendasinya. `live`: sudah jadi kafe, perubahan langsung tayang. */
+export type EditInitial = { id: string; data: SubmissionData; authorName: string; authorInstagram: string | null; live: boolean; resubmit: boolean };
 
-  const [cityId, setCityId] = useState("");
+export default function SubmitForm({ userId, defaultName, cities, initial }: { userId: string; defaultName: string; cities: City[]; initial?: EditInitial }) {
+  const [state, action] = useActionState<SubmitState, FormData>(initial ? saveRecommendation : submitRecommendation, null);
+  const supabase = createClient();
+  const d = initial?.data;
+
+  const [cityId, setCityId] = useState(d ? d.city_id ?? "__other" : "");
   const [mapsMsg, setMapsMsg] = useState<{ ok: boolean; text: string } | null>(null);
-  const [knowHours, setKnowHours] = useState(false);
-  const [menu, setMenu] = useState<MenuRow[]>([emptyMenu()]);
-  const [photos, setPhotos] = useState<string[]>([]);
+  const [knowHours, setKnowHours] = useState(!!d?.opening_hours && Object.keys(d.opening_hours).length > 0);
+  const [menu, setMenu] = useState<MenuRow[]>(d?.menu?.length
+    ? d.menu.map((m) => ({ name: m.name, price: m.price != null ? String(m.price) : "", note: m.note ?? "", is_must_try: m.is_must_try }))
+    : [emptyMenu()]);
+  const [photos, setPhotos] = useState<string[]>(d?.photos ?? []);
+  // Foto yang diunggah di sesi ini saja yang boleh dihapus dari penyimpanan; foto lama cukup dilepas dari daftar
+  const [added, setAdded] = useState<string[]>([]);
   const [uploading, setUploading] = useState(0);
   const [photoErr, setPhotoErr] = useState<string | null>(null);
-  const [quick, setQuick] = useState<Record<string, number>>({});
-  const [name, setName] = useState("");
-  const [why, setWhy] = useState("");
-  const [maps, setMaps] = useState("");
-  const [address, setAddress] = useState("");
-  const [showAddress, setShowAddress] = useState(false);
-  const [cityOther, setCityOther] = useState("");
+  const [quick, setQuick] = useState<Record<string, number>>(() =>
+    Object.fromEntries(QUICK.map((q) => [q.key, Number(d?.scores?.[q.key as keyof typeof d.scores])]).filter(([, v]) => Number.isFinite(v) && (v as number) > 0)));
+  const [name, setName] = useState(d?.name ?? "");
+  const [why, setWhy] = useState(d?.short_review ?? "");
+  const [maps, setMaps] = useState(d?.maps_link ?? "");
+  const [address, setAddress] = useState(d?.address ?? "");
+  const [showAddress, setShowAddress] = useState(!!d?.address);
+  const [cityOther, setCityOther] = useState(d && !d.city_id ? d.city_name : "");
   const done = [name.trim().length > 1, !!cityId && (cityId !== "__other" || cityOther.trim().length > 1), !!(maps.trim() || address.trim()), why.trim().length >= 10];
   const doneCount = done.filter(Boolean).length;
 
@@ -81,6 +90,7 @@ export default function SubmitForm({ userId, defaultName, cities }: { userId: st
         if (error) throw new Error(/row-level|policy|security/i.test(error.message) ? "Unggah foto belum diizinkan. Admin perlu menjalankan migrasi 0008." : error.message);
         const url = supabase.storage.from("cafe-photos").getPublicUrl(path).data.publicUrl;
         setPhotos((p) => [...p, url]);
+        setAdded((a) => [...a, url]);
       } catch (e) {
         setPhotoErr((e as Error).message);
       } finally {
@@ -91,6 +101,7 @@ export default function SubmitForm({ userId, defaultName, cities }: { userId: st
 
   async function removePhoto(url: string) {
     setPhotos((p) => p.filter((x) => x !== url));
+    if (!added.includes(url)) return;
     const marker = "/cafe-photos/";
     await supabase.storage.from("cafe-photos").remove([url.slice(url.indexOf(marker) + marker.length)]);
   }
@@ -102,15 +113,18 @@ export default function SubmitForm({ userId, defaultName, cities }: { userId: st
       <input type="hidden" name="menu_json" value={JSON.stringify(menu.filter((m) => m.name.trim()))} />
       <input type="hidden" name="photos_json" value={JSON.stringify(photos)} />
       <input type="hidden" name="consent" value="on" />
+      {initial && <input type="hidden" name="submission_id" value={initial.id} />}
+      {/* Catatan untuk 3 aspek "Kirim cepat" tidak punya isian sendiri: bawa catatan lama supaya tidak hilang */}
+      {QUICK.map((q) => d?.scores?.notes?.[q.key] && <input key={`n${q.key}`} type="hidden" name={`note_${q.key}`} value={d.scores.notes[q.key]!} />)}
       {QUICK.map((q) => quick[q.key] != null && <input key={q.key} type="hidden" name={`score_${q.key}`} value={quick[q.key]} />)}
 
       {/* ================= KIRIM CEPAT ================= */}
       <section className="card p-5 md:p-7">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-xl font-bold">Kirim cepat</h2>
+          <h2 className="text-xl font-bold">{initial ? "Info utama" : "Kirim cepat"}</h2>
           <span className="flex items-center gap-2 text-xs font-semibold text-muted">
             <span className="flex gap-1">{done.map((d, i) => <span key={i} className={`h-1.5 w-6 rounded-full ${d ? "bg-brand" : "bg-tint"}`} />)}</span>
-            {doneCount === 4 ? "Siap dikirim" : `${doneCount}/4 wajib`}
+            {doneCount === 4 ? (initial ? "Lengkap" : "Siap dikirim") : `${doneCount}/4 wajib`}
           </span>
         </div>
 
@@ -198,7 +212,7 @@ export default function SubmitForm({ userId, defaultName, cities }: { userId: st
       </section>
 
       {/* ================= DETAIL OPSIONAL ================= */}
-      <details className="group card overflow-hidden">
+      <details className="group card overflow-hidden" open={!!initial}>
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5 md:px-7 [&::-webkit-details-marker]:hidden">
           <span>
             <span className="block text-lg font-bold">Tambah detail <span className="font-normal text-muted">(opsional)</span></span>
@@ -212,17 +226,17 @@ export default function SubmitForm({ userId, defaultName, cities }: { userId: st
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label htmlFor="author_name" className="label">Nama yang ditampilkan</label>
-                <input id="author_name" name="author_name" maxLength={60} defaultValue={defaultName} placeholder="Namamu" className="input" />
+                <input id="author_name" name="author_name" maxLength={60} defaultValue={initial?.authorName ?? defaultName} placeholder="Namamu" className="input" />
               </div>
               <div>
                 <label htmlFor="author_instagram" className="label">Instagram kamu</label>
-                <input id="author_instagram" name="author_instagram" maxLength={40} placeholder="tanpa @" className="input" />
+                <input id="author_instagram" name="author_instagram" maxLength={40} defaultValue={initial?.authorInstagram ?? ""} placeholder="tanpa @" className="input" />
               </div>
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {RELATIONS.map((r, i) => (
                 <label key={r.value} className="cursor-pointer">
-                  <input type="radio" name="relation" value={r.value} defaultChecked={i === 0} className="peer sr-only" />
+                  <input type="radio" name="relation" value={r.value} defaultChecked={d ? d.relation === r.value : i === 0} className="peer sr-only" />
                   <span className="chip !px-3 !py-1.5 !text-sm peer-checked:bg-brand peer-checked:text-white" title={r.hint}>{r.label}</span>
                 </label>
               ))}
@@ -231,33 +245,33 @@ export default function SubmitForm({ userId, defaultName, cities }: { userId: st
 
           <Block title="Info tambahan">
             <div className="grid gap-4 sm:grid-cols-2">
-              <div><label htmlFor="area" className="label">Area / kecamatan</label><input id="area" name="area" maxLength={80} placeholder="Tembalang" className="input" /></div>
+              <div><label htmlFor="area" className="label">Area / kecamatan</label><input id="area" name="area" maxLength={80} defaultValue={d?.area ?? ""} placeholder="Tembalang" className="input" /></div>
               <div>
                 <label htmlFor="price_range" className="label">Kisaran harga per orang</label>
-                <select id="price_range" name="price_range" defaultValue={2} className="input">
+                <select id="price_range" name="price_range" defaultValue={d?.price_range ?? 2} className="input">
                   {PRICE_RANGES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
                 </select>
               </div>
-              <div><label htmlFor="visited_at" className="label">Terakhir kamu datang</label><input id="visited_at" name="visited_at" type="date" max={new Date().toISOString().slice(0, 10)} className="input" /></div>
-              <div><label htmlFor="instagram" className="label">Instagram kafe</label><input id="instagram" name="instagram" maxLength={60} placeholder="namakafe" className="input" /></div>
-              <div className="sm:col-span-2"><label htmlFor="menu_url" className="label">Link buku menu</label><input id="menu_url" name="menu_url" type="url" placeholder="https://…" className="input" /></div>
+              <div><label htmlFor="visited_at" className="label">Terakhir kamu datang</label><input id="visited_at" name="visited_at" type="date" defaultValue={d?.visited_at ?? ""} max={new Date().toISOString().slice(0, 10)} className="input" /></div>
+              <div><label htmlFor="instagram" className="label">Instagram kafe</label><input id="instagram" name="instagram" maxLength={60} defaultValue={d?.instagram ?? ""} placeholder="namakafe" className="input" /></div>
+              <div className="sm:col-span-2"><label htmlFor="menu_url" className="label">Link buku menu</label><input id="menu_url" name="menu_url" type="url" defaultValue={d?.menu_url ?? ""} placeholder="https://…" className="input" /></div>
             </div>
           </Block>
 
           <Block title="Penilaian lain" hint="Nilai 1–5, lewati yang tidak kamu tahu.">
-            <ScoreFields exclude={QUICK.map((q) => q.key)} />
+            <ScoreFields scores={d?.scores} exclude={QUICK.map((q) => q.key)} />
           </Block>
 
           <Block title="Fasilitas" hint="Pilih Ada, Tidak, atau ? kalau tidak yakin.">
-            <AmenityFields />
+            <AmenityFields amenities={d?.amenities} />
           </Block>
 
           <Block title="Cerita lengkap">
             <div className="space-y-3">
-              <textarea name="full_review" maxLength={3000} rows={4} aria-label="Ulasan lengkap" placeholder="Suasananya, kondisi saat ramai, pengalamanmu kerja di sana…" className="input" />
+              <textarea name="full_review" maxLength={3000} rows={4} defaultValue={d?.full_review ?? ""} aria-label="Ulasan lengkap" placeholder="Suasananya, kondisi saat ramai, pengalamanmu kerja di sana…" className="input" />
               <div className="grid gap-3 sm:grid-cols-2">
-                <input name="tips" maxLength={300} aria-label="Tips tempat duduk" placeholder="Tips duduk: meja dekat jendela lantai 2" className="input" />
-                <input name="best_time" maxLength={120} aria-label="Waktu terbaik" placeholder="Waktu terbaik: pagi 08.00–11.00" className="input" />
+                <input name="tips" maxLength={300} defaultValue={d?.tips ?? ""} aria-label="Tips tempat duduk" placeholder="Tips duduk: meja dekat jendela lantai 2" className="input" />
+                <input name="best_time" maxLength={120} defaultValue={d?.best_time ?? ""} aria-label="Waktu terbaik" placeholder="Waktu terbaik: pagi 08.00–11.00" className="input" />
               </div>
             </div>
           </Block>
@@ -267,7 +281,7 @@ export default function SubmitForm({ userId, defaultName, cities }: { userId: st
               <input type="checkbox" name="know_hours" checked={knowHours} onChange={(e) => setKnowHours(e.target.checked)} className="h-4 w-4 accent-brand" />
               <span className="text-sm font-medium">Aku tahu jam bukanya</span>
             </label>
-            {knowHours && <div className="mt-4"><OpeningHoursInput isNew /></div>}
+            {knowHours && <div className="mt-4"><OpeningHoursInput hours={d?.opening_hours ?? undefined} isNew={!d?.opening_hours} /></div>}
           </Block>
 
           <Block title="Menu andalan">
@@ -292,20 +306,24 @@ export default function SubmitForm({ userId, defaultName, cities }: { userId: st
       <div className="rounded-2xl border border-line bg-surface p-4">
         {state?.error && <p role="alert" className="mb-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{state.error}</p>}
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="order-2 max-w-md text-xs text-muted sm:order-1">Dengan mengirim, kamu setuju ulasan &amp; foto ini milikmu dan boleh ditampilkan WorkFromCafe dengan namamu sebagai author.</p>
-          <Submit disabled={uploading > 0} />
+          <p className="order-2 max-w-md text-xs text-muted sm:order-1">
+            {initial?.live ? "Perubahan langsung tampil di halaman kafe. Pastikan ulasan & foto ini milikmu."
+              : initial?.resubmit ? "Rekomendasi akan dikirim ulang dan dicek admin lagi."
+              : "Dengan mengirim, kamu setuju ulasan & foto ini milikmu dan boleh ditampilkan WorkFromCafe dengan namamu sebagai author."}
+          </p>
+          <Submit disabled={uploading > 0} label={initial ? (initial.resubmit ? "Kirim ulang" : "Simpan perubahan") : "Kirim rekomendasi"} />
         </div>
       </div>
     </form>
   );
 }
 
-function Submit({ disabled }: { disabled: boolean }) {
+function Submit({ disabled, label }: { disabled: boolean; label: string }) {
   const { pending } = useFormStatus();
   return (
     <button disabled={pending || disabled} className="btn-primary order-1 w-full sm:order-2 sm:w-auto">
       <Icon name="send" className="h-4 w-4" />
-      {pending ? "Mengirim…" : disabled ? "Tunggu foto…" : "Kirim rekomendasi"}
+      {pending ? "Menyimpan…" : disabled ? "Tunggu foto…" : label}
     </button>
   );
 }

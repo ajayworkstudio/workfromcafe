@@ -20,8 +20,8 @@ const STEPS = [
   { icon: "star", title: "Tayang & naik level", text: "Namamu tampil di kafe, kamu dapat profil author publik, dan naik level sampai Kurator Utama." },
 ];
 
-export default async function SubmissionsPage({ searchParams }: { searchParams: Promise<{ terkirim?: string; tayang?: string }> }) {
-  const [{ terkirim, tayang }, viewer, settings] = await Promise.all([searchParams, getViewer(), getSettings()]);
+export default async function SubmissionsPage({ searchParams }: { searchParams: Promise<{ terkirim?: string; tayang?: string; disimpan?: string }> }) {
+  const [{ terkirim, tayang, disimpan }, viewer, settings] = await Promise.all([searchParams, getViewer(), getSettings()]);
   let subs: (Submission & { cafe: { slug: string; is_published: boolean } | null })[] = [];
   if (viewer.user) {
     const supabase = await createClient();
@@ -35,6 +35,7 @@ export default async function SubmissionsPage({ searchParams }: { searchParams: 
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
+      {disimpan && <p role="status" className="mb-6 rounded-xl bg-ok/10 p-4 text-sm text-[#2f7049]">Perubahan tersimpan. Rekomendasimu tetap menunggu review admin.</p>}
       {terkirim && (
         <p role="status" className="mb-6 rounded-xl bg-ok/10 p-4 text-sm text-[#2f7049]">
           {tayang ? (
@@ -114,13 +115,20 @@ export default async function SubmissionsPage({ searchParams }: { searchParams: 
                           ? <Link href={`/kafe/${s.cafe.slug}`} className="mt-1.5 inline-block text-sm font-semibold text-brand hover:underline">Lihat halaman kafe →</Link>
                           : <p className="mt-1.5 text-sm text-muted">Sedang dirapikan admin sebelum tayang.</p>
                       )}
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        {(s.status !== "approved" || s.cafe) && (
+                          <Link href={`/kirim/${s.id}`} className="btn-ghost min-h-10 !px-3.5 !py-1.5 text-sm">
+                            <Icon name="edit" className="h-4 w-4" />{s.status === "rejected" ? "Perbaiki & kirim ulang" : "Edit"}
+                          </Link>
+                        )}
+                        {s.status === "pending" && (
+                          <form action={withdrawSubmission}>
+                            <input type="hidden" name="id" value={s.id} />
+                            <button className="min-h-10 px-2 text-sm font-medium text-muted hover:text-[#b4533a]">Tarik</button>
+                          </form>
+                        )}
+                      </div>
                     </div>
-                    {s.status === "pending" && (
-                      <form action={withdrawSubmission} className="shrink-0 self-center">
-                        <input type="hidden" name="id" value={s.id} />
-                        <button className="text-sm font-medium text-muted hover:text-[#b4533a]">Tarik</button>
-                      </form>
-                    )}
                   </li>
                 );
               })}

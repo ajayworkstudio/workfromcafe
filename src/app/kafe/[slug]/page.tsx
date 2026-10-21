@@ -61,8 +61,8 @@ export async function generateMetadata({ params }: { params: P }): Promise<Metad
   };
 }
 
-export default async function CafeDetailPage({ params }: { params: P }) {
-  const { slug } = await params;
+export default async function CafeDetailPage({ params, searchParams }: { params: P; searchParams: Promise<{ diedit?: string }> }) {
+  const [{ slug }, { diedit }] = await Promise.all([params, searchParams]);
   // Semua yang tidak saling bergantung diambil bersamaan (lebih sedikit bolak-balik ke database)
   const [cafe, viewer, settings] = await Promise.all([getCafe(slug), getViewer(), getSettings()]);
   if (!cafe) notFound();
@@ -71,7 +71,9 @@ export default async function CafeDetailPage({ params }: { params: P }) {
   type AuthorCard = { name: string | null; avatar_url: string | null; bio: string | null; instagram: string | null; username?: string | null; cafe_count?: number; href?: string | null };
 
   // RLS yang menentukan: baris ini hanya kembali kalau pengguna berhak.
-  const [{ data: details }, { data: menu }, fav, visit, left, { data: card }, { data: reportRows }] = await Promise.all([
+  // Author kafe ini boleh mengedit rekomendasinya (perubahan langsung tayang)
+  const isAuthor = !!viewer.user && viewer.user.id === cafe.contributor_id;
+  const [{ data: details }, { data: menu }, fav, visit, left, { data: card }, { data: reportRows }, { data: mySub }] = await Promise.all([
     supabase.from("cafe_details").select("*").eq("cafe_id", cafe.id).maybeSingle(),
     supabase.from("menu_items").select("*").eq("cafe_id", cafe.id).order("sort_order"),
     viewer.user
@@ -87,6 +89,9 @@ export default async function CafeDetailPage({ params }: { params: P }) {
       : Promise.resolve({ data: null as AuthorCard | null }),
     // Laporan kondisi terbaru (kosong kalau migrasi 0018 belum dijalankan)
     supabase.rpc("cafe_reports_recent", { p_cafe_id: cafe.id }),
+    isAuthor
+      ? supabase.from("cafe_submissions").select("id").eq("cafe_id", cafe.id).eq("user_id", viewer.user!.id).order("created_at", { ascending: false }).limit(1).maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
   const reports = (reportRows as CafeReport[] | null) ?? [];
 
@@ -255,6 +260,7 @@ export default async function CafeDetailPage({ params }: { params: P }) {
             </div>
           )}
 
+          {diedit && isAuthor && <p role="status" className="mt-6 rounded-xl bg-ok/10 px-4 py-3 text-sm text-[#2f7049]">Perubahan tersimpan dan sudah tampil di halaman ini.</p>}
           <div className="mt-6 flex flex-wrap gap-2">
             {/* Simpan & Bagikan di HP sudah ada sebagai tombol bulat di atas foto */}
             <span className="hidden md:contents">
@@ -268,6 +274,7 @@ export default async function CafeDetailPage({ params }: { params: P }) {
               <a href={cafe.menu_url} target="_blank" rel="noopener" className="btn-primary"><Icon name="book" className="h-4 w-4" />Lihat menu</a>
             )}
             <a href={mapsUrl} target="_blank" rel="noopener" className="btn-ghost"><Icon name="external" className="h-4 w-4" />Buka di Google Maps</a>
+            {mySub && <Link href={`/kirim/${mySub.id}`} className="btn-ghost"><Icon name="edit" className="h-4 w-4" />Edit rekomendasimu</Link>}
             {cafe.instagram && (
               <a href={`https://instagram.com/${cafe.instagram.replace(/^@/, "")}`} target="_blank" rel="noopener" className="btn-ghost" aria-label={`Instagram ${cafe.name}`}>
                 <Icon name="instagram" className="h-4 w-4" />@{cafe.instagram.replace(/^@/, "")}
