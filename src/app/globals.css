@@ -87,6 +87,17 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; }
 
 .leaflet-container { font-family: var(--font-sans); }
 
+/* Peta: ubin OSM dibuat lebih pucat & hangat supaya pin dan kartu yang menonjol */
+.peta .leaflet-tile-pane { filter: saturate(.45) sepia(.12) brightness(1.04) contrast(.92); }
+.peta .leaflet-bottom { bottom: 10.25rem; }
+.peta .leaflet-control-attribution { border-radius: 999px 0 0 999px; font-size: 10px; }
+.peta-me { position: relative; display: grid; width: 56px; height: 56px; place-items: center; border-radius: 999px; background: rgb(224 160 69 / .22); }
+.peta-me i { width: 16px; height: 16px; border-radius: 999px; background: #e0a045; border: 3px solid #fff; box-shadow: 0 1px 4px rgb(22 15 12 / .4); }
+@media (prefers-reduced-motion: no-preference) {
+  .peta-me::before { content: ""; position: absolute; inset: 0; border-radius: 999px; background: rgb(224 160 69 / .35); opacity: 0; animation: peta-pulse 2s ease-out 3; }
+  @keyframes peta-pulse { from { transform: scale(.35); opacity: 1; } to { transform: scale(1); opacity: 0; } }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .hero-in > * { animation: rise .7s cubic-bezier(.2,.7,.2,1) both; }
   .hero-in > *:nth-child(2) { animation-delay: .08s; }

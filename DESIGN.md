@@ -47,8 +47,9 @@ Palet inti: brand + ink + canvas, aksen gold. Hijau WhatsApp hanya di tombol kom
 
 - Beranda: hero foto, grid kafe pilihan, tumpukan kartu "Baru ditambahkan", lalu kartu ajakan: author bulan ini lebar penuh, komunitas dan peta berdampingan. Kotak kontak hanya di /kontak.
 - HP: navigasi bawah berupa pil gelap mengambang; menu aktif melebar jadi pil terang berisi ikon + nama. Beranda HP tanpa foto latar: judul, kolom cari + tombol filter bulat, pil kota, lalu kartu foto tinggi yang digeser ke samping. Detail kafe HP: foto selebar layar dengan tombol bulat (kembali, bagikan, simpan), lembar isi membulat yang menimpa tepi bawah foto, dan tab pil yang menempel untuk melompat antarbagian.
+- Peta: ubin OSM dipucatkan & dihangatkan lewat CSS supaya pin menonjol. Chip saring di atas, tombol bulat (daftar, lokasi saya) dan kartu kafe yang digeser di bawah; peta terbang ke kafe di kartu tengah. Pin cokelat, hijau = dilaporkan sepi, emas = dipilih. Lokasi saya memakai titik emas dengan garis putus-putus ke kafe terpilih (jarak garis lurus, bukan rute; rute dibuka di Google Maps).
 - Radius: kartu 1.5–2rem, foto `--radius-photo`, tombol bulat penuh. Input tetap kotak membulat kecil (bukan pil).
-- Bayangan hanya untuk kolom pencarian di hero (elemen yang paling penting untuk diisi). Kartu lain cukup border tipis.
+- Bayangan hanya untuk kolom pencarian di hero (elemen yang paling penting untuk diisi) dan elemen yang mengambang di atas peta (perlu terpisah dari ubin peta). Kartu lain cukup border tipis.
 
 ## Gerak (MOTION 2)
 

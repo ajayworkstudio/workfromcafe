@@ -5,6 +5,11 @@ import { getViewer } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
 import Icon from "@/components/Icon";
 import CafeMapLoader from "@/components/CafeMapLoader";
+import type { MapCafe } from "@/components/CafeMap";
+import type { Cafe } from "@/lib/types";
+import type { LiveSummary } from "@/lib/reports";
+import { CAFE_LIST_SELECT, coverThumb, priceLabel } from "@/lib/utils";
+import { averageScore } from "@/lib/review";
 
 export const metadata: Metadata = {
   title: "Peta kafe untuk kerja di Pulau Jawa",
@@ -27,12 +32,31 @@ export default async function MapPage() {
   }
 
   const supabase = await createClient();
-  const { data } = await supabase.from("cafes").select("slug,name,lat,lng,my_rating,city:cities(name)").not("lat", "is", null);
-  const cafes = ((data ?? []) as unknown as { slug: string; name: string; lat: number; lng: number; my_rating: number | null; city: { name: string } | null }[])
-    .map((c) => ({ slug: c.slug, name: c.name, lat: c.lat, lng: c.lng, city: c.city?.name ?? "", rating: c.my_rating }));
+  const [{ data }, { data: liveRows }] = await Promise.all([
+    supabase.from("cafes").select(CAFE_LIST_SELECT).not("lat", "is", null).order("my_rating", { ascending: false, nullsFirst: false }),
+    // Kondisi 3 jam terakhir (kosong kalau migrasi 0018 belum dijalankan)
+    supabase.rpc("cafe_reports_live"),
+  ]);
+  const live = new Map(((liveRows as LiveSummary[] | null) ?? []).map((r) => [r.cafe_id, r]));
+
+  // Kirim seperlunya saja ke peta (bukan seluruh baris kafe)
+  const cafes: MapCafe[] = ((data as Cafe[] | null) ?? []).map((c) => {
+    const names = (c.tags ?? []).map((t) => t.tag?.name);
+    const l = live.get(c.id);
+    return {
+      slug: c.slug, name: c.name, lat: Number(c.lat), lng: Number(c.lng),
+      area: c.area ?? null, city: c.city?.name ?? "",
+      rating: c.my_rating != null ? Number(c.my_rating) : averageScore(c.scores),
+      price: priceLabel(c.price_range), cover: coverThumb(c), hours: c.opening_hours ?? null,
+      wifi: names.includes("Wifi") || c.amenities?.wifi === true,
+      plug: names.includes("Colokan") || c.amenities?.colokan === true,
+      live: l ? { crowd: l.crowd, mbps: l.download_mbps != null ? Math.round(Number(l.download_mbps)) : null, at: l.last_at } : null,
+    };
+  });
 
   return (
     <div className="h-[calc(100dvh-4rem-5.5rem)] md:h-[calc(100dvh-4rem)]">
+      <h1 className="sr-only">Peta kafe</h1>
       <CafeMapLoader cafes={cafes} />
     </div>
   );
