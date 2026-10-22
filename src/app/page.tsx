@@ -175,7 +175,7 @@ export default async function Home() {
       </section>
 
       {/* Kartu ajakan: satu kartu utama (author/kirim) lebar penuh, dua kartu pendukung berdampingan */}
-      <section className="mx-auto grid max-w-6xl gap-5 px-4 pt-16 md:grid-cols-2">
+      <section className="reveal mx-auto grid max-w-6xl gap-5 px-4 pt-16 md:grid-cols-2">
         {featuredAuthor ? (
           <article className="grid overflow-hidden rounded-[1.75rem] border border-line bg-surface md:col-span-2 md:grid-cols-[1.3fr_1fr]">
             <Link href={authorHref(featuredAuthor)} className="group flex flex-col gap-5 p-6 transition-colors hover:bg-brand-soft/40 sm:flex-row sm:items-center md:p-9">

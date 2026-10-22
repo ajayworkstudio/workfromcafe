@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import FadeImage from "./FadeImage";
 import type { Cafe } from "@/lib/types";
 import { coverThumb } from "@/lib/utils";
 import { CROWD, reportAgo, type LiveSummary } from "@/lib/reports";
@@ -13,7 +13,7 @@ export default function LiveCafeCard({ cafe, live }: { cafe: Cafe; live: LiveSum
   return (
     <Link href={`/kafe/${cafe.slug}`} className="group relative block h-64 w-[15rem] shrink-0 snap-start overflow-hidden rounded-[1.75rem] bg-ink text-foam">
       {cover
-        ? <Image src={cover} alt={cafe.name} fill sizes="240px" className="object-cover transition duration-500 group-hover:scale-[1.04]" />
+        ? <FadeImage src={cover} alt={cafe.name} fill sizes="240px" className="object-cover transition duration-500 group-hover:scale-[1.04]" />
         : <div className="grid h-full place-items-center text-foam/30"><Icon name="cup" className="h-12 w-12" /></div>}
       <div className="glass-dark absolute inset-x-2.5 bottom-2.5 space-y-1.5 rounded-[1.25rem] px-3.5 py-3">
         <p className="truncate font-extrabold">{cafe.name}</p>

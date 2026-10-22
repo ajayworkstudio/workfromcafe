@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import FadeImage from "./FadeImage";
 import type { Cafe } from "@/lib/types";
 import { coverThumb, isOpenNow } from "@/lib/utils";
 import { averageScore } from "@/lib/review";
@@ -17,7 +17,7 @@ export default function CafePhotoCard({ cafe, priority = false }: { cafe: Cafe; 
   return (
     <Link href={`/kafe/${cafe.slug}`} className="group relative block aspect-[4/5] overflow-hidden rounded-[2rem] bg-ink text-white">
       {cover ? (
-        <Image src={cover} alt={cafe.name} fill priority={priority} sizes="85vw" className="object-cover transition duration-500 group-hover:scale-[1.03]" />
+        <FadeImage src={cover} alt={cafe.name} fill priority={priority} sizes="85vw" className="object-cover transition duration-500 group-hover:scale-[1.03]" />
       ) : (
         <div className="grid h-full place-items-center text-white/30"><Icon name="cup" className="h-14 w-14" /></div>
       )}

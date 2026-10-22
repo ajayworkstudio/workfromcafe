@@ -22,16 +22,16 @@ export default function BottomNav({ loggedIn }: { loggedIn: boolean }) {
 
   return (
     <nav aria-label="Navigasi utama"
-      className="glass-dark fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 flex items-center justify-between gap-1 rounded-full p-1.5 md:hidden">
+      className="vt-bottom-nav glass-dark fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 flex items-center justify-between gap-1 rounded-full p-1.5 md:hidden">
       {items.map((i) => {
         const active = i.match(path);
         return (
           <Link key={i.label} href={i.href} aria-label={i.label} aria-current={active ? "page" : undefined}
-            className={`flex h-12 items-center justify-center gap-2 rounded-full text-sm font-semibold transition-[background-color,color,flex-grow] duration-200 ${
+            className={`flex h-12 items-center justify-center gap-2 rounded-full text-sm font-semibold transition-[background-color,color,flex-grow,scale] duration-300 ease-[cubic-bezier(.2,.8,.2,1)] active:scale-[.94] motion-reduce:transition-none ${
               active ? "flex-[1.8] bg-foam px-4 text-ink" : "flex-1 text-foam/80 hover:text-foam"
             }`}>
             <Icon name={i.icon} className="h-[22px] w-[22px] shrink-0" />
-            {active && <span className="truncate">{i.label}</span>}
+            {active && <span className="nav-label truncate">{i.label}</span>}
           </Link>
         );
       })}

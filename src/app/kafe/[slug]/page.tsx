@@ -203,7 +203,7 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
     <article className="mx-auto max-w-6xl px-4 pb-10 md:pt-6">
       <JsonLd data={jsonLd} />
 
-      <PhotoGallery photos={photos.map((p) => ({ id: p.id, url: p.url }))} name={cafe.name} overlay={<>
+      <PhotoGallery photos={photos.map((p) => ({ id: p.id, url: p.url, thumb_url: p.thumb_url }))} name={cafe.name} overlay={<>
         <BackButton fallback={cafe.city ? `/kota/${cafe.city.slug}` : "/kafe"} className={round} />
         <span className="flex gap-2">
           <ShareButton url={`${SITE_URL}/kafe/${cafe.slug}`} title={cafe.name} text={shareText} storyUrl={`/kafe/${cafe.slug}/story`} iconOnly className={round} />
@@ -292,7 +292,7 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
           {unlocked ? (
             <>
               {d?.full_review && (
-                <section id="ulasan" className="mt-12 max-w-2xl scroll-mt-32">
+                <section id="ulasan" className="reveal mt-12 max-w-2xl scroll-mt-32">
                   <h2 className="text-2xl font-bold">Ulasan lengkap</h2>
                   <p className="mt-3 whitespace-pre-line text-[1.05rem] leading-relaxed text-ink/85">{d.full_review}</p>
                 </section>
@@ -303,7 +303,7 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
                   {d?.best_time && <div className="rounded-2xl bg-brand-soft p-5"><p className="text-sm font-semibold text-brand">Waktu terbaik</p><p className="mt-1">{d.best_time}</p></div>}
                 </section>
               )}
-              {showMenu && <section id="menu" className="mt-12 scroll-mt-32">
+              {showMenu && <section id="menu" className="reveal mt-12 scroll-mt-32">
                 <h2 className="text-2xl font-bold">Menu Rekomendasi</h2>
                 <ul className="mt-4 divide-y divide-line border-y border-line">
                   {items.map((m) => (

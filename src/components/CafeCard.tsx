@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import FadeImage from "./FadeImage";
 import type { Cafe } from "@/lib/types";
 import { coverThumb, isOpenNow, priceLabel } from "@/lib/utils";
 import Icon from "./Icon";
@@ -18,10 +18,10 @@ export default function CafeCard({ cafe, live }: { cafe: Cafe; /** Ringkasan lap
   const vibe = (cafe.tags ?? []).map((t) => t.tag).find((t) => t?.type === "vibe");
 
   return (
-    <Link href={`/kafe/${cafe.slug}`} className="group block min-w-0">
+    <Link href={`/kafe/${cafe.slug}`} className="reveal group block min-w-0">
       <div className="relative aspect-[5/4] overflow-hidden rounded-[var(--radius-photo)] bg-tint">
         {cover ? (
-          <Image src={cover} alt={cafe.name} fill sizes="(max-width:768px) 100vw, 33vw" className="object-cover transition duration-500 group-hover:scale-[1.03]" />
+          <FadeImage src={cover} alt={cafe.name} fill sizes="(max-width:768px) 100vw, 33vw" className="object-cover transition duration-500 group-hover:scale-[1.03]" />
         ) : (
           <div className="grid h-full place-items-center text-mist"><Icon name="cup" className="h-12 w-12" /></div>
         )}

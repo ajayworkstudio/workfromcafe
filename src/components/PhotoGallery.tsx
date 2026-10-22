@@ -1,9 +1,9 @@
 "use client";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import Image from "next/image";
+import FadeImage from "./FadeImage";
 import Icon from "./Icon";
 
-type P = { id: string; url: string };
+type P = { id: string; url: string; thumb_url?: string | null };
 
 /**
  * Galeri foto kafe.
@@ -50,8 +50,8 @@ export default function PhotoGallery({ photos, name, overlay, badge }: { photos:
         <div ref={track} className="flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none]"
           onScroll={(e) => { const el = e.currentTarget; setSlide(Math.round(el.scrollLeft / el.clientWidth)); }}>
           {photos.map((p, i) => (
-            <button key={p.id} type="button" onClick={() => setOpen(i)} className="relative aspect-[4/3.6] w-full shrink-0 snap-center bg-tint" aria-label={`Foto ${i + 1} dari ${n}`}>
-              <Image src={p.url} alt={`${name}, foto ${i + 1}`} fill priority={i === 0} sizes="100vw" className="object-cover" />
+            <button key={p.id} type="button" onClick={() => setOpen(i)} className={`relative aspect-[4/3.6] w-full shrink-0 snap-center overflow-hidden bg-tint ${i === 0 ? "vt-cafe-photo" : ""}`} aria-label={`Foto ${i + 1} dari ${n}`}>
+              <FadeImage src={p.url} alt={`${name}, foto ${i + 1}`} fill priority={i === 0} sizes="100vw" lowSrc={i === 0 ? p.thumb_url : null} className="object-cover" />
             </button>
           ))}
         </div>
@@ -69,14 +69,14 @@ export default function PhotoGallery({ photos, name, overlay, badge }: { photos:
 
       {/* Layar lebar: grid */}
       <div className={`relative hidden gap-2 md:grid ${n >= 2 ? "md:grid-cols-[2fr_1fr]" : ""}`}>
-        <button type="button" onClick={() => setOpen(0)} className="group relative h-[420px] overflow-hidden rounded-[var(--radius-photo)] bg-tint">
-          <Image src={photos[0].url} alt={name} fill priority sizes="66vw" className="object-cover transition duration-500 group-hover:scale-[1.02]" />
+        <button type="button" onClick={() => setOpen(0)} className="vt-cafe-photo group relative h-[420px] overflow-hidden rounded-[var(--radius-photo)] bg-tint">
+          <FadeImage src={photos[0].url} alt={name} fill priority sizes="66vw" lowSrc={photos[0].thumb_url} className="object-cover transition duration-500 group-hover:scale-[1.02]" />
         </button>
         {n >= 2 && (
           <div className={`grid gap-2 ${side.length === 2 ? "grid-rows-2" : ""}`}>
             {side.map((p, i) => (
               <button key={p.id} type="button" onClick={() => setOpen(i + 1)} className="group relative overflow-hidden rounded-[var(--radius-photo)] bg-tint">
-                <Image src={p.url} alt={`${name}, foto ${i + 2}`} fill sizes="33vw" className="object-cover transition duration-500 group-hover:scale-[1.03]" />
+                <FadeImage src={p.url} alt={`${name}, foto ${i + 2}`} fill sizes="33vw" className="object-cover transition duration-500 group-hover:scale-[1.03]" />
               </button>
             ))}
           </div>
@@ -102,7 +102,7 @@ export default function PhotoGallery({ photos, name, overlay, badge }: { photos:
               const dx = e.changedTouches[0].clientX - x0;
               if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
             }}>
-            <Image key={photos[open].id} src={photos[open].url} alt={`${name}, foto ${open + 1}`} fill sizes="100vw" className="object-contain" />
+            <FadeImage key={photos[open].id} src={photos[open].url} alt={`${name}, foto ${open + 1}`} fill sizes="100vw" className="object-contain" />
             {n > 1 && (
               <>
                 <button type="button" onClick={() => go(-1)} aria-label="Foto sebelumnya" className="absolute left-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/15 text-2xl text-white hover:bg-white/25 md:grid">‹</button>
@@ -115,7 +115,7 @@ export default function PhotoGallery({ photos, name, overlay, badge }: { photos:
               {photos.map((p, i) => (
                 <button key={p.id} type="button" onClick={() => setOpen(i)} aria-label={`Lihat foto ${i + 1}`}
                   className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-lg ${i === open ? "ring-2 ring-white" : "opacity-60 hover:opacity-100"}`}>
-                  <Image src={p.url} alt="" fill sizes="80px" className="object-cover" />
+                  <FadeImage src={p.url} alt="" fill sizes="80px" className="object-cover" />
                 </button>
               ))}
             </div>

@@ -3,7 +3,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import FadeImage from "./FadeImage";
 import { AttributionControl, MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
 import { MAP_CENTER } from "@/lib/region";
 import { isOpenNow } from "@/lib/utils";
@@ -206,7 +206,7 @@ export default function CafeMap({ cafes, autoLocate = false }: { cafes: MapCafe[
                   className={`relative flex h-[9.5rem] w-[88%] max-w-sm shrink-0 snap-center gap-3 overflow-hidden rounded-3xl bg-surface p-2.5 shadow-lg transition-[outline-color] md:w-80 ${i === active ? "outline-2 outline-gold outline" : "outline-2 outline-transparent outline"}`}>
                   <div className="relative h-full w-[7.25rem] shrink-0 overflow-hidden rounded-2xl bg-tint">
                     {c.cover && near
-                      ? <Image src={c.cover} alt="" fill sizes="120px" className="object-cover" />
+                      ? <FadeImage src={c.cover} alt="" fill sizes="120px" className="object-cover" />
                       : <div className="grid h-full place-items-center text-mist"><Icon name="cup" className="h-8 w-8" /></div>}
                     {d != null && <span className="absolute bottom-1.5 left-1.5 rounded-full bg-gold px-2 py-0.5 text-xs font-extrabold text-espresso">{fmt(d)}</span>}
                   </div>

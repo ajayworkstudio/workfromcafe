@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import FadeImage from "./FadeImage";
 import type { Cafe } from "@/lib/types";
 import { coverThumb, isOpenNow, priceLabel } from "@/lib/utils";
 import { averageScore } from "@/lib/review";
@@ -71,7 +71,7 @@ export default function CafeCarousel({ items, live }: { items: Item[]; live: Rec
               className={`relative block aspect-[3/4.1] w-[82%] shrink-0 snap-center overflow-hidden rounded-[2rem] bg-ink text-foam transition-[transform,opacity] duration-300 ease-out motion-reduce:transition-none ${on ? "scale-100 opacity-100" : "scale-[.92] opacity-60"}`}>
               {/* Hanya kartu di sekitar yang dimuat fotonya; sisanya menyusul saat digeser */}
               {cover && Math.abs(i - active) <= 2
-                ? <Image src={cover} alt="" fill sizes="82vw" priority={i === 0} className="object-cover" />
+                ? <FadeImage src={cover} alt="" fill sizes="82vw" priority={i === 0} className="object-cover" />
                 : cover ? null : <div className="grid h-full place-items-center text-foam/30"><Icon name="cup" className="h-14 w-14" /></div>}
               <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-ink/45 to-ink/0" aria-hidden />
 

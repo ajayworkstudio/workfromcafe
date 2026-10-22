@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import FadeImage from "./FadeImage";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Icon from "./Icon";
@@ -180,7 +180,7 @@ export default function CafeSwipeStack({ cafes, title, subtitle, allHref = "/kaf
               style={{ zIndex: VISIBLE - k, touchAction: "pan-y" }}
               className={`absolute inset-0 block select-none overflow-hidden rounded-[1.75rem] bg-tint shadow-[0_18px_40px_-24px_rgba(31,22,18,.55)] ${k === 0 ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"}`}>
               {c.cover ? (
-                <Image src={c.cover} alt="" fill draggable={false} sizes="(max-width:768px) 90vw, 400px" className="object-cover" priority={k === 0} />
+                <FadeImage src={c.cover} alt="" fill draggable={false} sizes="(max-width:768px) 90vw, 400px" className="object-cover" priority={k === 0} />
               ) : (
                 <div className="grid h-full place-items-center text-mist"><Icon name="cup" className="h-16 w-16" /></div>
               )}

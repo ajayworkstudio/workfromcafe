@@ -1,3 +1,4 @@
+import PageTransitions from "@/components/PageTransitions";
 import type { Metadata, Viewport } from "next";
 import "@fontsource-variable/plus-jakarta-sans";
 import "@fontsource-variable/plus-jakarta-sans/wght-italic.css";
@@ -62,6 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="flex-1">{children}</main>
         <Footer />
         <RegisterSW />
+        <PageTransitions />
       </body>
     </html>
   );

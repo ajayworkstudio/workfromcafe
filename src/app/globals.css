@@ -45,7 +45,7 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; }
 :focus-visible { outline: 2px solid var(--color-brand); outline-offset: 2px; }
 
 @utility btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors active:scale-[.98] disabled:opacity-50;
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-[color,background-color,border-color,scale] duration-150 active:scale-[.96] disabled:opacity-50;
 }
 @utility btn-primary { @apply btn bg-brand text-white hover:bg-brand-dark; }
 @utility btn-dark { @apply btn bg-ink text-white hover:bg-brand-dark; }
@@ -103,4 +103,52 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; }
   .hero-in > *:nth-child(2) { animation-delay: .08s; }
   .hero-in > *:nth-child(3) { animation-delay: .16s; }
   @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+}
+
+/* ================= Gerak modern =================
+   Semua efek di bawah dimatikan untuk prefers-reduced-motion, dan browser lama cukup tampil tanpa animasi. */
+
+/* 1. Transisi antarhalaman (View Transitions, dipicu PageTransitions.tsx).
+   Header & navbar bawah diberi nama sendiri supaya tetap diam; isi halaman memudar lalu naik halus;
+   foto kartu yang diklik terbang ke foto besar halaman kafe. */
+.vt-header { view-transition-name: site-header; }
+.vt-bottom-nav { view-transition-name: bottom-nav; }
+.vt-cafe-photo { view-transition-name: cafe-photo; }
+::view-transition-old(root) { animation: vt-out .16s ease-in both; }
+::view-transition-new(root) { animation: vt-in .34s cubic-bezier(.2,.7,.2,1) both; }
+::view-transition-group(cafe-photo) { animation-duration: .45s; animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+::view-transition-old(cafe-photo), ::view-transition-new(cafe-photo) { height: 100%; object-fit: cover; }
+@keyframes vt-out { to { opacity: 0; } }
+@keyframes vt-in { from { opacity: 0; transform: translateY(14px); } }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+
+/* 2. Muncul saat scroll: animasi digerakkan posisi scroll (tanpa JavaScript). Browser tanpa dukungan: langsung tampil. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal { animation: reveal-up linear both; animation-timeline: view(); animation-range: entry 0% cover 20%; }
+    @keyframes reveal-up { from { opacity: 0; transform: translateY(32px) scale(.97); } }
+  }
+}
+
+/* 3. Label menu navbar yang baru aktif masuk dari samping */
+@media (prefers-reduced-motion: no-preference) {
+  .nav-label { animation: nav-label .3s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes nav-label { from { opacity: 0; transform: translateX(-6px); } }
+}
+
+/* 4. Foto memudar masuk dari buram, dengan kerangka berkilau selama dimuat (FadeImage.tsx).
+   Kilau hanya berjalan selama foto belum tampil, lalu dibuang. Pengaman: foto tetap muncul setelah 3 detik walau JS gagal. */
+.img-shimmer { background: linear-gradient(100deg, var(--color-tint) 30%, color-mix(in srgb, var(--color-tint) 40%, white) 50%, var(--color-tint) 70%); background-size: 220% 100%; }
+.fade-img { transition: opacity .5s ease, filter .6s ease, transform .6s cubic-bezier(.2,.7,.2,1); }
+.fade-img[data-fade="pending"] { opacity: 0; filter: blur(14px); transform: scale(1.04); animation: fade-safety 0s 3s forwards; }
+@keyframes fade-safety { to { opacity: 1; filter: none; transform: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .img-shimmer { animation: shimmer 1.3s ease-in-out infinite; }
+  @keyframes shimmer { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fade-img { transition: none; }
+  .fade-img[data-fade="pending"] { filter: none; transform: none; }
 }

@@ -56,7 +56,11 @@ Palet inti: brand + ink + canvas, aksen gold. Hijau WhatsApp hanya di tombol kom
 - GSAP + ScrollTrigger, hanya di beranda.
 - Hero: judul muncul sekali saat halaman dibuka; foto bergerak lebih lambat dari teks saat scroll (memberi kedalaman ke foto kafe).
 - Tumpukan "Baru ditambahkan": muncul sekali saat terlihat, kartu teratas bergoyang sekali sebagai tanda bisa diseret, kartu yang dilepas terbang keluar dan kartu berikutnya naik. Semua gerak dipicu pengguna kecuali goyangan pertama.
-- Tidak ada animasi berulang tanpa henti. `prefers-reduced-motion: reduce` mematikan semua animasi scroll.
+- Pindah halaman: View Transitions (PageTransitions.tsx). Isi halaman memudar lalu naik 14px; header & navbar bawah diam; foto kartu yang diklik terbang jadi foto besar halaman kafe (thumbnail tampil dulu sampai foto besar siap).
+- Muncul saat scroll: kelas `reveal` memakai animation-timeline view() (CSS saja), untuk kartu kafe dan section bawah. Bukan untuk hero atau elemen sticky.
+- Foto: FadeImage memudar dari buram ke tajam; kerangka berkilau hanya selama foto dimuat (satu-satunya animasi berulang, berhenti begitu foto tampil).
+- Navbar bawah: pil aktif melebar halus, label masuk dari samping; tombol mengecil sedikit saat ditekan.
+- Tidak ada animasi berulang tanpa henti selain kilau pemuatan foto. `prefers-reduced-motion: reduce` mematikan semua animasi scroll.
 
 ## Tema
 

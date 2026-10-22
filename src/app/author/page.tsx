@@ -36,7 +36,7 @@ export default async function AuthorsPage() {
       {authors.length ? (
         <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {authors.map((a, i) => (
-            <li key={a.id}>
+            <li key={a.id} className="reveal">
               <Link href={authorHref(a)} className="card flex h-full gap-4 p-5 transition-colors hover:border-brand">
                 <div className="relative">
                   <Avatar url={a.avatar_url} name={a.name} className="h-14 w-14 text-lg" />
