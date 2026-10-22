@@ -14,6 +14,9 @@ export const metadata: Metadata = {
   description:
     "Koleksi kafe pilihan untuk kerja di kota-kota besar Pulau Jawa: Jakarta, Bandung, Yogyakarta, Semarang, Solo, Surabaya, Malang, dan lainnya. Lengkap dengan penilaian kerja dan menu yang wajib dicoba.",
   applicationName: APP_NAME,
+  creator: APP_NAME,
+  publisher: APP_NAME,
+  other: { copyright: "© 2026 WFC Hunters. Semua hak dilindungi." },
   keywords: ["kafe untuk kerja", "work from cafe", "WFC", "cafe wifi kencang", "cafe colokan", "tempat nugas", "coworking cafe", "kafe Jakarta", "kafe Bandung", "kafe Yogyakarta", "kafe Semarang", "kafe Solo", "kafe Surabaya", "kafe Malang"],
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 } },
   twitter: { card: "summary_large_image" },

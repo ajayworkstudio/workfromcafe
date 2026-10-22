@@ -6,6 +6,7 @@ import Icon from "./Icon";
 
 export default async function Footer() {
   const { free_mode, community_url } = await getSettings();
+  const year = new Date().getFullYear();
   return (
     <footer className="mt-20 border-t border-line pb-28 pt-8 text-sm text-muted md:pb-10">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 md:flex-row md:items-center md:justify-between">
@@ -24,6 +25,10 @@ export default async function Footer() {
           <a href={INSTAGRAM_URL} target="_blank" rel="noopener" className="inline-flex items-center gap-1.5 hover:text-ink"><Icon name="instagram" className="h-4 w-4" />@wfchunters</a>
           {!free_mode && <Link href="/harga" className="hover:text-ink">Harga langganan</Link>}
         </div>
+      </div>
+      <div className="mx-auto mt-6 flex max-w-6xl flex-wrap items-center gap-x-5 gap-y-2 border-t border-line px-4 pt-5 text-xs">
+        <p>© {year === 2026 ? "2026" : `2026–${year}`} WFC Hunters. Semua hak dilindungi.</p>
+        <Link href="/syarat" className="hover:text-ink">Syarat penggunaan &amp; hak cipta</Link>
       </div>
     </footer>
   );
