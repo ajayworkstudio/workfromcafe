@@ -23,6 +23,8 @@ const VISIBLE = 3;          // kartu yang terlihat di tumpukan
 const DEPTH_Y = 14;         // jarak turun tiap lapis (px)
 const DEPTH_SCALE = 0.05;   // pengecilan tiap lapis
 
+const AUTO_MS = 4500;     // jeda geser otomatis
+
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /*
@@ -30,8 +32,9 @@ const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefe
   Seret kartu teratas ke kiri/kanan (jari atau mouse) untuk lanjut ke kafe berikutnya; ketuk untuk
   membuka ulasannya. Tombol dan panah keyboard melakukan hal yang sama, termasuk kembali ke kartu
   sebelumnya. Tidak ada arti suka/tidak suka: geser hanya berarti "lanjut".
+  autoplay: kartu teratas terlempar sendiri tiap 4,5 detik selama tumpukan terlihat (ada tombol jeda).
 */
-export default function CafeSwipeStack({ cafes, title, subtitle, allHref = "/kafe", centered = false }: {
+export default function CafeSwipeStack({ cafes, title, subtitle, allHref = "/kafe", centered = false, autoplay = false }: {
   cafes: StackCafe[];
   title: string;
   subtitle?: string;
@@ -39,6 +42,8 @@ export default function CafeSwipeStack({ cafes, title, subtitle, allHref = "/kaf
   allHref?: string | null;
   /** true: satu kolom di tengah (judul, tumpukan, tombol), dipakai di profil author */
   centered?: boolean;
+  /** Geser otomatis tiap beberapa detik saat tumpukan terlihat; berhenti saat disentuh/diarahkan, bisa dijeda */
+  autoplay?: boolean;
 }) {
   const [index, setIndex] = useState(0);
   const cards = useRef(new Map<string, HTMLElement>());
@@ -47,6 +52,13 @@ export default function CafeSwipeStack({ cafes, title, subtitle, allHref = "/kaf
   const busy = useRef(false);
   const dragged = useRef(false);
   const n = cafes.length;
+  // Geser otomatis: jalan hanya kalau diizinkan pengguna (tombol jeda), tumpukan terlihat, tab aktif, dan tidak sedang disentuh
+  const [playing, setPlaying] = useState(autoplay);
+  const [inView, setInView] = useState(false);
+  const [holding, setHolding] = useState(false);
+  const [pageVisible, setPageVisible] = useState(true);
+  const holdTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const running = autoplay && playing && inView && pageVisible && !holding && n > 1;
   // Tumpukan berputar: setelah kafe terakhir, kafe pertama muncul lagi dari belakang.
   const pos = ((index % n) + n) % n;
   const visible = Array.from({ length: Math.min(VISIBLE, n) }, (_, k) => cafes[(pos + k) % n]);
@@ -95,8 +107,34 @@ export default function CafeSwipeStack({ cafes, title, subtitle, allHref = "/kaf
   }, [n]);
 
 
+  const flyRef = useRef(fly);
+  flyRef.current = fly;
+
+  useEffect(() => {
+    if (!autoplay || reduced()) { setPlaying(false); return; }
+    const el = stackRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { threshold: 0.5 });
+    io.observe(el);
+    const onVis = () => setPageVisible(document.visibilityState === "visible");
+    document.addEventListener("visibilitychange", onVis);
+    return () => { io.disconnect(); document.removeEventListener("visibilitychange", onVis); };
+  }, [autoplay]);
+
+  useEffect(() => {
+    if (!running) return;
+    const t = setTimeout(() => flyRef.current(1), AUTO_MS);
+    return () => clearTimeout(t);
+  }, [running, index]);
+
+  // Disentuh, diarahkan mouse, atau difokus keyboard: tahan geser otomatis, lanjut beberapa detik setelah dilepas
+  const hold = () => { clearTimeout(holdTimer.current); setHolding(true); };
+  const release = (ms = 3000) => { clearTimeout(holdTimer.current); holdTimer.current = setTimeout(() => setHolding(false), ms); };
+  useEffect(() => () => clearTimeout(holdTimer.current), []);
+
   // Seret kartu teratas
   const onPointerDown = (e: React.PointerEvent<HTMLElement>) => {
+    hold(); release(5000);
     if (busy.current || (e.pointerType === "mouse" && e.button !== 0)) return;
     const el = e.currentTarget;
     const w = stackRef.current?.offsetWidth ?? 400;
@@ -167,6 +205,7 @@ export default function CafeSwipeStack({ cafes, title, subtitle, allHref = "/kaf
       <div className={centered ? "w-full" : "md:col-start-2 md:row-span-3 md:row-start-1"}>
         <div ref={stackRef} role="region" aria-roledescription="tumpukan kartu" aria-label={title}
           tabIndex={0} onKeyDown={onKeyDown}
+          onMouseEnter={hold} onMouseLeave={() => release(800)} onFocus={hold} onBlur={() => release()}
           className="relative mx-auto aspect-[4/5] w-full max-w-[400px] rounded-[1.75rem] text-left outline-offset-4"
           style={{ marginBottom: (VISIBLE - 1) * DEPTH_Y + 12 }}>
           {visible.map((c, k) => (
@@ -221,13 +260,30 @@ export default function CafeSwipeStack({ cafes, title, subtitle, allHref = "/kaf
             className="grid h-12 w-12 place-items-center rounded-full border border-line bg-surface transition-colors hover:border-brand disabled:opacity-40 disabled:hover:border-line">
             <Icon name="chevron" className="h-5 w-5 rotate-180" />
           </button>
-          <p aria-live="polite" className="min-w-16 text-center text-sm font-semibold tabular-nums text-muted">
-            {`${pos + 1} / ${n}`}
-          </p>
+          <div className="flex min-w-16 flex-col items-center gap-1.5">
+            <p aria-live={running ? "off" : "polite"} className="text-center text-sm font-semibold tabular-nums text-muted">
+              {`${pos + 1} / ${n}`}
+            </p>
+            {autoplay && n > 1 && (
+              // Garis waktu menuju kartu berikutnya
+              <span aria-hidden className="h-1 w-12 overflow-hidden rounded-full bg-tint">
+                {running && <span key={index} className="block h-full origin-left rounded-full bg-brand animate-[stack-progress_4.5s_linear_forwards]" />}
+              </span>
+            )}
+          </div>
           <button type="button" onClick={() => fly(1)} disabled={n < 2} aria-label="Kafe berikutnya"
             className="grid h-12 w-12 place-items-center rounded-full bg-brand text-white transition-colors hover:bg-brand-dark disabled:opacity-40">
             <Icon name="chevron" className="h-5 w-5" />
           </button>
+          {autoplay && n > 1 && (
+            <button type="button" onClick={() => setPlaying((v) => !v)} aria-pressed={!playing}
+              aria-label={playing ? "Jeda geser otomatis" : "Lanjutkan geser otomatis"} title={playing ? "Jeda geser otomatis" : "Lanjutkan geser otomatis"}
+              className="grid h-12 w-12 place-items-center rounded-full border border-line bg-surface text-ink transition-colors hover:border-brand">
+              {playing
+                ? <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
+                : <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z" /></svg>}
+            </button>
+          )}
         </div>
         {allHref && <Link href={allHref} className={`mt-4 flex min-h-11 items-center justify-center text-sm font-semibold text-brand hover:underline ${centered ? "" : "md:inline-flex md:justify-start"}`}>Lihat semua kafe</Link>}
       </div>

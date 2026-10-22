@@ -152,3 +152,6 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; }
   .fade-img { transition: none; }
   .fade-img[data-fade="pending"] { filter: none; transform: none; }
 }
+
+/* Garis waktu geser otomatis tumpukan "Baru ditambahkan" */
+@keyframes stack-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }

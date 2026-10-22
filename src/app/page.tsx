@@ -163,7 +163,7 @@ export default async function Home() {
             </p>
           </>
         ) : stackCafes.length ? (
-          <CafeSwipeStack cafes={stackCafes} title="Baru ditambahkan" />
+          <CafeSwipeStack cafes={stackCafes} title="Baru ditambahkan" autoplay />
         ) : (
           <>
             <h2 className="text-2xl font-bold md:text-3xl">Baru ditambahkan</h2>
