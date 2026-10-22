@@ -55,7 +55,7 @@ Palet inti: brand + ink + canvas, aksen gold. Hijau WhatsApp hanya di tombol kom
 
 - GSAP + ScrollTrigger, hanya di beranda.
 - Hero: judul muncul sekali saat halaman dibuka; foto bergerak lebih lambat dari teks saat scroll (memberi kedalaman ke foto kafe).
-- Tumpukan "Baru ditambahkan": bergeser otomatis tiap 4,5 detik selama terlihat (berhenti saat disentuh/diarahkan, ada tombol jeda dan garis waktu). Muncul sekali saat terlihat, kartu teratas bergoyang sekali sebagai tanda bisa diseret, kartu yang dilepas terbang keluar dan kartu berikutnya naik. Semua gerak dipicu pengguna kecuali goyangan pertama.
+- "Baru ditambahkan" di beranda: panel melebar (CafeShowcase). Irisan foto bertumpuk ke bawah di HP dan berjajar ke samping di layar lebar; satu panel terbuka dengan info lengkap, berganti sendiri tiap 5 detik (garis waktu emas di bawah panel, tanpa tombol putar). Berhenti saat disentuh/diarahkan; tinggi total tetap supaya halaman tidak bergeser. Tumpukan kartu seret (CafeSwipeStack) tetap dipakai di profil author.
 - Pindah halaman: View Transitions (PageTransitions.tsx). Isi halaman memudar lalu naik 14px; header & navbar bawah diam; foto kartu yang diklik terbang jadi foto besar halaman kafe (thumbnail tampil dulu sampai foto besar siap).
 - Muncul saat scroll: kelas `reveal` memakai animation-timeline view() (CSS saja), untuk kartu kafe dan section bawah. Bukan untuk hero atau elemen sticky.
 - Foto: FadeImage memudar dari buram ke tajam; kerangka berkilau hanya selama foto dimuat (satu-satunya animasi berulang, berhenti begitu foto tampil).

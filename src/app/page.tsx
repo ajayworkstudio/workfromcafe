@@ -6,7 +6,7 @@ import CafeCard from "@/components/CafeCard";
 import CafePhotoCard from "@/components/CafePhotoCard";
 import LiveCafeCard from "@/components/LiveCafeCard";
 import type { LiveSummary } from "@/lib/reports";
-import CafeSwipeStack from "@/components/CafeSwipeStack";
+import CafeShowcase from "@/components/CafeShowcase";
 import { toStackCafe } from "@/lib/stackCafe";
 import HomeMotion from "@/components/HomeMotion";
 import Avatar from "@/components/Avatar";
@@ -163,7 +163,7 @@ export default async function Home() {
             </p>
           </>
         ) : stackCafes.length ? (
-          <CafeSwipeStack cafes={stackCafes} title="Baru ditambahkan" autoplay />
+          <CafeShowcase cafes={stackCafes} title="Baru ditambahkan" />
         ) : (
           <>
             <h2 className="text-2xl font-bold md:text-3xl">Baru ditambahkan</h2>
