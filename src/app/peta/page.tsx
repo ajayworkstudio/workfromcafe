@@ -17,7 +17,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/peta" },
 };
 
-export default async function MapPage() {
+export default async function MapPage({ searchParams }: { searchParams: Promise<{ dekat?: string }> }) {
+  const { dekat } = await searchParams;
   const [viewer, settings] = await Promise.all([getViewer(), getSettings()]);
 
   if (!settings.free_mode && !viewer.isPremium && !viewer.isAdmin) {
@@ -57,7 +58,7 @@ export default async function MapPage() {
   return (
     <div className="h-[calc(100dvh-4rem-5.5rem)] md:h-[calc(100dvh-4rem)]">
       <h1 className="sr-only">Peta kafe</h1>
-      <CafeMapLoader cafes={cafes} />
+      <CafeMapLoader cafes={cafes} autoLocate={dekat === "1"} />
     </div>
   );
 }

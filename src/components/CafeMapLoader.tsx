@@ -7,6 +7,6 @@ const CafeMap = dynamic(() => import("./CafeMap"), {
   loading: () => <div className="grid h-full place-items-center text-muted">Memuat peta…</div>,
 });
 
-export default function CafeMapLoader({ cafes }: { cafes: MapCafe[] }) {
-  return <CafeMap cafes={cafes} />;
+export default function CafeMapLoader({ cafes, autoLocate }: { cafes: MapCafe[]; autoLocate?: boolean }) {
+  return <CafeMap cafes={cafes} autoLocate={autoLocate} />;
 }

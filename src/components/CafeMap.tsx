@@ -64,7 +64,7 @@ function MapSync({ cafes, active, follow, me }: { cafes: MapCafe[]; active: MapC
   return null;
 }
 
-export default function CafeMap({ cafes }: { cafes: MapCafe[] }) {
+export default function CafeMap({ cafes, autoLocate = false }: { cafes: MapCafe[]; autoLocate?: boolean }) {
   const [chip, setChip] = useState<ChipKey>("semua");
   const [active, setActive] = useState(0);
   const [follow, setFollow] = useState(false); // peta baru ikut kartu setelah pengguna menyentuh kartu/pin
@@ -130,6 +130,9 @@ export default function CafeMap({ cafes }: { cafes: MapCafe[] }) {
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
     );
   };
+  // Dibuka dari tombol "Kafe terdekat" di beranda: langsung minta lokasi sekali
+  useEffect(() => { if (autoLocate) locate(); }, [autoLocate]); // eslint-disable-line react-hooks/exhaustive-deps
+
 
   return (
     <div className="peta relative h-full w-full overflow-hidden">

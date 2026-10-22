@@ -15,7 +15,7 @@ import { authorHref, getAuthors, pickFeatured } from "@/lib/author";
 import JsonLd from "@/components/JsonLd";
 import { ORGANIZATION } from "@/lib/seo";
 import Icon from "@/components/Icon";
-import type { Cafe, City, Tag } from "@/lib/types";
+import type { Cafe } from "@/lib/types";
 import { APP_NAME, CAFE_LIST_SELECT, INSTAGRAM_URL, SITE_URL } from "@/lib/utils";
 import { getViewer } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
@@ -29,16 +29,13 @@ export default async function Home() {
   const free = settings.free_mode;
   const featuredAuthor = pickFeatured(await getAuthors(), settings.featured_author);
   const showTrial = !free && !viewer.user && settings.trial_days > 0;
-  const [{ data: cities }, { data: featured }, { data: latest, error: latestErr }, { count }, { data: vibeRows }, { data: liveRows }] = await Promise.all([
-    supabase.from("cities").select("*").eq("is_active", true).order("name"),
+  const [{ data: featured }, { data: latest, error: latestErr }, { count }, { data: liveRows }] = await Promise.all([
     supabase.from("cafes").select(CAFE_LIST_SELECT).eq("is_featured", true).order("visited_at", { ascending: false }).limit(6),
     supabase.from("cafes").select(CAFE_LIST_SELECT).order("created_at", { ascending: false }).limit(6),
     supabase.from("cafes").select("id", { count: "exact", head: true }),
-    supabase.from("tags").select("*").eq("type", "vibe").order("name"),
     // Kondisi 3 jam terakhir dari laporan pengunjung (kosong kalau migrasi 0018 belum dijalankan)
     supabase.rpc("cafe_reports_live"),
   ]);
-  const vibes = (vibeRows as Tag[] | null) ?? [];
   // "Lagi sepi sekarang" kalau ada kafe yang dilaporkan sepi; kalau tidak, kondisi terbaru apa pun
   const liveAll = ((liveRows as LiveSummary[] | null) ?? []).sort((a, b) => a.crowd - b.crowd || +new Date(b.last_at) - +new Date(a.last_at));
   const quiet = liveAll.filter((l) => l.crowd === 1);
@@ -50,7 +47,6 @@ export default async function Home() {
   const liveCafes = livePick
     .map((live) => ({ live, cafe: ((liveCafeRows as Cafe[] | null) ?? []).find((c) => c.id === live.cafe_id) }))
     .filter((x): x is { live: LiveSummary; cafe: Cafe } => !!x.cafe);
-  const cityList = (cities as City[] | null) ?? [];
   const latestList = (latest as Cafe[] | null) ?? [];
   const stackCafes = latestList.map(toStackCafe);
 
@@ -105,38 +101,21 @@ export default async function Home() {
             <form action="/kafe" className="glass mt-6 flex max-w-xl items-center gap-2 rounded-full p-1.5 pl-5 focus-within:ring-4 focus-within:ring-gold/40 md:mt-8">
               <Icon name="search" className="h-5 w-5 shrink-0 text-foam" />
               <input name="q" type="search" enterKeyHint="search" aria-label="Cari kafe" placeholder="Cari kafe, area, atau suasana" className="min-w-0 flex-1 bg-transparent py-2 text-base text-foam outline-none placeholder:text-foam/75" />
-              <button className="btn hidden min-h-11 shrink-0 bg-gold text-ink hover:bg-[#eab25e] md:inline-flex">Cari</button>
-              {/* HP: tombol bulat ke halaman Jelajah yang punya filter lengkap; pencarian jalan lewat tombol Cari di keyboard */}
-              <Link href="/kafe" aria-label="Filter lengkap" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gold text-ink md:hidden">
-                <Icon name="sliders" className="h-5 w-5" />
-              </Link>
+              <button aria-label="Cari" className="btn min-h-11 shrink-0 bg-gold text-ink hover:bg-[#eab25e] max-md:h-11 max-md:w-11 max-md:!p-0">
+                <Icon name="search" className="h-5 w-5 md:hidden" /><span className="hidden md:inline">Cari</span>
+              </button>
             </form>
           </div>
 
-          {!!vibes.length && (
-            <nav aria-label="Suasana" className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:px-0">
-              {vibes.map((t) => (
-                <Link key={t.id} href={`/kafe?tag=${encodeURIComponent(t.name)}`}
-                  className="glass flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-semibold transition-colors hover:bg-foam hover:text-ink">
-                  {t.name}
-                </Link>
-              ))}
-            </nav>
-          )}
-
-          {!!cityList.length && (
-            <>
-              <h2 className="mt-6 text-lg font-bold">Pilih kotanya</h2>
-              <nav aria-label="Kota" className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:px-0">
-                {cityList.map((c) => (
-                  <Link key={c.id} href={`/kota/${c.slug}`}
-                    className="flex min-h-11 shrink-0 items-center rounded-full bg-foam px-4 text-sm font-semibold text-ink transition-colors hover:bg-gold">
-                    {c.name}
-                  </Link>
-                ))}
-              </nav>
-            </>
-          )}
+          {/* Dua jalan pintas pengganti pilihan kota & suasana: kafe terdekat (di peta) dan semua kafe */}
+          <div className="mt-4 grid max-w-xl grid-cols-2 gap-2">
+            <Link href="/peta?dekat=1" className="glass flex min-h-12 items-center justify-center gap-2 rounded-full px-4 text-sm font-bold transition-colors hover:bg-foam hover:text-ink">
+              <Icon name="locate" className="h-4 w-4" />Kafe terdekat
+            </Link>
+            <Link href="/kafe" className="glass flex min-h-12 items-center justify-center gap-2 rounded-full px-4 text-sm font-bold transition-colors hover:bg-foam hover:text-ink">
+              <Icon name="grid" className="h-4 w-4" />Semua kafe
+            </Link>
+          </div>
 
           {!!liveCafes.length && (
             <div className="mt-8">
