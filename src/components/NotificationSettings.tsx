@@ -13,6 +13,19 @@ function keyBytes(base64: string) {
   return Uint8Array.from(raw, (c) => c.charCodeAt(0));
 }
 
+/** Pesan gagal dari browser diterjemahkan jadi langkah yang bisa dilakukan pengguna. */
+function explain(e: Error) {
+  const m = `${e.name} ${e.message}`;
+  const brave = !!(navigator as Navigator & { brave?: unknown }).brave;
+  if (/push service|AbortError|registration failed/i.test(m)) {
+    return brave
+      ? "Brave memblokir layanan notifikasi. Buka brave://settings/privacy, nyalakan \"Use Google services for push messaging\", tutup lalu buka lagi Brave, dan coba sekali lagi."
+      : "Browser ini gagal terhubung ke layanan notifikasinya (di Chrome/Edge: server Google). Biasanya karena mode Incognito/Tamu, VPN atau pemblokir iklan/DNS, atau jaringan kantor yang membatasi. Coba di jendela biasa, matikan VPN/pemblokir sebentar, atau pakai jaringan lain, lalu ketuk Nyalakan notifikasi lagi.";
+  }
+  if (/NotAllowedError|permission/i.test(m)) return "Izin notifikasi ditolak. Izinkan lewat ikon gembok di kolom alamat → Notifikasi, lalu coba lagi.";
+  return `Gagal menyalakan notifikasi: ${e.message}`;
+}
+
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 const isStandalone = () => window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
 
@@ -45,13 +58,23 @@ export default function NotificationSettings({ prefs, compact = false }: { prefs
       if (perm !== "granted") { setState(perm === "denied" ? "denied" : "off"); return; }
       const reg = (await navigator.serviceWorker.getRegistration()) ?? (await navigator.serviceWorker.register("/sw.js"));
       await navigator.serviceWorker.ready;
-      const sub = (await reg.pushManager.getSubscription()) ?? (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(KEY) }));
+      const opts = { userVisibleOnly: true, applicationServerKey: keyBytes(KEY) };
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        try { sub = await reg.pushManager.subscribe(opts); }
+        catch {
+          // Sekali coba ulang: kadang langganan lama yang rusak menghalangi pendaftaran baru
+          await (await reg.pushManager.getSubscription())?.unsubscribe().catch(() => {});
+          await new Promise((r) => setTimeout(r, 800));
+          sub = await reg.pushManager.subscribe(opts);
+        }
+      }
       const res = await savePushSubscription(sub.toJSON() as Parameters<typeof savePushSubscription>[0], navigator.userAgent);
       if (!res.ok) { setMsg({ ok: false, text: res.error }); return; }
       setState("on");
       setMsg({ ok: true, text: "Notifikasi aktif di perangkat ini." });
     } catch (e) {
-      setMsg({ ok: false, text: `Gagal menyalakan notifikasi: ${(e as Error).message}` });
+      setMsg({ ok: false, text: explain(e as Error) });
     } finally { setBusy(false); }
   }
 
