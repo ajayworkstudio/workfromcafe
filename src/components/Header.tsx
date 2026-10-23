@@ -24,7 +24,7 @@ export default async function Header() {
     <header className="vt-header sticky top-0 z-40 border-b border-line/80 bg-canvas/85 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 md:gap-6">
         <Link href="/" className="flex items-center" aria-label="WorkFromCafe, beranda">
-          <Wordmark />
+          <Wordmark className="!h-8 !w-auto md:!h-11" />
         </Link>
         <nav className="hidden items-center gap-1 text-sm font-medium text-muted md:flex">
           <Link href="/kafe" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Jelajah</Link>
