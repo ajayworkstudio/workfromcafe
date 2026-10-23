@@ -134,13 +134,26 @@ export async function deleteCafe(formData: FormData) {
   const id = String(formData.get("id"));
   // Hapus file foto di storage juga
   const { data: files } = await supabase.storage.from("cafe-photos").list(id, { limit: 1000 });
-  const { data: menuFiles } = await supabase.storage.from("cafe-photos").list(`${id}/menu`, { limit: 1000 });
-  const paths = [...(files ?? []).filter((f) => f.id).map((f) => `${id}/${f.name}`), ...(menuFiles ?? []).map((f) => `${id}/menu/${f.name}`)];
+  const [{ data: menuFiles }, { data: thumbFiles }] = await Promise.all([
+    supabase.storage.from("cafe-photos").list(`${id}/menu`, { limit: 1000 }),
+    supabase.storage.from("cafe-photos").list(`thumbs/${id}`, { limit: 1000 }), // thumbnail daftar kafe
+  ]);
+  const paths = [
+    ...(files ?? []).filter((f) => f.id).map((f) => `${id}/${f.name}`),
+    ...(menuFiles ?? []).map((f) => `${id}/menu/${f.name}`),
+    ...(thumbFiles ?? []).filter((f) => f.id).map((f) => `thumbs/${id}/${f.name}`),
+  ];
   if (paths.length) await supabase.storage.from("cafe-photos").remove(paths);
-  await supabase.from("cafes").delete().eq("id", id);
+  const { error } = await supabase.from("cafes").delete().eq("id", id);
   revalidateTag("authors");
   revalidatePath("/", "layout");
-  redirect("/admin/kafe?ok=" + encodeURIComponent("Kafe dihapus."));
+  // Dari daftar kafe: kembali ke daftar dengan filter yang sama
+  const back = String(formData.get("back") ?? "");
+  const base = back.startsWith("/admin/kafe") && !back.startsWith("/admin/kafe/") ? back : "/admin/kafe";
+  const name = String(formData.get("name") ?? "").slice(0, 80);
+  const sep = base.includes("?") ? "&" : "?";
+  if (error) redirect(`${base}${sep}err=${encodeURIComponent(`Gagal menghapus: ${error.message}`)}`);
+  redirect(`${base}${sep}ok=${encodeURIComponent(name ? `${name} dihapus.` : "Kafe dihapus.")}`);
 }
 
 export async function toggleCafeFlag(formData: FormData) {

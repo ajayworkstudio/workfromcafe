@@ -2,14 +2,15 @@ import Image from "next/image";
 import Link from "next/link";
 import AutoFilterForm from "@/components/AutoFilterForm";
 import { createClient } from "@/lib/supabase/server";
-import { backfillThumbs, toggleCafeFlag } from "./actions";
+import { backfillThumbs, deleteCafe, toggleCafeFlag } from "./actions";
+import ConfirmButton from "@/components/admin/ConfirmButton";
 import PageHeader from "@/components/admin/PageHeader";
 import Flash from "@/components/admin/Flash";
 import Icon from "@/components/Icon";
 import { coverThumb, priceLabel } from "@/lib/utils";
 import type { City, Photo } from "@/lib/types";
 
-type SP = Promise<{ q?: string; kota?: string; status?: string; ok?: string }>;
+type SP = Promise<{ q?: string; kota?: string; status?: string; ok?: string; err?: string }>;
 type Row = {
   id: string; name: string; slug: string; area: string | null; is_published: boolean; is_featured: boolean;
   my_rating: number | null; price_range: number; updated_at: string;
@@ -35,12 +36,15 @@ export default async function AdminCafes({ searchParams }: { searchParams: SP })
     supabase.from("cafe_photos").select("id", { count: "exact", head: true }).is("thumb_url", null),
   ]);
   const rows = (data ?? []) as unknown as Row[];
+  // Setelah hapus, kembali ke daftar dengan filter yang sedang dipakai
+  const keep = new URLSearchParams(Object.entries({ q: sp.q, kota: sp.kota, status: sp.status }).filter((e): e is [string, string] => !!e[1]));
+  const back = `/admin/kafe${keep.size ? `?${keep}` : ""}`;
 
   return (
     <>
       <PageHeader title="Kafe" description={`${rows.length} kafe${sp.q || sp.kota || sp.status ? " cocok dengan filter" : ""}`}
         action={<Link href="/admin/kafe/baru" className="btn-primary"><Icon name="plus" className="h-4 w-4" />Tambah kafe</Link>} />
-      <Flash ok={sp.ok} />
+      <Flash ok={sp.ok} err={sp.err} />
       {noThumb.error
         ? <p className="mb-5 rounded-xl bg-tint px-4 py-3 text-sm">Foto di daftar kafe masih ukuran penuh. Jalankan migrasi <code>0019_thumbnail_foto.sql</code> supaya thumbnail bisa dibuat.</p>
         : (noThumb.count ?? 0) > 0 && (
@@ -104,6 +108,15 @@ export default async function AdminCafes({ searchParams }: { searchParams: SP })
                   </button>
                 </form>
                 <Link href={`/admin/kafe/${c.id}`} className="btn-dark !px-3 !py-2"><Icon name="edit" className="h-4 w-4" />Edit</Link>
+                <form action={deleteCafe}>
+                  <input type="hidden" name="id" value={c.id} />
+                  <input type="hidden" name="name" value={c.name} />
+                  <input type="hidden" name="back" value={back} />
+                  <ConfirmButton message={`Hapus "${c.name}" secara permanen? Foto, menu, ulasan, dan laporan kondisinya ikut terhapus. Tidak bisa dibatalkan.`}
+                    pendingText="…" className="btn !px-3 !py-2 border border-red-200 bg-surface text-red-700 hover:bg-red-600 hover:text-white">
+                    <Icon name="trash" className="h-4 w-4" /><span className="sr-only">Hapus {c.name}</span>
+                  </ConfirmButton>
+                </form>
               </div>
             </div>
           );
