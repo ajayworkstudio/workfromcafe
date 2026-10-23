@@ -1,3 +1,4 @@
+import { cdnPhoto } from "@/lib/utils";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
@@ -99,7 +100,7 @@ export default async function SubmissionsPage({ searchParams }: { searchParams: 
                   <li key={s.id} className="flex gap-4 p-4">
                     <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-tint">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      {cover ? <img src={cover} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center text-mist"><Icon name="cup" className="h-6 w-6" /></div>}
+                      {cover ? <img src={cdnPhoto(cover)} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center text-mist"><Icon name="cup" className="h-6 w-6" /></div>}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">

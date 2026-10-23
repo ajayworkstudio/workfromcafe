@@ -100,3 +100,9 @@ export function timeAgo(iso: string) {
   if (s < 86400 * 7) return rtf.format(-Math.floor(s / 86400), "day");
   return new Date(iso).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" });
 }
+
+const PHOTO_BASE = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/cafe-photos/`;
+/** Alamat foto dari bucket cafe-photos diganti ke /foto/... supaya dilayani CDN Vercel (lihat app/foto). Alamat lain apa adanya. */
+export function cdnPhoto<T extends string | null | undefined>(url: T): T {
+  return (url && url.startsWith(PHOTO_BASE) ? `/foto/${url.slice(PHOTO_BASE.length)}` : url) as T;
+}

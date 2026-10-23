@@ -1,6 +1,8 @@
 // Service worker WorkFromCafe: cache aset statis + halaman offline.
 // Proses login (/auth, /masuk, ?code=) dan API tidak pernah disentuh supaya redirect login tidak terganggu.
-const CACHE = "wfc-v8";
+const CACHE = "wfc-v9";
+const PHOTOS = "wfc-foto-v1"; // foto kafe dari /foto (nama file tidak pernah berubah isinya)
+const PHOTO_MAX = 200;
 const OFFLINE_URL = "/offline.html";
 
 self.addEventListener("install", (e) => {
@@ -9,7 +11,7 @@ self.addEventListener("install", (e) => {
 });
 
 self.addEventListener("activate", (e) => {
-  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))));
+  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== PHOTOS).map((k) => caches.delete(k)))));
   self.clients.claim();
 });
 
@@ -21,6 +23,22 @@ self.addEventListener("fetch", (e) => {
 
   // Jangan tangani alur login, API, dan file tes kecepatan wifi sama sekali
   if (url.pathname.startsWith("/auth") || url.pathname.startsWith("/masuk") || url.pathname.startsWith("/api") || url.pathname.startsWith("/speedtest") || url.searchParams.has("code")) return;
+
+  // Foto kafe: cache-first di HP, jadi foto yang pernah dilihat tidak diunduh ulang. Isi cache dibatasi.
+  if (url.pathname.startsWith("/foto/")) {
+    e.respondWith(caches.open(PHOTOS).then(async (c) => {
+      const hit = await c.match(req);
+      if (hit) return hit;
+      const res = await fetch(req);
+      if (res.ok) {
+        await c.put(req, res.clone());
+        const keys = await c.keys();
+        if (keys.length > PHOTO_MAX) await Promise.all(keys.slice(0, keys.length - PHOTO_MAX).map((k) => c.delete(k)));
+      }
+      return res;
+    }));
+    return;
+  }
 
   // Aset statis Next.js & ikon: cache-first
   if (url.pathname.startsWith("/_next/static") || url.pathname.startsWith("/icons")) {

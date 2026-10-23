@@ -1,3 +1,4 @@
+import { cdnPhoto } from "@/lib/utils";
 import Link from "next/link";
 import Icon from "./Icon";
 import { dateBadge, eventDate, kindMeta, type WfcEvent } from "@/lib/events";
@@ -10,7 +11,7 @@ export default function EventCard({ e, past }: { e: WfcEvent; past?: boolean }) 
     <Link href={`/event/${e.slug}`} className={`group card flex overflow-hidden transition-colors hover:border-brand ${past ? "opacity-70" : ""}`}>
       <div className="relative w-28 shrink-0 bg-brand-soft sm:w-36">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {e.cover_url && <img src={e.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />}
+        {e.cover_url && <img src={cdnPhoto(e.cover_url)} alt="" className="absolute inset-0 h-full w-full object-cover" />}
         <div className="absolute left-2 top-2 rounded-xl bg-surface px-2.5 py-1.5 text-center shadow-sm">
           <p className="text-lg font-extrabold leading-none">{b.day}</p>
           <p className="text-[11px] font-semibold uppercase text-brand">{b.month}</p>

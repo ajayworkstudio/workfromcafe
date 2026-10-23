@@ -1,6 +1,7 @@
 "use client";
 import Image, { type ImageProps } from "next/image";
 import { useState } from "react";
+import { cdnPhoto } from "@/lib/utils";
 
 /**
  * Foto yang muncul halus: selama dimuat tampil kerangka berkilau, lalu foto memudar masuk dari buram ke tajam.
@@ -13,9 +14,9 @@ export default function FadeImage({ className = "", onLoad, lowSrc, ...props }: 
       {/* lowSrc: versi kecil yang biasanya sudah ada di cache (dari kartu), tampil dulu sampai foto besar siap */}
       {!loaded && (lowSrc
         // eslint-disable-next-line @next/next/no-img-element
-        ? <img src={lowSrc} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover" />
+        ? <img src={cdnPhoto(lowSrc)} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover" />
         : <span aria-hidden className="img-shimmer absolute inset-0" />)}
-      <Image {...props} alt={props.alt ?? ""} data-fade={loaded ? "done" : "pending"} className={`fade-img ${className}`}
+      <Image {...props} src={typeof props.src === "string" ? cdnPhoto(props.src) : props.src} alt={props.alt ?? ""} data-fade={loaded ? "done" : "pending"} className={`fade-img ${className}`}
         onLoad={(e) => { setLoaded(true); onLoad?.(e); }} />
     </>
   );

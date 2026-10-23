@@ -10,7 +10,7 @@ import Icon from "@/components/Icon";
 import JsonLd from "@/components/JsonLd";
 import { clip } from "@/lib/seo";
 import { EVENT_SELECT, eventDate, kindMeta, type WfcEvent } from "@/lib/events";
-import { SITE_URL } from "@/lib/utils";
+import { SITE_URL, cdnPhoto } from "@/lib/utils";
 
 type P = Promise<{ slug: string }>;
 
@@ -70,7 +70,7 @@ export default async function EventDetail({ params }: { params: P }) {
 
       {e.cover_url && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={e.cover_url} alt={e.title} className="mt-5 aspect-[2/1] w-full rounded-3xl object-cover" />
+        <img src={cdnPhoto(e.cover_url)} alt={e.title} className="mt-5 aspect-[2/1] w-full rounded-3xl object-cover" />
       )}
 
       <p className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-brand"><Icon name={k.icon} className="h-4 w-4" />{k.label}</p>
