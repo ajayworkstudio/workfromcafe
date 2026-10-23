@@ -1,3 +1,4 @@
+import { announceNewCafes } from "./notify";
 import { after } from "next/server";
 import { ensureThumbs } from "./thumbs";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -93,6 +94,7 @@ export async function createCafeFromSubmission(
 
   // Thumbnail dibuat setelah respons terkirim supaya tombol Setujui tidak menunggu
   if (d.photos?.length) after(() => ensureThumbs({ cafeId: cafe.id, limit: 20 }));
+  if (opts.publish) after(() => announceNewCafes());
 
   return { cafeId: cafe.id, slug };
 }

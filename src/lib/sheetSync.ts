@@ -1,3 +1,4 @@
+import { announceNewCafes } from "./notify";
 import readXlsxFile from "read-excel-file/node";
 import { revalidateTag } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -355,6 +356,7 @@ export async function syncFromUrlAndRecord(db: SupabaseClient, url: string, sour
     const report = await syncWorkbook(db, buf);
     await db.from("app_settings").upsert({ key: "sheet_last_sync", value: JSON.stringify({ at, source, ok: true, report }) });
     try { revalidateTag("settings"); revalidateTag("authors"); } catch { /* di luar konteks request */ }
+    await announceNewCafes(10); // kafe yang baru tayang dari spreadsheet
     return { ok: true as const, report };
   } catch (e) {
     const message = (e as Error).message;

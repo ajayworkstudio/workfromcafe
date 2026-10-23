@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { APP_NAME, SITE_URL } from "@/lib/utils";
 import { syncFromUrlAndRecord } from "@/lib/sheetSync";
+import { announceNewCafes } from "@/lib/notify";
 
 export const maxDuration = 60;
 
@@ -15,6 +16,8 @@ export async function GET(req: Request) {
   if (req.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
+  // Cadangan: umumkan kafe yang tayang tapi belum sempat diumumkan
+  await announceNewCafes(10);
   const admin = createAdminClient();
   const now = new Date();
 

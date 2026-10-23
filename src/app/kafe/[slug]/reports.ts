@@ -1,7 +1,9 @@
 "use server";
+import { notifyCafeActivity } from "@/lib/notify";
+import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { REPORT_RADIUS_M, distanceM } from "@/lib/reports";
+import { CROWD, PLUGS, REPORT_RADIUS_M, distanceM } from "@/lib/reports";
 import { getViewer } from "@/lib/auth";
 
 export type ReportInput = {
@@ -57,6 +59,11 @@ export async function submitReport(input: ReportInput): Promise<ReportResult> {
     console.error("[submitReport]", error);
     return { ok: false, error: "Laporan gagal dikirim. Coba lagi sebentar lagi." };
   }
+  // Kabari yang menyimpan kafe ini (paling sering sekali tiap 3 jam per kafe)
+  const summary = [`Dilaporkan ${CROWD[crowd as 1 | 2 | 3].label.toLowerCase()}`,
+    num(input.download, 2000) != null ? `wifi ${Math.round(input.download!)} Mbps` : null,
+    plugs ? `colokan ${PLUGS[plugs as 1 | 2 | 3].toLowerCase()}` : null].filter(Boolean).join(" · ");
+  after(() => notifyCafeActivity(cafe.id, user.id, summary));
   revalidatePath(`/kafe/${input.slug}`);
   revalidatePath("/kafe");
   return { ok: true };

@@ -1,4 +1,6 @@
 "use server";
+import { announceNewCafes } from "@/lib/notify";
+import { after } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -80,7 +82,10 @@ async function writeCafe(formData: FormData): Promise<WriteResult> {
   if (tagIds.length) await supabase.from("cafe_tags").insert(tagIds.map((tag_id) => ({ cafe_id: cafeId, tag_id })));
 
   // Kota otomatis aktif begitu punya kafe yang tayang
-  if (cafe.is_published) await supabase.from("cities").update({ is_active: true }).eq("id", cafe.city_id);
+  if (cafe.is_published) {
+    await supabase.from("cities").update({ is_active: true }).eq("id", cafe.city_id);
+    after(() => announceNewCafes()); // baru tayang: kabari pengguna terdaftar (sekali saja per kafe)
+  }
 
   // Kabari author lewat email kalau kafe ini membuatnya naik level
   const { data: owner } = await supabase.from("cafes").select("contributor_id").eq("id", cafeId!).maybeSingle();
@@ -163,6 +168,7 @@ export async function toggleCafeFlag(formData: FormData) {
   if (field !== "is_published" && field !== "is_featured") return;
   await supabase.from("cafes").update({ [field]: formData.get("value") === "true" }).eq("id", String(formData.get("id")));
   if (field === "is_published") {
+    if (formData.get("value") === "true") after(() => announceNewCafes());
     const { data: owner } = await supabase.from("cafes").select("contributor_id").eq("id", String(formData.get("id"))).maybeSingle();
     await notifyAuthorLevel(owner?.contributor_id);
   }

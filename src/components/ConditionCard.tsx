@@ -31,7 +31,7 @@ export default function ConditionCard({ cafe, reports, viewer }: Props) {
 
   if (!sum) {
     return (
-      <section aria-labelledby="kondisi-judul" className="mt-6 space-y-3 rounded-3xl border border-dashed border-mist bg-surface p-4 md:max-w-xl">
+      <section id="kondisi" aria-labelledby="kondisi-judul" className="scroll-mt-32 mt-6 space-y-3 rounded-3xl border border-dashed border-mist bg-surface p-4 md:max-w-xl">
         <h2 id="kondisi-judul" className="flex items-center gap-2 font-sans text-base font-extrabold tracking-normal">
           <span className="h-2 w-2 rounded-full bg-mist" />Belum ada laporan hari ini
         </h2>
@@ -50,7 +50,7 @@ export default function ConditionCard({ cafe, reports, viewer }: Props) {
 
   const tone = TONE[sum.crowd];
   return (
-    <section aria-labelledby="kondisi-judul" className="reveal mt-6 space-y-3.5 rounded-3xl border border-line bg-surface p-4 md:max-w-xl">
+    <section id="kondisi" aria-labelledby="kondisi-judul" className="reveal scroll-mt-32 mt-6 space-y-3.5 rounded-3xl border border-line bg-surface p-4 md:max-w-xl">
       <div className="flex items-center justify-between gap-3">
         <h2 id="kondisi-judul" className="flex items-center gap-2 font-sans text-base font-extrabold tracking-normal">
           <span className={`h-2 w-2 rounded-full ${tone.dot}`} />Kondisi hari ini

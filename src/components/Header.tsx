@@ -2,6 +2,7 @@ import { INSTAGRAM_URL } from "@/lib/utils";
 import AdminBadge from "@/components/AdminBadge";
 import Link from "next/link";
 import { getViewer } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 import { getSettings } from "@/lib/settings";
 import Icon from "./Icon";
 import Wordmark from "./Wordmark";
@@ -11,6 +12,12 @@ import BottomNav from "./BottomNav";
 export default async function Header() {
   const [v, settings] = await Promise.all([getViewer(), getSettings()]);
   const free = settings.free_mode;
+  // Titik di lonceng: ada notifikasi baru sejak terakhir membuka /notifikasi (0 kalau migrasi 0021 belum ada)
+  let unread = 0;
+  if (v.user) {
+    const { data } = await (await createClient()).rpc("notif_unread_count");
+    unread = typeof data === "number" ? data : 0;
+  }
 
   return (
     <>
@@ -45,6 +52,17 @@ export default async function Header() {
             <Icon name="calendar" className="h-3.5 w-3.5" />
             {settings.events_public ? "Event" : <span className="text-[#8a5a00]">Segera</span>}
           </Link>
+          {v.user && (
+            <Link href="/notifikasi" aria-label={unread ? `Notifikasi, ${unread} baru` : "Notifikasi"}
+              className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink hover:bg-tint">
+              <Icon name="bell" className="h-[22px] w-[22px]" />
+              {unread > 0 && (
+                <span className="absolute right-1 top-1 grid min-h-[18px] min-w-[18px] place-items-center rounded-full bg-[#b4533a] px-1 text-[10px] font-bold leading-none text-white ring-2 ring-canvas">
+                  {unread > 9 ? "9+" : unread}
+                </span>
+              )}
+            </Link>
+          )}
           {v.user ? (
             <Link href="/akun" className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 text-sm font-medium hover:bg-tint">
               <span className="relative">
@@ -52,7 +70,7 @@ export default async function Header() {
                 {v.isPremium && !free && <span className="absolute -bottom-0.5 -right-0.5 grid h-4 w-4 place-items-center rounded-full bg-gold text-ink ring-2 ring-canvas"><Icon name="star" filled className="h-2.5 w-2.5" /></span>}
               </span>
               <span className="hidden sm:inline">{v.name?.split(" ")[0] ?? "Akun"}</span>
-              {v.isAdmin && <AdminBadge className="hidden sm:inline-flex" />}
+              {v.isAdmin && <span className="hidden sm:inline-flex"><AdminBadge /></span>}
             </Link>
           ) : (
             <Link href="/masuk" className="btn-dark !py-2">Masuk</Link>

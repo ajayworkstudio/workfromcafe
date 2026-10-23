@@ -1,3 +1,4 @@
+import NotificationSettings from "@/components/NotificationSettings";
 import type { Metadata } from "next";
 import AdminBadge from "@/components/AdminBadge";
 import Link from "next/link";
@@ -29,10 +30,12 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   if (!viewer.user) redirect("/masuk?next=/akun");
   const supabase = await createClient();
 
-  const [{ data: favs }, { data: payments }, { data: left }] = await Promise.all([
+  const [{ data: favs }, { data: payments }, { data: left }, { data: notifPrefs }] = await Promise.all([
     supabase.from("favorites").select(`cafe:cafes(${CAFE_LIST_SELECT})`).eq("user_id", viewer.user.id).order("created_at", { ascending: false }),
     supabase.from("payments").select("*").eq("user_id", viewer.user.id).order("created_at", { ascending: false }).limit(10),
     supabase.rpc("free_unlocks_left"),
+    // Pilihan notifikasi (kosong kalau migrasi 0021 belum dijalankan: anggap semua menyala)
+    supabase.from("profiles").select("notify_new_cafe,notify_activity").eq("id", viewer.user.id).maybeSingle(),
   ]);
 
   // Profil lengkap (bio & instagram ada setelah migrasi 0009)
@@ -122,6 +125,10 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       </Link>
 
       {settings.community_url && <div className="mt-3"><CommunityCard url={settings.community_url} variant="compact" /></div>}
+
+      <div id="notifikasi" className="mt-10 scroll-mt-24">
+        <NotificationSettings prefs={{ newCafe: notifPrefs?.notify_new_cafe ?? true, activity: notifPrefs?.notify_activity ?? true }} />
+      </div>
 
       <h2 className="mt-10 font-display text-2xl font-bold">Kafe favorit</h2>
       <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
