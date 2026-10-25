@@ -10,15 +10,16 @@ const isDev = process.env.NODE_ENV !== "production";
   Header keamanan untuk semua halaman.
   - CSP: skrip dan koneksi hanya ke situs ini + Supabase; situs tidak boleh dimuat di dalam iframe situs lain.
     'unsafe-inline' untuk skrip masih dibutuhkan Next.js (skrip awal halaman) selama belum memakai nonce.
+  - Google Analytics (gtag) boleh memuat skrip & mengirim data ke domain Google Analytics.
   - Gambar boleh dari https mana saja (foto dari spreadsheet, peta OpenStreetMap).
 */
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline' https://www.googletagmanager.com${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  `connect-src 'self' https://${supabaseHost} wss://${supabaseHost}`,
+  `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com`,
   "media-src 'self' blob:",
   "worker-src 'self' blob:",
   "manifest-src 'self'",

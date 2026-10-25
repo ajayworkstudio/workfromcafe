@@ -1,3 +1,4 @@
+import Script from "next/script";
 import PageTransitions from "@/components/PageTransitions";
 import type { Metadata, Viewport } from "next";
 import "@fontsource-variable/plus-jakarta-sans";
@@ -38,6 +39,8 @@ const REQUIRED_ENV = {
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
 };
 
+const GA_ID = "G-C6BZEVYT6Z";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   // Kalau env belum diisi, tampilkan daftar yang kurang (hanya nama, tanpa nilai) alih-alih error kosong.
   const missing = Object.entries(REQUIRED_ENV).filter(([, v]) => !v?.trim()).map(([k]) => k);
@@ -56,6 +59,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="id">
       <body className="flex min-h-dvh flex-col antialiased">
+        {/* Google Analytics 4. Pindah halaman di dalam aplikasi tercatat otomatis lewat "Enhanced measurement" GA4. */}
+        <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
+        <Script id="ga4" strategy="afterInteractive">
+          {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}');`}
+        </Script>
         <Header />
         <TrialBanner />
         <main className="flex-1">{children}</main>
