@@ -8,6 +8,7 @@ import Icon from "./Icon";
 import Wordmark from "./Wordmark";
 import Avatar from "./Avatar";
 import BottomNav from "./BottomNav";
+import NotifBell from "./NotifBell";
 
 export default async function Header() {
   const [v, settings] = await Promise.all([getViewer(), getSettings()]);
@@ -52,17 +53,7 @@ export default async function Header() {
             <Icon name="calendar" className="h-3.5 w-3.5" />
             {settings.events_public ? "Event" : <span className="text-[#8a5a00]">Segera</span>}
           </Link>
-          {v.user && (
-            <Link href="/notifikasi" aria-label={unread ? `Notifikasi, ${unread} baru` : "Notifikasi"}
-              className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink hover:bg-tint">
-              <Icon name="bell" className="h-[22px] w-[22px]" />
-              {unread > 0 && (
-                <span className="absolute right-1 top-1 grid min-h-[18px] min-w-[18px] place-items-center rounded-full bg-[#b4533a] px-1 text-[10px] font-bold leading-none text-white ring-2 ring-canvas">
-                  {unread > 9 ? "9+" : unread}
-                </span>
-              )}
-            </Link>
-          )}
+          {v.user && <NotifBell count={unread} />}
           {v.user ? (
             <Link href="/akun" className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 text-sm font-medium hover:bg-tint">
               <span className="relative">

@@ -49,3 +49,28 @@ export async function sendTestPush(): Promise<Result> {
   const sent = await pushTest(user.id);
   return sent ? { ok: true, sent } : { ok: false, error: "Belum ada perangkat yang terhubung, atau server belum diatur untuk push." };
 }
+
+const SETUP_DEL = "Fitur hapus notifikasi belum aktif di database. Admin perlu menjalankan migrasi 0022.";
+
+/** Hapus satu notifikasi dari kotak notifikasi pengguna ini (notifikasi umum hanya disembunyikan untuknya). */
+export async function dismissNotification(id: string): Promise<Result> {
+  const user = await me();
+  if (!user) return { ok: false, error: "Sesi habis. Masuk lagi." };
+  const db = createAdminClient();
+  await db.from("notifications").delete().eq("id", id).eq("user_id", user.id); // notifikasi pribadi: hapus sungguhan
+  const { error } = await db.from("notification_dismissals").upsert({ user_id: user.id, notification_id: id });
+  if (error && !/foreign key|violates/i.test(error.message)) return { ok: false, error: /notification_dismissals/.test(error.message) ? SETUP_DEL : error.message };
+  return { ok: true };
+}
+
+/** Kosongkan kotak notifikasi: semua yang ada sekarang hilang, notifikasi baru setelahnya tetap muncul. */
+export async function clearNotifications(): Promise<Result> {
+  const user = await me();
+  if (!user) return { ok: false, error: "Sesi habis. Masuk lagi." };
+  const db = createAdminClient();
+  const now = new Date().toISOString();
+  const { error } = await db.from("profiles").update({ notif_cleared_at: now, notif_seen_at: now }).eq("id", user.id);
+  if (error) return { ok: false, error: /notif_cleared_at/.test(error.message) ? SETUP_DEL : error.message };
+  await db.from("notifications").delete().eq("user_id", user.id);
+  return { ok: true };
+}
