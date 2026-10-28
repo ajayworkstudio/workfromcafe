@@ -41,9 +41,13 @@ async function saveFreeMode(formData: FormData) {
     redirect(`/admin/pengaturan?err=${encodeURIComponent("Link komunitas harus link WhatsApp, contoh: https://chat.whatsapp.com/…")}`);
   // Buang parameter pelacak (?utm_…, fbclid) dari link yang disalin dari Instagram
   const cleanCommunity = community ? community.split("?")[0] : "";
+  const support = String(formData.get("support_url") || "").trim().split("?")[0];
+  if (support && !/^https:\/\/[^\s]+$/.test(support))
+    redirect(`/admin/pengaturan?err=${encodeURIComponent("Link dukungan harus diawali https://, contoh: https://saweria.co/wfchunters")}`);
   const { error } = await supabase.from("app_settings").upsert([
     { key: "free_mode", value: on ? "true" : "false" },
     { key: "community_url", value: cleanCommunity },
+    { key: "support_url", value: support },
     { key: "events_public", value: formData.get("events_public") === "on" ? "true" : "false" },
     { key: "featured_author", value: String(formData.get("featured_author") || "").trim().replace(/^@/, "").toLowerCase().replace(/^.*\/author\//, "") },
   ]);
@@ -80,6 +84,11 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <label htmlFor="community_url" className="label">Link komunitas WhatsApp</label>
           <input id="community_url" name="community_url" type="url" defaultValue={s.community_url} placeholder="https://chat.whatsapp.com/…" className="input" />
           <p className="mt-1.5 text-xs text-muted">Tampil di header, beranda, halaman Jadi author, Akun, dan footer. Kosongkan untuk menyembunyikan.</p>
+        </div>
+        <div>
+          <label htmlFor="support_url" className="label">Link dukungan (Saweria / Trakteer)</label>
+          <input id="support_url" name="support_url" type="url" defaultValue={s.support_url} placeholder="https://saweria.co/wfchunters" className="input" />
+          <p className="mt-1.5 text-xs text-muted">Dipakai tombol &quot;Dukung&quot; di halaman /dukung. Kosongkan untuk menyembunyikan tombol donasi (cara dukung tanpa uang tetap tampil).</p>
         </div>
         <div>
           <label htmlFor="featured_author" className="label">Author bulan ini (username)</label>

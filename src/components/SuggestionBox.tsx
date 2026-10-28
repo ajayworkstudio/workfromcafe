@@ -13,6 +13,7 @@ export default function SuggestionBox() {
           <h2 id="saran-judul" className="text-2xl font-bold md:text-3xl">Kotak saran</h2>
           <p className="mt-1 max-w-xl text-muted">Bantu WFC Hunters jadi lebih baik. Pilih topiknya, lalu kirim lewat form, email, atau DM Instagram.</p>
         </div>
+        <Link href="/dukung" className="btn-ghost min-h-11 shrink-0"><Icon name="heart" className="h-4 w-4 text-[#b4533a]" />Dukung pengembangan</Link>
       </div>
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {SUGGESTION_TOPICS.map((t) => (

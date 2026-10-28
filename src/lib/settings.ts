@@ -17,6 +17,8 @@ export type Settings = {
   sheet_last_sync: string;
   /** Link grup/komunitas WhatsApp untuk author & WFC hunters ("" = sembunyikan) */
   community_url: string;
+  /** Link halaman dukungan (Saweria/Trakteer) untuk halaman /dukung ("" = tombol donasi disembunyikan) */
+  support_url: string;
   /** Username author of the month pilihan admin ("" = otomatis) */
   featured_author: string;
   /** true = menu Event terbuka untuk umum; false = hanya admin, umum melihat "Segera" */
@@ -63,6 +65,7 @@ export const getSettings = cache(async (): Promise<Settings> => {
     sheet_last_sync: m.get("sheet_last_sync") || "",
     featured_author: m.get("featured_author") ?? "",
     events_public: m.get("events_public") === "true",
+    support_url: m.get("support_url") ?? "",
     community_url: m.has("community_url") ? (m.get("community_url") ?? "") : DEFAULT_COMMUNITY_URL,
     free_mode: (m.get("free_mode") ?? "true") === "true",
     auto_approve: m.get("auto_approve") === "true",
