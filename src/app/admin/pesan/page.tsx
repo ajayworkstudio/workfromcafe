@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import PageHeader from "@/components/admin/PageHeader";
 import Flash from "@/components/admin/Flash";
-import { CONTACT_TOPICS } from "@/lib/contact";
+import { topicLabel } from "@/lib/contact";
 import { timeAgo } from "@/lib/utils";
 import { spamReason } from "@/lib/spam";
 
@@ -42,7 +42,6 @@ export default async function MessagesAdmin({ searchParams }: { searchParams: Pr
   if (unreadOnly) q = q.eq("is_read", false);
   const { data, error } = await q;
   const rows = (data as Row[] | null) ?? [];
-  const topicLabel = (v: string) => CONTACT_TOPICS.find((t) => t.value === v)?.label ?? v;
   const spamCount = rows.filter((r) => spamReason(r)).length;
 
   return (

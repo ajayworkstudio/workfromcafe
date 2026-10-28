@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/auth";
 import { mailConfigured, sendMail } from "@/lib/mail";
-import { CONTACT_TOPICS, type ContactState } from "@/lib/contact";
+import { CONTACT_TOPICS, topicLabel, type ContactState } from "@/lib/contact";
 import { SITE_URL } from "@/lib/utils";
 import { spamReason } from "@/lib/spam";
 
@@ -56,9 +56,13 @@ export async function sendContact(_prev: ContactState, f: FormData): Promise<Con
   if ((count ?? 0) >= 5) return { ok: false, error: "Kamu sudah mengirim 5 pesan dalam satu jam terakhir. Coba lagi nanti ya." };
 
   const viewer = await getViewer();
-  const { error } = await db.from("contact_messages").insert({
-    topic, name, email, body, page, ip_hash: ipHash, user_id: viewer.user?.id ?? null,
-  });
+  const row = { topic, name, email, body, page, ip_hash: ipHash, user_id: viewer.user?.id ?? null };
+  let { error } = await db.from("contact_messages").insert(row);
+  // Topik baru (bug, platform, kritik) butuh migrasi 0023. Sebelum itu jalan, simpan sebagai "lainnya" dengan label di awal pesan.
+  if (error && /check constraint|topic/i.test(error.message)) {
+    const tag = `[${topicLabel(topic)}] `;
+    ({ error } = await db.from("contact_messages").insert({ ...row, topic: "lainnya", body: tag + body.slice(0, 2000 - tag.length) }));
+  }
   if (error) {
     console.error("[sendContact]", error.message);
     return { ok: false, error: "Pesan gagal terkirim karena gangguan server. Coba lagi sebentar lagi." };
@@ -69,13 +73,13 @@ export async function sendContact(_prev: ContactState, f: FormData): Promise<Con
     try {
       const { data: admins } = await db.from("profiles").select("email").eq("role", "admin");
       const to = (admins ?? []).map((a) => a.email).filter(Boolean).join(",");
-      const topicLabel = CONTACT_TOPICS.find((t) => t.value === topic)!.label;
+      const label = topicLabel(topic);
       if (to) await sendMail({
         to,
         replyTo: email,
-        subject: `Pesan baru: ${topicLabel} (dari ${name})`,
-        text: `${name} <${email}>\nTopik: ${topicLabel}\nHalaman: ${page ?? "-"}\n\n${body}\n\nBalas langsung ke email ini atau buka ${SITE_URL}/admin/pesan`,
-        html: `<p><b>${esc(name)}</b> &lt;${esc(email)}&gt;<br>Topik: ${esc(topicLabel)}<br>Halaman: ${esc(page ?? "-")}</p><p style="white-space:pre-wrap">${esc(body)}</p><p><a href="${SITE_URL}/admin/pesan">Buka semua pesan di admin</a></p>`,
+        subject: `Pesan baru: ${label} (dari ${name})`,
+        text: `${name} <${email}>\nTopik: ${label}\nHalaman: ${page ?? "-"}\n\n${body}\n\nBalas langsung ke email ini atau buka ${SITE_URL}/admin/pesan`,
+        html: `<p><b>${esc(name)}</b> &lt;${esc(email)}&gt;<br>Topik: ${esc(label)}<br>Halaman: ${esc(page ?? "-")}</p><p style="white-space:pre-wrap">${esc(body)}</p><p><a href="${SITE_URL}/admin/pesan">Buka semua pesan di admin</a></p>`,
       });
     } catch (e) {
       console.error("[sendContact mail]", e);

@@ -7,6 +7,7 @@ import CafePhotoCard from "@/components/CafePhotoCard";
 import LiveCafeCard from "@/components/LiveCafeCard";
 import type { LiveSummary } from "@/lib/reports";
 import CafeShowcase from "@/components/CafeShowcase";
+import SuggestionBox from "@/components/SuggestionBox";
 import { toStackCafe } from "@/lib/stackCafe";
 import HomeMotion from "@/components/HomeMotion";
 import Avatar from "@/components/Avatar";
@@ -249,6 +250,10 @@ export default async function Home() {
           </div>
         </article>
       </section>
+
+      <div className="mx-auto max-w-6xl px-4 pt-16">
+        <SuggestionBox />
+      </div>
     </>
   );
 }

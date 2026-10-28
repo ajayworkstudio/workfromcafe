@@ -13,10 +13,12 @@ type Props = {
   communityUrl?: string;
   /** Topik yang langsung terpilih, mis. "koreksi" dari halaman kafe. */
   defaultTopic?: string;
+  /** Alamat email publik untuk tombol "Kirim lewat email" (kosong = tombolnya tidak tampil). */
+  contactEmail?: string | null;
   headingLevel?: "h1" | "h2";
 };
 
-export default function ContactBox({ defaultName, defaultEmail, communityUrl, defaultTopic, headingLevel = "h2" }: Props) {
+export default function ContactBox({ defaultName, defaultEmail, communityUrl, defaultTopic, contactEmail, headingLevel = "h2" }: Props) {
   const [state, action] = useActionState<ContactState, FormData>(sendContact, null);
   const [round, setRound] = useState(0); // kunci untuk mengosongkan form setelah "kirim pesan lain"
   const [startedAt, setStartedAt] = useState(0);
@@ -26,7 +28,20 @@ export default function ContactBox({ defaultName, defaultEmail, communityUrl, de
   const [body, setBody] = useState("");
   const [name, setName] = useState(defaultName ?? "");
   const [email, setEmail] = useState(defaultEmail ?? "");
-  const [topic, setTopic] = useState(defaultTopic ?? "saran");
+  const [topic, setTopic] = useState(CONTACT_TOPICS.some((t) => t.value === defaultTopic) ? defaultTopic! : "kritik");
+  const [copied, setCopied] = useState(false);
+  const label = CONTACT_TOPICS.find((t) => t.value === topic)?.label ?? "Pesan";
+  const hint = CONTACT_TOPICS.find((t) => t.value === topic)?.hint;
+  const mailto = contactEmail
+    ? `mailto:${contactEmail}?subject=${encodeURIComponent(`[WFC Hunters] ${label}`)}&body=${encodeURIComponent(body || "")}`
+    : null;
+  // DM Instagram tidak bisa diisi otomatis: salin pesannya dulu, lalu buka DM
+  async function openDm() {
+    if (body.trim()) {
+      try { await navigator.clipboard.writeText(`[${label}] ${body.trim()}`); setCopied(true); } catch { /* izin clipboard ditolak: tetap buka DM */ }
+    }
+    window.open("https://ig.me/m/wfchunters", "_blank", "noopener");
+  }
   const page = usePathname();
   const id = useId();
   const H = headingLevel;
@@ -45,16 +60,20 @@ export default function ContactBox({ defaultName, defaultEmail, communityUrl, de
   return (
     <div className="grid gap-8 md:grid-cols-[0.9fr_1.1fr] md:gap-12">
       <div>
-        <H className="text-3xl font-extrabold leading-tight md:text-4xl">Ada kafe yang harus aku datangi?</H>
+        <H className="text-3xl font-extrabold leading-tight md:text-4xl">Kotak saran & kontak</H>
         <p className="mt-3 max-w-md text-ink/75">
-          Tulis saja di sini: saran kafe, koreksi jam buka atau harga, tawaran kerja sama, atau kamu pemilik kafe yang mau kafenya dicoba.
-          Pesannya masuk langsung ke aku dan dibalas lewat email.
+          Ketemu bug, info kafe yang sudah berubah, ide fitur, atau saran dan kritik? Tulis di sini. Kirim lewat form ini, email, atau DM Instagram, pilih yang paling nyaman.
         </p>
         <div className="mt-6 space-y-2 text-sm">
           <p className="font-semibold">Lebih suka ngobrol langsung?</p>
           <a href={INSTAGRAM_URL} target="_blank" rel="noopener" className="flex min-h-11 items-center gap-2 text-ink/80 hover:text-brand">
             <Icon name="instagram" className="h-5 w-5" />DM Instagram @wfchunters
           </a>
+          {contactEmail && (
+            <a href={`mailto:${contactEmail}`} className="flex min-h-11 items-center gap-2 break-all text-ink/80 hover:text-brand">
+              <Icon name="send" className="h-5 w-5 shrink-0" />{contactEmail}
+            </a>
+          )}
           {communityUrl && (
             <a href={communityUrl} target="_blank" rel="noopener" className="flex min-h-11 items-center gap-2 text-ink/80 hover:text-brand">
               <Icon name="whatsapp" className="h-5 w-5" />Grup komunitas WhatsApp
@@ -92,6 +111,7 @@ export default function ContactBox({ defaultName, defaultEmail, communityUrl, de
                 </label>
               ))}
             </div>
+            {hint && <p className="mt-2 text-sm text-muted">{hint}</p>}
           </fieldset>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -111,13 +131,25 @@ export default function ContactBox({ defaultName, defaultEmail, communityUrl, de
             <label htmlFor={`${id}-body`} className="label">Pesan</label>
             <textarea id={`${id}-body`} name="body" required minLength={10} maxLength={2000} rows={5}
               value={body} onChange={(e) => setBody(e.target.value)} aria-invalid={invalid("body")}
-              placeholder="Untuk saran kafe: tulis nama kafe, kotanya, dan kenapa enak buat kerja (colokan, wifi, jam buka)."
+              placeholder={topic === "bug" ? "Halaman apa, apa yang kamu lakukan, dan apa yang terjadi. Sebutkan juga HP/laptop dan browsernya."
+                : topic === "koreksi" ? "Nama kafe dan info yang berubah, mis. jam buka sekarang 10.00–22.00."
+                : topic === "saran" ? "Nama kafe, kotanya, dan kenapa enak buat kerja (colokan, wifi, jam buka)."
+                : "Tulis pesanmu di sini."}
               className="input resize-y aria-[invalid=true]:border-[#b4533a]" />
             <p className={`mt-1 text-right text-xs tabular-nums ${body.length > 1800 ? "text-[#b4533a]" : "text-muted"}`}>{body.length}/2000</p>
           </div>
 
           {err && <p role="alert" className="rounded-xl bg-[#b4533a]/10 px-3.5 py-2.5 text-sm text-[#8c3b25]">{err.error}</p>}
-          <Submit />
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+            <Submit />
+            <span className="text-sm text-muted">atau kirim lewat</span>
+            <div className="flex flex-wrap gap-2">
+              {mailto && <a href={mailto} className="btn-ghost min-h-11"><Icon name="send" className="h-4 w-4" />Email</a>}
+              <button type="button" onClick={openDm} className="btn-ghost min-h-11"><Icon name="instagram" className="h-4 w-4" />DM Instagram</button>
+            </div>
+          </div>
+          {copied && <p role="status" className="text-sm text-[#2f7049]">Pesanmu sudah disalin. Tempel di DM Instagram @wfchunters.</p>}
+          <p className="text-xs text-muted">Lewat form ini, nama dan email wajib diisi supaya bisa dibalas. Lewat email atau DM, cukup isi pesannya.</p>
         </form>
       )}
     </div>
