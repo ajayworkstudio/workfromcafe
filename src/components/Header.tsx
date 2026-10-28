@@ -9,6 +9,7 @@ import Wordmark from "./Wordmark";
 import Avatar from "./Avatar";
 import BottomNav from "./BottomNav";
 import NotifBell from "./NotifBell";
+import NavLink from "./NavLinks";
 
 export default async function Header() {
   const [v, settings] = await Promise.all([getViewer(), getSettings()]);
@@ -28,13 +29,13 @@ export default async function Header() {
           <Wordmark className="!h-8 !w-auto md:!h-11" />
         </Link>
         <nav className="hidden items-center gap-1 text-sm font-medium text-muted md:flex">
-          <Link href="/kafe" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Jelajah</Link>
-          <Link href="/peta" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Peta</Link>
-          <Link href="/kirim" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Kirim kafe</Link>
-          <Link href="/event" className="flex items-center gap-1.5 rounded-full px-3 py-2 hover:bg-tint hover:text-ink">
+          <NavLink href="/kafe" match={["/kafe", "/kota"]}>Jelajah</NavLink>
+          <NavLink href="/peta">Peta</NavLink>
+          <NavLink href="/kirim">Kirim kafe</NavLink>
+          <NavLink href="/event" className="flex items-center gap-1.5">
             Event
             {!settings.events_public && <span className="rounded-full bg-gold/25 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#8a5a00]">Segera</span>}
-          </Link>
+          </NavLink>
           {settings.community_url && (
             <a href={settings.community_url} target="_blank" rel="noopener" className="flex items-center gap-1.5 rounded-full px-3 py-2 hover:bg-tint hover:text-ink">
               <Icon name="whatsapp" className="h-4 w-4 text-[#128c4a]" />Komunitas
@@ -45,7 +46,7 @@ export default async function Header() {
             <Icon name="instagram" className="h-[18px] w-[18px] text-[#c13584]" />
           </a>
           {!v.isPremium && !free && <Link href="/harga" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Harga</Link>}
-          {v.isAdmin && <Link href="/admin" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Admin</Link>}
+          {v.isAdmin && <NavLink href="/admin">Admin</NavLink>}
         </nav>
         <div className="ml-auto flex items-center gap-2">
           <Link href="/event" aria-label={settings.events_public ? "Event" : "Event, segera hadir"}

@@ -24,7 +24,7 @@ export async function generateMetadata({ searchParams }: { searchParams: SPMeta 
   };
 }
 
-type SP = Promise<{ q?: string; kota?: string; tag?: string | string[]; harga?: string; buka?: string; sepi?: string }>;
+type SP = Promise<{ q?: string; kota?: string; tag?: string | string[]; harga?: string; buka?: string; sepi?: string; hal?: string }>;
 
 export default async function CafesPage({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams;
@@ -115,7 +115,7 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
           <p className="text-lg font-bold">{cafes.length} kafe cocok</p>
           {anyFilter && <Link href="/kafe" className="py-2 text-sm font-semibold text-brand hover:underline">Hapus semua filter</Link>}
         </div>
-        <NearbyGrid cafes={cafes} live={live} />
+        <NearbyGrid cafes={cafes} live={live} initialPage={Number(sp.hal) || 1} />
         {!cafes.length && (
           <p className="mt-6 rounded-2xl bg-tint p-8 text-center text-muted">
             {sp.sepi === "1" ? "Belum ada kafe yang dilaporkan sepi dalam 3 jam terakhir. Coba matikan Sepi sekarang." : "Tidak ada kafe yang cocok. Coba kurangi filternya."}

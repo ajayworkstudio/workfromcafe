@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import CafeCard from "./CafeCard";
 import CafeCarousel from "./CafeCarousel";
 import Icon from "./Icon";
@@ -16,7 +16,17 @@ function km(a: [number, number], b: [number, number]) {
 const fmt = (d: number) => (d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(d < 10 ? 1 : 0)} km`);
 
 /** Daftar kafe dengan tombol "Urutkan dari yang terdekat" (lokasi hanya dipakai di HP/browser, tidak dikirim ke server). */
-export default function NearbyGrid({ cafes, live = {} }: { cafes: Cafe[]; live?: Record<string, LiveSummary> }) {
+const PER_PAGE = 5;
+
+/** Nomor halaman yang ditampilkan: 1 … 4 5 6 … 12 (selalu halaman pertama, terakhir, dan tetangga halaman aktif). */
+function pageList(cur: number, total: number): (number | "…")[] {
+  const keep = new Set([1, total, cur - 1, cur, cur + 1].filter((n) => n >= 1 && n <= total));
+  const out: (number | "…")[] = [];
+  [...keep].sort((a, b) => a - b).forEach((n, i, arr) => { if (i && n - arr[i - 1] > 1) out.push("…"); out.push(n); });
+  return out;
+}
+
+export default function NearbyGrid({ cafes, live = {}, initialPage = 1 }: { cafes: Cafe[]; live?: Record<string, LiveSummary>; initialPage?: number }) {
   const [pos, setPos] = useState<[number, number] | null>(null);
   const [state, setState] = useState<"idle" | "loading" | "denied" | "unsupported">("idle");
   // HP: kartu yang digeser (bawaan) atau daftar biasa
@@ -39,9 +49,27 @@ export default function NearbyGrid({ cafes, live = {} }: { cafes: Cafe[]; live?:
       .sort((x, y) => (x.d ?? Infinity) - (y.d ?? Infinity));
   }, [cafes, pos]);
 
+  // Halaman: 5 kafe per halaman. Nomor halaman disimpan di alamat (?hal=2) supaya bisa dibagikan & tetap saat dimuat ulang.
+  const pages = Math.max(1, Math.ceil(list.length / PER_PAGE));
+  const [page, setPage] = useState(Math.min(Math.max(1, initialPage), pages));
+  const top = useRef<HTMLDivElement>(null);
+  const first = useRef(true);
+  // Filter atau urutan berubah: kembali ke halaman 1
+  useEffect(() => { if (first.current) { first.current = false; return; } setPage(1); }, [cafes, pos]);
+  useEffect(() => {
+    const url = new URL(location.href);
+    if (page > 1) url.searchParams.set("hal", String(page)); else url.searchParams.delete("hal");
+    if (url.href !== location.href) history.replaceState(history.state, "", url);
+  }, [page]);
+  const go = (n: number) => {
+    setPage(Math.min(Math.max(1, n), pages));
+    top.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  };
+  const shown = list.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
   return (
     <>
-      <div className="mt-4 flex flex-wrap items-center gap-3">
+      <div ref={top} className="mt-4 flex scroll-mt-24 flex-wrap items-center gap-3">
         <div role="group" aria-label="Tampilan" className="flex rounded-full border border-line bg-surface p-1 md:hidden">
           {(["kartu", "daftar"] as const).map((v) => (
             <button key={v} type="button" aria-pressed={view === v} onClick={() => setView(v)}
@@ -58,15 +86,39 @@ export default function NearbyGrid({ cafes, live = {} }: { cafes: Cafe[]; live?:
         {state === "denied" && <span className="text-sm text-muted">Izin lokasi ditolak. Aktifkan izin lokasi di browser, lalu coba lagi.</span>}
         {state === "unsupported" && <span className="text-sm text-muted">Browser ini tidak mendukung lokasi.</span>}
       </div>
-      {view === "kartu" && <div className="md:hidden"><CafeCarousel items={list} live={live} /></div>}
+      {view === "kartu" && <div className="md:hidden"><CafeCarousel items={shown} live={live} /></div>}
       <div className={`mt-6 gap-x-5 gap-y-9 sm:grid-cols-2 md:grid lg:grid-cols-3 ${view === "daftar" ? "grid" : "hidden"}`}>
-        {list.map(({ c, d }) => (
+        {shown.map(({ c, d }) => (
           <div key={c.id} className="relative">
             {d != null && <span className="absolute right-3 top-3 z-10 rounded-full bg-ink/85 px-2.5 py-1 text-xs font-semibold text-white">{fmt(d)}</span>}
             <CafeCard cafe={c} live={live[c.id]} />
           </div>
         ))}
       </div>
+
+      {pages > 1 && (
+        <nav aria-label="Halaman daftar kafe" className="mt-10 flex flex-col items-center gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-1.5">
+            <button type="button" onClick={() => go(page - 1)} disabled={page === 1} aria-label="Halaman sebelumnya"
+              className="grid h-11 w-11 place-items-center rounded-full border border-line bg-surface disabled:opacity-40">
+              <Icon name="back" className="h-5 w-5" />
+            </button>
+            {pageList(page, pages).map((n, i) => n === "…"
+              ? <span key={`e${i}`} className="px-1 text-muted" aria-hidden>…</span>
+              : (
+                <button key={n} type="button" onClick={() => go(n)} aria-label={`Halaman ${n}`} aria-current={n === page ? "page" : undefined}
+                  className={`grid h-11 min-w-11 place-items-center rounded-full px-3 text-sm font-bold tabular-nums transition-colors ${n === page ? "bg-ink text-white" : "border border-line bg-surface hover:bg-tint"}`}>
+                  {n}
+                </button>
+              ))}
+            <button type="button" onClick={() => go(page + 1)} disabled={page === pages} aria-label="Halaman berikutnya"
+              className="grid h-11 w-11 place-items-center rounded-full bg-ink text-white disabled:opacity-40">
+              <Icon name="chevron" className="h-5 w-5" />
+            </button>
+          </div>
+          <p className="text-sm text-muted">Kafe {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, list.length)} dari {list.length}</p>
+        </nav>
+      )}
     </>
   );
 }
