@@ -3,12 +3,18 @@ import Link from "next/link";
 import Icon from "@/components/Icon";
 import { getSettings } from "@/lib/settings";
 import { INSTAGRAM_URL } from "@/lib/utils";
+import { createPublicClient } from "@/lib/supabase/server";
+import { reportAgo } from "@/lib/reports";
+import type { PublicSupporter } from "@/lib/supporters";
 
 export const metadata: Metadata = {
   title: "Dukung WFC Hunters",
   description: "WFC Hunters gratis dipakai. Dukung pengembangannya lewat Saweria atau Trakteer, atau bantu dengan merekomendasikan kafe dan melapor kondisi.",
   alternates: { canonical: "/dukung" },
 };
+
+// Daftar pendukung diperbarui saat webhook masuk; cadangan: segarkan tiap 5 menit
+export const revalidate = 300;
 
 /** Nama layanan dari link, untuk label tombol. */
 function platformName(url: string) {
@@ -25,7 +31,11 @@ const FREE_WAYS = [
 ];
 
 export default async function SupportPage() {
-  const { support_url: url } = await getSettings();
+  const [{ support_url: url }, { data: supData }] = await Promise.all([
+    getSettings(),
+    createPublicClient().rpc("supporters_public", { p_limit: 60 }), // kosong kalau migrasi 0024 belum dijalankan
+  ]);
+  const supporters = (supData as PublicSupporter[] | null) ?? [];
   const name = url ? platformName(url) : null;
 
   return (
@@ -45,6 +55,26 @@ export default async function SupportPage() {
           </div>
         ) : (
           <p className="mt-7 text-sm text-foam/70">Halaman donasi segera dibuka. Sementara itu, kamu tetap bisa membantu dengan cara di bawah.</p>
+        )}
+      </section>
+
+      <section aria-labelledby="pendukung" className="mt-12">
+        <h2 id="pendukung" className="text-2xl font-bold md:text-3xl">Terima kasih, para pendukung</h2>
+        {supporters.length ? (
+          <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+            {supporters.map((p) => (
+              <li key={p.id} className="flex gap-3 rounded-2xl border border-line bg-surface p-4">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold/20 text-[#8a5a00]"><Icon name="heart" filled className="h-5 w-5" /></span>
+                <span className="min-w-0">
+                  <span className="block font-semibold">{p.name}</span>
+                  {p.message && <span className="mt-0.5 block break-words text-sm text-ink/80">&ldquo;{p.message}&rdquo;</span>}
+                  <span className="mt-1 block text-xs text-muted">{reportAgo(p.created_at)}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-3 rounded-2xl border border-dashed border-line p-6 text-center text-muted">Belum ada pendukung yang tercatat. Jadilah yang pertama.</p>
         )}
       </section>
 
