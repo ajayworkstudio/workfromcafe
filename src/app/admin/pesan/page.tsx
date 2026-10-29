@@ -16,8 +16,9 @@ async function act(formData: FormData) {
   const supabase = await createClient();
   const id = String(formData.get("id"));
   const op = String(formData.get("op"));
+  // Nilai tombol (name/value) tidak ikut terkirim di server action, jadi op dikirim lewat input tersembunyi
   if (op === "delete") await supabase.from("contact_messages").delete().eq("id", id);
-  else await supabase.from("contact_messages").update({ is_read: op === "read" }).eq("id", id);
+  else if (op === "read" || op === "unread") await supabase.from("contact_messages").update({ is_read: op === "read" }).eq("id", id);
   revalidatePath("/admin/pesan");
   revalidatePath("/admin");
 }
@@ -83,11 +84,13 @@ export default async function MessagesAdmin({ searchParams }: { searchParams: Pr
                 <a href={`mailto:${r.email}?subject=${encodeURIComponent("Re: pesanmu ke WFC Hunters")}`} className="btn-primary !py-1.5 text-sm">Balas lewat email</a>
                 <form action={act}>
                   <input type="hidden" name="id" value={r.id} />
-                  <button name="op" value={r.is_read ? "unread" : "read"} className="btn-ghost !py-1.5 text-sm">{r.is_read ? "Tandai belum dibaca" : "Tandai sudah dibaca"}</button>
+                  <input type="hidden" name="op" value={r.is_read ? "unread" : "read"} />
+                  <button className="btn-ghost !py-1.5 text-sm">{r.is_read ? "Tandai belum dibaca" : "Tandai sudah dibaca"}</button>
                 </form>
                 <form action={act}>
                   <input type="hidden" name="id" value={r.id} />
-                  <button name="op" value="delete" className="btn-ghost !py-1.5 text-sm text-[#b4533a]">Hapus</button>
+                  <input type="hidden" name="op" value="delete" />
+                  <button className="btn-ghost !py-1.5 text-sm text-[#b4533a]">Hapus</button>
                 </form>
               </div>
             </li>
