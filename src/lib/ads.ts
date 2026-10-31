@@ -69,3 +69,18 @@ export function activeSub(subs: CafeSubscription[]) {
 
 /** Angka rupiah dari input bebas ("25.000", "Rp25000"). */
 export const parseRupiah = (v: FormDataEntryValue | null) => Number(String(v ?? "").replace(/\D/g, "")) || 0;
+
+/** Tempat iklan di halaman pencarian (lihat tabel ad_placements). */
+export const SEARCH_PLACEMENT = "search_top";
+
+/**
+ * Target lelang dari pencarian pengunjung. Satu target per tayangan supaya satu kafe tidak dihitung dua kali:
+ * kata kunci (atau area, kalau persis nama area kafe) > tag pertama > kota. Tanpa pencarian/filter: tidak ada iklan.
+ */
+export function searchTarget(sp: { q?: string; kota?: string; tag?: string[] }, areas: (string | null)[]): { type: TargetType; value: string } | null {
+  const q = sp.q?.trim().toLowerCase().slice(0, 60);
+  if (q) return { type: areas.some((a) => a?.trim().toLowerCase() === q) ? "area" : "keyword", value: q };
+  if (sp.tag?.length) return { type: "tag", value: sp.tag[0].toLowerCase() };
+  if (sp.kota) return { type: "city", value: sp.kota.toLowerCase() };
+  return null;
+}

@@ -8,7 +8,13 @@ import { CROWD, reportAgo, type LiveSummary } from "@/lib/reports";
 
 const LIVE_DOT = { 1: "bg-ok", 2: "bg-gold", 3: "bg-[#b4533a]" } as const;
 
-export default function CafeCard({ cafe, live }: { cafe: Cafe; /** Ringkasan laporan kondisi 3 jam terakhir */ live?: LiveSummary }) {
+export default function CafeCard({ cafe, live, adHref }: {
+  cafe: Cafe;
+  /** Ringkasan laporan kondisi 3 jam terakhir */
+  live?: LiveSummary;
+  /** Iklan Sponsored: link pencatat klik (/iklan/klik/...). Kartu diberi label dan tidak di-prefetch. */
+  adHref?: string;
+}) {
   const cover = coverThumb(cafe);
   const open = isOpenNow(cafe.opening_hours);
   const tagNames = (cafe.tags ?? []).map((t) => t.tag?.name);
@@ -17,13 +23,16 @@ export default function CafeCard({ cafe, live }: { cafe: Cafe; /** Ringkasan lap
   const hasPlug = tagNames.includes("Colokan") || cafe.amenities?.colokan === true;
   const vibe = (cafe.tags ?? []).map((t) => t.tag).find((t) => t?.type === "vibe");
 
-  return (
-    <Link href={`/kafe/${cafe.slug}`} className="reveal group block min-w-0">
+  const body = (
+    <>
       <div className="relative aspect-[5/4] overflow-hidden rounded-[var(--radius-photo)] bg-tint">
         {cover ? (
           <FadeImage src={cover} alt={cafe.name} fill sizes="(max-width:768px) 100vw, 33vw" className="object-cover transition duration-500 group-hover:scale-[1.03]" />
         ) : (
           <div className="grid h-full place-items-center text-mist"><Icon name="cup" className="h-12 w-12" /></div>
+        )}
+        {adHref && (
+          <span className="absolute right-3 top-3 rounded-full bg-surface/90 px-2.5 py-1 text-xs font-semibold text-ink backdrop-blur">Sponsored</span>
         )}
         {open !== null && (
           <span className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-surface/90 px-2.5 py-1 text-xs font-semibold backdrop-blur">
@@ -59,6 +68,12 @@ export default function CafeCard({ cafe, live }: { cafe: Cafe; /** Ringkasan lap
         {hasWifi && <span className="chip" title="Wifi"><Icon name="wifi" className="h-3.5 w-3.5" />Wifi</span>}
         {hasPlug && <span className="chip" title="Colokan"><Icon name="plug" className="h-3.5 w-3.5" />Colokan</span>}
       </div>
-    </Link>
+    </>
   );
+
+  // <a> biasa untuk iklan: Link akan mem-prefetch rute klik, dan klik bukan dari orang tidak boleh memotong saldo
+  if (adHref) {
+    return <a href={adHref} rel="sponsored nofollow" data-no-transition className="group block min-w-0">{body}</a>;
+  }
+  return <Link href={`/kafe/${cafe.slug}`} className="reveal group block min-w-0">{body}</Link>;
 }

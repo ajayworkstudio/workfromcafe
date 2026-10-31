@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { createHash } from "node:crypto";
 import Link from "next/link";
+import CafeCard from "@/components/CafeCard";
 import { createClient } from "@/lib/supabase/server";
 import NearbyGrid from "@/components/NearbyGrid";
 import AutoFilterForm from "@/components/AutoFilterForm";
@@ -9,6 +12,7 @@ import Image from "next/image";
 import type { Cafe, City, Tag } from "@/lib/types";
 import { CAFE_LIST_SELECT, PRICE_RANGES, isOpenNow } from "@/lib/utils";
 import type { LiveSummary } from "@/lib/reports";
+import { SEARCH_PLACEMENT, searchTarget } from "@/lib/ads";
 
 type SPMeta = Promise<Record<string, string | string[] | undefined>>;
 
@@ -61,6 +65,8 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
   }
   if (sp.buka === "1") cafes = cafes.filter((c) => isOpenNow(c.opening_hours));
   if (sp.sepi === "1") cafes = cafes.filter((c) => live[c.id]?.crowd === 1);
+
+  const sponsored = await sponsoredCafes(supabase, sp, selectedTags, cafes);
 
   const vibe = (tags as Tag[] | null)?.filter((t) => t.type === "vibe") ?? [];
   const facility = (tags as Tag[] | null)?.filter((t) => t.type === "facility") ?? [];
@@ -115,6 +121,18 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
           <p className="text-lg font-bold">{cafes.length} kafe cocok</p>
           {anyFilter && <Link href="/kafe" className="py-2 text-sm font-semibold text-brand hover:underline">Hapus semua filter</Link>}
         </div>
+        {!!sponsored.length && (
+          <section aria-label="Kafe sponsored" className="mt-4">
+            {/* HP: digeser ke samping supaya hasil pencarian tetap terlihat; layar lebar: grid. Label ada di tiap kartu. */}
+            <div className="-mx-2 flex snap-x snap-mandatory gap-4 overflow-x-auto px-2 pb-2 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:gap-5 md:overflow-visible md:px-0">
+              {sponsored.map((s) => (
+                <div key={s.cafe.id} className="w-[78%] shrink-0 snap-start md:w-auto">
+                  <CafeCard cafe={s.cafe} live={live[s.cafe.id]} adHref={s.href} />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
         <NearbyGrid cafes={cafes} live={live} initialPage={Number(sp.hal) || 1} />
         {!cafes.length && (
           <p className="mt-6 rounded-2xl bg-tint p-8 text-center text-muted">
@@ -124,6 +142,39 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
       </section>
     </div>
   );
+}
+
+type Supabase = Awaited<ReturnType<typeof createClient>>;
+
+/**
+ * Lelang slot Sponsored untuk pencarian ini (serve_sponsored memilih pemenang dan mencatat tayangan).
+ * Bot dan halaman lanjutan tidak ikut lelang supaya tayangan tidak menggelembung. Gagal: tampil tanpa iklan.
+ */
+async function sponsoredCafes(supabase: Supabase, sp: { q?: string; kota?: string; hal?: string }, tags: string[], results: Cafe[]) {
+  const target = searchTarget({ q: sp.q, kota: sp.kota, tag: tags }, results.map((c) => c.area));
+  if (!target || Number(sp.hal) > 1) return [];
+  const h = await headers();
+  const ua = h.get("user-agent") ?? "";
+  const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim();
+  if (!ip || /bot|crawl|spider|slurp|preview|facebookexternalhit|whatsapp|headless/i.test(ua)) return [];
+
+  // Pengunjung disamarkan jadi hash; dipakai fungsi klik untuk menolak klik berulang dari orang yang sama
+  const viewer = createHash("sha256").update(`${ip}|${ua}`).digest("hex");
+  const { data: ads, error } = await supabase.rpc("serve_sponsored", {
+    p_placement: SEARCH_PLACEMENT, p_target_type: target.type, p_target_value: target.value,
+    p_viewer_hash: viewer, p_query: sp.q ?? null,
+  });
+  if (error || !ads?.length) return [];
+
+  const rows = ads as { impression_id: number; cafe_id: string; slot: number }[];
+  const { data } = await supabase.from("cafes").select(CAFE_LIST_SELECT).in("id", rows.map((r) => r.cafe_id));
+  const byId = new Map(((data as Cafe[] | null) ?? []).map((c) => [c.id, c]));
+  return rows
+    .sort((a, b) => a.slot - b.slot)
+    .flatMap((r) => {
+      const cafe = byId.get(r.cafe_id);
+      return cafe ? [{ cafe, href: `/iklan/klik/${r.impression_id}?ke=${encodeURIComponent(cafe.slug)}` }] : [];
+    });
 }
 
 /** Chip di kepala kaca. Checkbox/radio asli (tersembunyi) supaya ikut terkirim bersama form dan bisa dipakai dengan keyboard. */
