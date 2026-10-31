@@ -16,6 +16,7 @@ const ITEMS = [
   { href: "/admin/pengguna", label: "Pengguna", icon: "user" },
   { href: "/admin/pelanggan", label: "Pelanggan", icon: "users" },
   { href: "/admin/pendukung", label: "Pendukung", icon: "heart" },
+  { href: "/admin/iklan", label: "Iklan kafe", icon: "wallet" },
   { href: "/admin/backup", label: "Backup", icon: "inbox" },
   { href: "/admin/pengaturan", label: "Pengaturan", icon: "settings" },
 ];
