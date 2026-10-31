@@ -124,6 +124,15 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         <span className="text-sm font-semibold text-brand">Buka →</span>
       </Link>
 
+      <Link href="/pemilik" className="card mt-3 flex items-center gap-4 p-5 transition-colors hover:border-brand">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon name="cup" className="h-5 w-5" /></span>
+        <span className="flex-1">
+          <span className="block font-semibold">Punya kafe?</span>
+          <span className="block text-sm text-muted">Klaim kafemu, pilih paket, dan atur iklan Sponsored.</span>
+        </span>
+        <span className="text-sm font-semibold text-brand">Buka →</span>
+      </Link>
+
       {settings.community_url && <div className="mt-3"><CommunityCard url={settings.community_url} variant="compact" /></div>}
 
       <div id="notifikasi" className="mt-10 scroll-mt-24">
