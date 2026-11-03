@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const s = await getSettings();
   return {
     title: s.events_public ? "Event kerja bareng di kafe" : "Event (segera)",
-    description: "Kerja bareng, cafe hopping, workshop, dan meetup para author WorkFromCafe di kafe-kafe pilihan di Pulau Jawa.",
+    description: "Kerja bareng, cafe hopping, workshop, dan meetup para author WFC Hunters di kafe-kafe pilihan di Pulau Jawa.",
     alternates: { canonical: "/event" },
     robots: s.events_public ? undefined : { index: false, follow: true },
   };

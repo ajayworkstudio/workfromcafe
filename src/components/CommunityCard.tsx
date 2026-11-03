@@ -1,7 +1,7 @@
 import Icon from "./Icon";
 import { INSTAGRAM_URL } from "@/lib/utils";
 
-/** Ajakan gabung komunitas WhatsApp WorkFromCafe. */
+/** Ajakan gabung komunitas WhatsApp WFC Hunters. */
 export default function CommunityCard({ url, variant = "wide", className = "rounded-3xl" }: { url: string; variant?: "wide" | "compact"; className?: string }) {
   if (!url) return null;
   if (variant === "compact") {

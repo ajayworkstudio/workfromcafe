@@ -21,6 +21,8 @@ export const ORGANIZATION = {
   "@type": "Organization",
   "@id": `${SITE_URL}/#organization`,
   name: APP_NAME,
+  // Nama lama dan penulisan lain supaya pencarian merek tetap tersambung
+  alternateName: ["WFCHunters", "WorkFromCafe"],
   url: SITE_URL,
   logo: abs("/logo.png"),
   sameAs: [INSTAGRAM_URL],

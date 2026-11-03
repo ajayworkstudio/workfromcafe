@@ -33,6 +33,9 @@ async function save(f: FormData) {
     excerpt: String(f.get("excerpt") ?? "").trim().slice(0, 300) || null,
     body: String(f.get("body") ?? "").slice(0, 60000),
     cover_url: String(f.get("cover_url") ?? "").trim() || null,
+    cover_alt: String(f.get("cover_alt") ?? "").trim().slice(0, 160) || null,
+    meta_title: String(f.get("meta_title") ?? "").trim().slice(0, 70) || null,
+    meta_description: String(f.get("meta_description") ?? "").trim().slice(0, 170) || null,
     city_id: String(f.get("city_id") ?? "") || null,
     is_published: publish,
     published_at: publish ? (prev?.published_at ?? new Date().toISOString()) : prev?.published_at ?? null,
@@ -82,6 +85,15 @@ export default async function EditArticle({ params, searchParams }: { params: Pr
         </div>
         <div><label htmlFor="e" className="label">Ringkasan untuk Google (maks 300 huruf)</label><textarea id="e" name="excerpt" rows={2} maxLength={300} defaultValue={a?.excerpt ?? ""} className="input" /></div>
         <div><label htmlFor="cv" className="label">Link foto sampul (opsional)</label><input id="cv" name="cover_url" defaultValue={a?.cover_url ?? ""} placeholder="https://…" className="input" /></div>
+        <div><label htmlFor="ca" className="label">Keterangan foto sampul (alt text)</label><input id="ca" name="cover_alt" maxLength={160} defaultValue={a?.cover_alt ?? ""} placeholder="Meja kerja dekat jendela di Kedai Besok Pagi, Semarang" className="input" /></div>
+        <details className="rounded-xl border border-line p-3" open={!!(a?.meta_title || a?.meta_description)}>
+          <summary className="cursor-pointer text-sm font-semibold">Pengaturan Google (opsional)</summary>
+          <p className="mt-1 text-xs text-muted">Kosongkan untuk memakai judul dan ringkasan di atas.</p>
+          <div className="mt-3 space-y-3">
+            <div><label htmlFor="mt" className="label">Judul di Google (maks 60 huruf disarankan)</label><input id="mt" name="meta_title" maxLength={70} defaultValue={a?.meta_title ?? ""} className="input" /></div>
+            <div><label htmlFor="md" className="label">Deskripsi di Google (140 sampai 160 huruf)</label><textarea id="md" name="meta_description" rows={2} maxLength={170} defaultValue={a?.meta_description ?? ""} className="input" /></div>
+          </div>
+        </details>
         <div>
           <p className="label">Isi artikel</p>
           <ArticleEditor defaultValue={a?.body ?? ""} cafes={cafes ?? []} />

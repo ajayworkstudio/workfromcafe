@@ -3,6 +3,9 @@ import AdminBadge from "@/components/AdminBadge";
 import { cache, Suspense } from "react";
 import JsonLd from "@/components/JsonLd";
 import CafeTracker from "@/components/CafeTracker";
+import CafeCard from "@/components/CafeCard";
+import { articlesWithCafe } from "@/lib/articles";
+import { MIN_AREA_CAFES, areaHref, areaSlug } from "@/lib/areas";
 import { breadcrumb, clip } from "@/lib/seo";
 import Image from "next/image";
 import Link from "next/link";
@@ -50,12 +53,14 @@ function describeCafe(cafe: Cafe) {
 export async function generateMetadata({ params }: { params: P }): Promise<Metadata> {
   const { slug } = await params;
   const cafe = await getCafe(slug);
-  if (!cafe) return {};
+  // notFound di metadata: status 404 dikirim sebelum streaming (loading.tsx) mulai, jadi bukan soft 404
+  if (!cafe) notFound();
   const cover = coverUrl(cafe);
-  const title = `${cafe.name}, ${cafe.city?.name ?? ""}: review tempat kerja, wifi & colokan`;
+  const title = `${cafe.name} ${cafe.city?.name ?? ""}: tempat WFC, wifi & colokan`;
   const description = describeCafe(cafe);
   return {
-    title,
+    // Nama kafe panjang: lepas akhiran merek supaya bagian penting tidak terpotong di hasil Google
+    title: `${title} | ${APP_NAME}`.length > 65 ? { absolute: title } : title,
     description,
     alternates: { canonical: `/kafe/${cafe.slug}` },
     openGraph: { type: "article", title, description, url: `/kafe/${cafe.slug}`, images: cover ? [{ url: cover, alt: cafe.name }] : undefined },
@@ -96,6 +101,17 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
       : Promise.resolve({ data: null }),
   ]);
   const reports = (reportRows as CafeReport[] | null) ?? [];
+
+  // Tautan internal: kafe lain di area/kota yang sama dan artikel yang membahas kafe ini
+  const [{ data: siblingRows }, articles] = await Promise.all([
+    supabase.from("cafes").select(CAFE_LIST_SELECT).eq("city_id", cafe.city_id).eq("is_published", true).neq("id", cafe.id)
+      .order("my_rating", { ascending: false, nullsFirst: false }).limit(40),
+    articlesWithCafe(cafe.slug),
+  ]);
+  const siblings = (siblingRows as Cafe[] | null) ?? [];
+  const sameArea = cafe.area ? siblings.filter((c) => c.area && areaSlug(c.area) === areaSlug(cafe.area!)) : [];
+  const related = [...sameArea, ...siblings.filter((c) => !sameArea.includes(c))].slice(0, 3);
+  const areaPage = cafe.area && cafe.city && sameArea.length + 1 >= MIN_AREA_CAFES ? areaHref(cafe.city.slug, cafe.area) : null;
 
   // Fallback ke data saat rekomendasi diterima kalau profil belum publik
   let author: AuthorCard | null = null;
@@ -182,6 +198,7 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
     breadcrumb([
       { name: "Beranda", path: "/" },
       ...(cafe.city ? [{ name: `Kafe di ${cafe.city.name}`, path: `/kota/${cafe.city.slug}` }] : []),
+      ...(areaPage && cafe.area ? [{ name: cafe.area, path: areaPage }] : []),
       { name: cafe.name, path: `/kafe/${cafe.slug}` },
     ]),
   ];
@@ -411,6 +428,29 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
           <Suspense fallback={<div className="mt-12 h-40 animate-pulse rounded-2xl bg-tint" aria-label="Memuat komentar" />}>
             <CafeComments cafeId={cafe.id} slug={cafe.slug} viewerId={viewer.user?.id ?? null} viewerIsAdmin={viewer.isAdmin} contributorId={cafe.contributor_id} />
           </Suspense>
+
+          {!!articles.length && (
+            <section className="mt-12">
+              <h2 className="text-2xl font-bold">Dibahas di artikel</h2>
+              <ul className="mt-2 space-y-1">
+                {articles.slice(0, 4).map((a) => <li key={a.id}><Link href={`/artikel/${a.slug}`} className="inline-flex min-h-11 items-center font-semibold text-brand hover:underline">{a.title}</Link></li>)}
+              </ul>
+            </section>
+          )}
+
+          {!!related.length && (
+            <section className="mt-12">
+              <div className="flex flex-wrap items-end justify-between gap-2">
+                <h2 className="text-2xl font-bold">Kafe lain di {sameArea.length && cafe.area ? cafe.area : cafe.city?.name}</h2>
+                {areaPage
+                  ? <Link href={areaPage} className="py-2 text-sm font-semibold text-brand hover:underline">Semua kafe di {cafe.area}</Link>
+                  : cafe.city && <Link href={`/kota/${cafe.city.slug}`} className="py-2 text-sm font-semibold text-brand hover:underline">Semua kafe di {cafe.city.name}</Link>}
+              </div>
+              <div className="mt-4 grid gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+                {related.map((c) => <CafeCard key={c.id} cafe={c} />)}
+              </div>
+            </section>
+          )}
         </div>
       </div>
     </article>

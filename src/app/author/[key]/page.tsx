@@ -27,7 +27,7 @@ async function findAuthor(key: string) {
 
 export async function generateMetadata({ params }: { params: P }): Promise<Metadata> {
   const a = await findAuthor((await params).key);
-  if (!a) return {};
+  if (!a) notFound();
   const title = `${a.name}: ${a.cafe_count} kafe rekomendasi untuk kerja`;
   const description = a.bio ?? `${a.cafe_count} kafe untuk kerja yang direkomendasikan ${a.name}.`;
   return {

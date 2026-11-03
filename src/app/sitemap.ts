@@ -2,6 +2,8 @@ import type { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { SITE_URL } from "@/lib/utils";
 import { getManualArticles } from "@/lib/articles";
+import { areasOf } from "@/lib/areas";
+import type { Cafe } from "@/lib/types";
 
 export const revalidate = 3600;
 
@@ -21,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return base;
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
   const [{ data: cafes }, { data: cities }, { data: authors }, { data: events }] = await Promise.all([
-    supabase.from("cafes").select("slug,updated_at,city_id").eq("is_published", true),
+    supabase.from("cafes").select("slug,updated_at,city_id,area").eq("is_published", true),
     supabase.from("cities").select("id,slug").eq("is_active", true),
     supabase.rpc("authors_list"),
     supabase.from("events").select("slug,updated_at").eq("is_published", true), // kosong selama menu Event terkunci (RLS)
@@ -42,6 +44,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...(cities ?? [])
       .filter((c) => cityUpdated.has(c.id))
       .map((c) => ({ url: `${SITE_URL}/kota/${c.slug}`, lastModified: cityUpdated.get(c.id), changeFrequency: "weekly" as const, priority: 0.8 })),
+    // Halaman area: hanya area dengan cukup kafe (sama dengan aturan di halaman /kota/[kota]/[area])
+    ...(cities ?? []).flatMap((ci) => {
+      const inCity = (cafes ?? []).filter((c) => c.city_id === ci.id);
+      return areasOf(inCity as unknown as Cafe[]).map((a) => ({
+        url: `${SITE_URL}/kota/${ci.slug}/${a.slug}`, lastModified: cityUpdated.get(ci.id), changeFrequency: "weekly" as const, priority: 0.7,
+      }));
+    }),
     ...(cafes ?? []).map((c) => ({ url: `${SITE_URL}/kafe/${c.slug}`, lastModified: c.updated_at, changeFrequency: "weekly" as const, priority: 0.7 })),
     ...(events?.length ? [{ url: `${SITE_URL}/event`, changeFrequency: "weekly" as const, priority: 0.6 }] : []),
     ...(events ?? []).map((e) => ({ url: `${SITE_URL}/event/${e.slug}`, lastModified: e.updated_at, changeFrequency: "weekly" as const, priority: 0.5 })),

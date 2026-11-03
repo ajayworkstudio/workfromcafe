@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import CafeCard from "@/components/CafeCard";
 import { getManualArticles } from "@/lib/articles";
+import { areasOf } from "@/lib/areas";
 import type { Cafe, City } from "@/lib/types";
 import { CAFE_LIST_SELECT, coverUrl } from "@/lib/utils";
 
@@ -26,7 +27,7 @@ const getCity = cache(async (slug: string) => {
 
 export async function generateMetadata({ params }: { params: P }): Promise<Metadata> {
   const res = await getCity((await params).slug);
-  if (!res) return {};
+  if (!res) notFound();
   const { city, cafes } = res;
   const n = cafes.length;
   const title = `Kafe untuk kerja & nugas di ${city.name}${n ? ` (${n} rekomendasi)` : ""}`;
@@ -50,6 +51,7 @@ export default async function CityPage({ params }: { params: P }) {
   if (!res) notFound();
   const { city, cafes } = res;
   const articles = (await getManualArticles()).filter((a) => a.city_id === city.id);
+  const areas = areasOf(cafes.filter((c) => c.is_published));
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -77,7 +79,20 @@ export default async function CityPage({ params }: { params: P }) {
           ))}
         </nav>
       )}
-      <div className="mt-8 grid gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
+      {!!areas.length && (
+        <section className="mt-6">
+          <h2 className="font-sans text-base font-bold tracking-normal">Kafe per area</h2>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {areas.map((a) => (
+              <Link key={a.slug} href={`/kota/${city.slug}/${a.slug}`} className="flex min-h-11 items-center rounded-full border border-line bg-surface px-4 text-sm font-semibold hover:border-brand">
+                {a.name} <span className="ml-1.5 font-normal text-muted">{a.count}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+      <h2 className="mt-8 text-2xl font-bold">Semua kafe di {city.name}</h2>
+      <div className="mt-4 grid gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
         {cafes.map((c) => <CafeCard key={c.id} cafe={c} />)}
       </div>
       {!cafes.length && (

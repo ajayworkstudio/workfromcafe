@@ -10,7 +10,7 @@ import type { CafePlan } from "@/lib/ads";
 export const revalidate = 600;
 
 export const metadata: Metadata = {
-  title: "Untuk pemilik kafe: pantau audiens & tampil di atas pencarian",
+  title: "Untuk pemilik kafe: pantau audiens kafemu",
   description: "Kafemu sudah ada di WFC Hunters? Klaim halamannya untuk melihat berapa orang yang membuka kafemu, dari mana mereka datang, dan tampil di urutan atas pencarian.",
   alternates: { canonical: "/untuk-kafe" },
 };

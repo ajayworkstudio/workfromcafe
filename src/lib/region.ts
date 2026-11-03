@@ -1,5 +1,5 @@
 /*
-  Cakupan wilayah WorkFromCafe.
+  Cakupan wilayah WFC Hunters.
   Saat ini prioritas kota-kota besar di Pulau Jawa; daftar provinsi bisa ditambah kapan saja.
 */
 

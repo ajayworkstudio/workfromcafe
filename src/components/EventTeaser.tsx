@@ -17,7 +17,7 @@ export default function EventTeaser({ communityUrl }: { communityUrl: string }) 
         <span className="relative inline-flex items-center gap-1.5 rounded-full bg-gold px-3 py-1 text-sm font-bold text-ink">
           <Icon name="lock" className="h-3.5 w-3.5" />Segera
         </span>
-        <h1 className="relative mt-4 max-w-2xl text-4xl font-extrabold leading-[1.05] md:text-5xl">Event WorkFromCafe sedang disiapkan.</h1>
+        <h1 className="relative mt-4 max-w-2xl text-4xl font-extrabold leading-[1.05] md:text-5xl">Event WFC Hunters sedang disiapkan.</h1>
         <p className="relative mt-4 max-w-xl text-lg text-white/75">
           Sebentar lagi kamu bisa ikut acara seru bareng WFC Hunters dan para author di kafe-kafe pilihan.
         </p>

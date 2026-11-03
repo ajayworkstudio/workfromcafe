@@ -46,6 +46,16 @@ export async function middleware(request: NextRequest) {
     console.error("[middleware] Gagal cek sesi Supabase:", e);
   }
 
+  // Kafe / artikel / kota yang tidak ada: jawab 404 asli. Tanpa ini Next mengirim 200 + noindex karena halaman
+  // di-stream (loading.tsx), dan Google mencatatnya sebagai soft 404. Hanya untuk muat halaman penuh
+  // (bukan navigasi di dalam aplikasi, header rsc) supaya perpindahan halaman tetap cepat.
+  const missing = !request.headers.get("rsc") && request.method === "GET" ? await isMissing(path, url, key) : false;
+  if (missing) {
+    const res = NextResponse.rewrite(new URL("/__tidak-ditemukan", request.url), { status: 404 });
+    response.cookies.getAll().forEach((c) => res.cookies.set(c));
+    return res;
+  }
+
   // Halaman yang wajib login
   if (!user && PROTECTED.some((p) => path.startsWith(p))) {
     const login = request.nextUrl.clone();
@@ -63,3 +73,26 @@ export const config = {
     "/((?!_next/static|_next/image|favicon.ico|icons|logo.png|qris.png|opengraph-image|manifest.webmanifest|sw.js|offline.html|robots.txt|speedtest|foto/|sitemap.xml|api/midtrans/notification|api/cron|api/dukungan).*)",
   ],
 };
+
+const DETAIL = [
+  { re: /^\/kafe\/([\w-]+)$/, table: "cafes", extra: "&is_published=eq.true" },
+  { re: /^\/artikel\/([\w-]+)$/, table: "articles", extra: "&is_published=eq.true" },
+  { re: /^\/kota\/([\w-]+)$/, table: "cities", extra: "&is_active=eq.true" },
+] as const;
+
+/** true kalau alamat halaman detail tidak punya baris di database. Gagal cek = anggap ada (jangan sampai 404 palsu). */
+async function isMissing(path: string, url: string, key: string) {
+  const hit = DETAIL.map((d) => ({ d, m: path.match(d.re) })).find((x) => x.m);
+  if (!hit?.m) return false;
+  try {
+    const r = await fetch(`${url}/rest/v1/${hit.d.table}?select=slug&slug=eq.${encodeURIComponent(hit.m[1])}${hit.d.extra}&limit=1`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
+      signal: AbortSignal.timeout(1500),
+    });
+    if (!r.ok) return false;
+    const rows = (await r.json()) as unknown[];
+    return Array.isArray(rows) && rows.length === 0;
+  } catch {
+    return false;
+  }
+}

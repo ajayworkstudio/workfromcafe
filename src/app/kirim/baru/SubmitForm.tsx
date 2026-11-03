@@ -309,7 +309,7 @@ export default function SubmitForm({ userId, defaultName, cities, initial }: { u
           <p className="order-2 max-w-md text-xs text-muted sm:order-1">
             {initial?.live ? "Perubahan langsung tampil di halaman kafe. Pastikan ulasan & foto ini milikmu."
               : initial?.resubmit ? "Rekomendasi akan dikirim ulang dan dicek admin lagi."
-              : "Dengan mengirim, kamu setuju ulasan & foto ini milikmu dan boleh ditampilkan WorkFromCafe dengan namamu sebagai author."}
+              : "Dengan mengirim, kamu setuju ulasan & foto ini milikmu dan boleh ditampilkan WFC Hunters dengan namamu sebagai author."}
           </p>
           <Submit disabled={uploading > 0} label={initial ? (initial.resubmit ? "Kirim ulang" : "Simpan perubahan") : "Kirim rekomendasi"} />
         </div>

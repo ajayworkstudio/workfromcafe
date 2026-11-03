@@ -177,7 +177,7 @@ export default async function SubmissionDetail({ params, searchParams }: { param
               <form action={rejectSubmission} className="card space-y-3 p-5">
                 <input type="hidden" name="id" value={s.id} />
                 <label htmlFor="note" className="label">Alasan menolak (dilihat author)</label>
-                <textarea id="note" name="note" rows={3} maxLength={500} placeholder="Contoh: Kafe ini sudah ada di WorkFromCafe. Terima kasih!" className="input" />
+                <textarea id="note" name="note" rows={3} maxLength={500} placeholder="Contoh: Kafe ini sudah ada di WFC Hunters. Terima kasih!" className="input" />
                 <SubmitButton className="btn-ghost w-full">Tolak</SubmitButton>
               </form>
             </>

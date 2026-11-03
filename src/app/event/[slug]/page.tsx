@@ -10,7 +10,7 @@ import Icon from "@/components/Icon";
 import JsonLd from "@/components/JsonLd";
 import { clip } from "@/lib/seo";
 import { EVENT_SELECT, eventDate, kindMeta, type WfcEvent } from "@/lib/events";
-import { SITE_URL, cdnPhoto } from "@/lib/utils";
+import { APP_NAME, SITE_URL, cdnPhoto } from "@/lib/utils";
 
 type P = Promise<{ slug: string }>;
 
@@ -58,7 +58,7 @@ export default async function EventDetail({ params }: { params: P }) {
           eventStatus: "https://schema.org/EventScheduled",
           image: e.cover_url ? [e.cover_url] : undefined,
           location: { "@type": "Place", name: where ?? e.city?.name, address: { "@type": "PostalAddress", streetAddress: e.cafe?.address ?? undefined, addressLocality: e.city?.name, addressCountry: "ID" } },
-          organizer: { "@type": "Organization", name: "WorkFromCafe", url: SITE_URL },
+          organizer: { "@type": "Organization", name: APP_NAME, url: SITE_URL },
           offers: e.register_url ? { "@type": "Offer", url: e.register_url, price: /gratis/i.test(e.price ?? "") ? 0 : undefined, priceCurrency: "IDR", availability: "https://schema.org/InStock" } : undefined,
         }} />
       )}

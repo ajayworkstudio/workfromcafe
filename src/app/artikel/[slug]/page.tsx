@@ -10,7 +10,7 @@ import { abs, breadcrumb, clip, ORGANIZATION } from "@/lib/seo";
 import { cafesBySlugs, embeddedSlugs, getManualArticles, type ManualArticle } from "@/lib/articles";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/auth";
-import { APP_NAME, SITE_URL } from "@/lib/utils";
+import { APP_NAME, SITE_URL, coverUrl } from "@/lib/utils";
 
 type P = Promise<{ slug: string }>;
 
@@ -18,12 +18,16 @@ const find = cache(async (slug: string) => (await getManualArticles()).find((a) 
 
 export async function generateMetadata({ params }: { params: P }): Promise<Metadata> {
   const a = await find((await params).slug);
-  if (!a) return {};
-  const d = clip(a.excerpt || a.body.replace(/\[\[kafe:[\w-]+\]\]|[#*[\]()]/g, ""));
+  if (!a) notFound();
+  const d = clip(a.meta_description || a.excerpt || a.body.replace(/\[\[kafe:[\w-]+\]\]|[#*[\]()]/g, ""));
+  const title = a.meta_title || a.title;
+  // Tanpa foto sampul: pakai foto kafe pertama yang disisipkan, lalu gambar bawaan situs
+  const image = a.cover_url || (await cafesBySlugs(embeddedSlugs(a.body).slice(0, 1))).map((c) => coverUrl(c)).find(Boolean) || "/opengraph-image.png";
   return {
-    title: a.title, description: d, alternates: { canonical: `/artikel/${a.slug}` },
-    openGraph: { type: "article", title: a.title, description: d, url: `/artikel/${a.slug}`, images: a.cover_url ? [{ url: a.cover_url }] : undefined },
-    twitter: { card: "summary_large_image", title: a.title, description: d, images: a.cover_url ? [a.cover_url] : undefined },
+    title, description: d, alternates: { canonical: `/artikel/${a.slug}` },
+    openGraph: { type: "article", title, description: d, url: `/artikel/${a.slug}`, images: [{ url: image, alt: a.cover_alt || a.title }],
+      publishedTime: a.published_at ?? a.created_at, modifiedTime: a.updated_at },
+    twitter: { card: "summary_large_image", title, description: d, images: [image] },
   };
 }
 
@@ -52,8 +56,8 @@ export default async function ArticlePage({ params }: { params: P }) {
       <JsonLd data={[
         breadcrumb([{ name: "Beranda", path: "/" }, { name: "Artikel", path: "/artikel" }, { name: a.title, path: `/artikel/${a.slug}` }]),
         {
-          "@context": "https://schema.org", "@type": "Article", headline: a.title, description: a.excerpt ?? undefined,
-          image: a.cover_url ? [abs(a.cover_url)] : undefined, datePublished: a.published_at ?? a.created_at, dateModified: a.updated_at,
+          "@context": "https://schema.org", "@type": "BlogPosting", headline: a.title, description: a.meta_description || a.excerpt || undefined,
+          image: a.cover_url ? [abs(a.cover_url)] : cafes.map((c) => coverUrl(c)).filter(Boolean).slice(0, 1), datePublished: a.published_at ?? a.created_at, dateModified: a.updated_at,
           author: { "@type": "Organization", name: APP_NAME, url: SITE_URL }, publisher: ORGANIZATION, mainEntityOfPage: url,
           ...(a.like_count ? { interactionStatistic: { "@type": "InteractionCounter", interactionType: "https://schema.org/LikeAction", userInteractionCount: a.like_count } } : {}),
         },
@@ -67,7 +71,7 @@ export default async function ArticlePage({ params }: { params: P }) {
       <div className="mt-4">{actions(true)}</div>
       {a.cover_url && (
         <div className="relative mt-6 aspect-[16/9] overflow-hidden rounded-[var(--radius-photo)] bg-tint">
-          <FadeImage src={a.cover_url} alt="" fill priority sizes="(max-width:768px) 100vw, 768px" className="object-cover" />
+          <FadeImage src={a.cover_url} alt={a.cover_alt || a.title} fill priority sizes="(max-width:768px) 100vw, 768px" className="object-cover" />
         </div>
       )}
       {a.excerpt && <p className="mt-6 text-lg font-medium text-ink">{a.excerpt}</p>}
