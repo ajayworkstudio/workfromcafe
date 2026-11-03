@@ -10,6 +10,7 @@ export type ManualArticle = {
   city_id: string | null; is_published: boolean; published_at: string | null; updated_at: string; created_at: string;
   view_count?: number; like_count?: number;
   meta_title?: string | null; meta_description?: string | null; cover_alt?: string | null;
+  line_spacing?: string | null; paragraph_spacing?: string | null;
 };
 
 export async function getManualArticles() {

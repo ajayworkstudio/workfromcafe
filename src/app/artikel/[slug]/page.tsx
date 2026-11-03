@@ -4,7 +4,7 @@ import { cache } from "react";
 import { notFound } from "next/navigation";
 import JsonLd from "@/components/JsonLd";
 import FadeImage from "@/components/FadeImage";
-import ArticleBody from "@/components/ArticleBody";
+import ArticleBody, { asSpacing } from "@/components/ArticleBody";
 import ArticleActions from "@/components/ArticleActions";
 import { abs, breadcrumb, clip, ORGANIZATION } from "@/lib/seo";
 import { cafesBySlugs, embeddedSlugs, getManualArticles, type ManualArticle } from "@/lib/articles";
@@ -75,7 +75,7 @@ export default async function ArticlePage({ params }: { params: P }) {
         </div>
       )}
       {a.excerpt && <p className="mt-6 text-lg font-medium text-ink">{a.excerpt}</p>}
-      <div className="mt-6"><ArticleBody body={a.body} cafes={cafes} /></div>
+      <div className="mt-6"><ArticleBody body={a.body} cafes={cafes} line={asSpacing(a.line_spacing)} gap={asSpacing(a.paragraph_spacing)} /></div>
 
       <div className="mt-10 border-t border-line pt-5">
         <p className="mb-3 font-semibold">Bermanfaat? Simpan atau bagikan ke teman kerjamu.</p>

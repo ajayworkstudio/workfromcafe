@@ -7,6 +7,7 @@ import Flash from "@/components/admin/Flash";
 import SubmitButton from "@/components/admin/SubmitButton";
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import ArticleEditor from "@/components/admin/ArticleEditor";
+import { asSpacing } from "@/components/ArticleBody";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import type { ManualArticle } from "@/lib/articles";
@@ -36,6 +37,8 @@ async function save(f: FormData) {
     cover_alt: String(f.get("cover_alt") ?? "").trim().slice(0, 160) || null,
     meta_title: String(f.get("meta_title") ?? "").trim().slice(0, 70) || null,
     meta_description: String(f.get("meta_description") ?? "").trim().slice(0, 170) || null,
+    line_spacing: asSpacing(f.get("line_spacing")),
+    paragraph_spacing: asSpacing(f.get("paragraph_spacing")),
     city_id: String(f.get("city_id") ?? "") || null,
     is_published: publish,
     published_at: publish ? (prev?.published_at ?? new Date().toISOString()) : prev?.published_at ?? null,
@@ -96,7 +99,7 @@ export default async function EditArticle({ params, searchParams }: { params: Pr
         </details>
         <div>
           <p className="label">Isi artikel</p>
-          <ArticleEditor defaultValue={a?.body ?? ""} cafes={cafes ?? []} />
+          <ArticleEditor defaultValue={a?.body ?? ""} cafes={cafes ?? []} line={asSpacing(a?.line_spacing)} gap={asSpacing(a?.paragraph_spacing)} />
           <details className="mt-2 rounded-xl bg-tint p-3 text-sm">
             <summary className="cursor-pointer font-semibold">Cara menulis</summary>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-muted">

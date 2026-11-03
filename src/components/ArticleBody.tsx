@@ -29,16 +29,24 @@ function inline(text: string, key: string) {
   return parts;
 }
 
-export default function ArticleBody({ body, cafes, placeholders }: {
+export type Spacing = "rapat" | "normal" | "lega";
+const LINE: Record<Spacing, string> = { rapat: "leading-snug", normal: "leading-relaxed", lega: "leading-[1.9]" };
+const GAP: Record<Spacing, string> = { rapat: "space-y-3", normal: "space-y-5", lega: "space-y-8" };
+export const asSpacing = (v: unknown): Spacing => (v === "rapat" || v === "lega" ? v : "normal");
+
+export default function ArticleBody({ body, cafes, placeholders, line = "normal", gap = "normal" }: {
   body: string;
   cafes: Cafe[];
+  /** Jarak antarbaris dan antarparagraf, diatur per artikel di editor */
+  line?: Spacing;
+  gap?: Spacing;
   /** Pratinjau editor: tampilkan kotak nama kafe sebagai pengganti kartu */
   placeholders?: Map<string, string>;
 }) {
   const bySlug = new Map(cafes.map((c) => [c.slug, c]));
   const blocks = body.replace(/\r/g, "").split(/\n{2,}/).map((b) => b.trim()).filter(Boolean);
   return (
-    <div className="space-y-5 text-[17px] leading-relaxed text-ink/90">
+    <div className={`${GAP[gap]} ${LINE[line]} text-[17px] text-ink/90`}>
       {blocks.map((b, i) => {
         const k = `b${i}`;
         const embed = b.match(/^\[\[kafe:([\w-]+)\]\]$/);

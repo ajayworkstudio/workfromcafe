@@ -1,7 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import ArticleBody from "@/components/ArticleBody";
+import ArticleBody, { type Spacing } from "@/components/ArticleBody";
 
 type CafeOpt = { slug: string; name: string };
 
@@ -9,8 +9,15 @@ type CafeOpt = { slug: string; name: string };
  * Kolom isi artikel dengan toolbar (judul bagian, tebal, link, daftar, sisipkan kafe) dan pratinjau.
  * Tetap textarea biasa bernama "body", jadi ikut terkirim bersama form tanpa JavaScript tambahan.
  */
-export default function ArticleEditor({ defaultValue, cafes }: { defaultValue: string; cafes: CafeOpt[] }) {
+const SPACINGS: Spacing[] = ["rapat", "normal", "lega"];
+const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
+
+export default function ArticleEditor({ defaultValue, cafes, line: line0 = "normal", gap: gap0 = "normal" }: {
+  defaultValue: string; cafes: CafeOpt[]; line?: Spacing; gap?: Spacing;
+}) {
   const [text, setText] = useState(defaultValue);
+  const [line, setLine] = useState<Spacing>(line0);
+  const [gap, setGap] = useState<Spacing>(gap0);
   const [tab, setTab] = useState<"tulis" | "pratinjau">("tulis");
   const [cafe, setCafe] = useState("");
   const ref = useRef<HTMLTextAreaElement>(null);
@@ -63,6 +70,22 @@ export default function ArticleEditor({ defaultValue, cafes }: { defaultValue: s
         ))}
       </div>
 
+      <div className="flex flex-wrap gap-x-5 gap-y-2 border-b border-line px-3 py-2">
+        {([["line_spacing", "Jarak baris", line, setLine], ["paragraph_spacing", "Jarak paragraf", gap, setGap]] as const).map(([name, label, value, set]) => (
+          <fieldset key={name} className="flex items-center gap-2">
+            <legend className="sr-only">{label}</legend>
+            <span aria-hidden className="text-sm text-muted">{label}</span>
+            <div className="flex rounded-full border border-line bg-tint/60 p-0.5">
+              {SPACINGS.map((v) => (
+                <label key={v} className={`flex min-h-11 cursor-pointer items-center rounded-full px-3.5 text-sm font-semibold has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand ${value === v ? "bg-surface text-ink shadow-sm" : "text-muted hover:text-ink"}`}>
+                  <input type="radio" name={name} value={v} checked={value === v} onChange={() => set(v)} className="sr-only" />{cap(v)}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        ))}
+      </div>
+
       {tab === "tulis" ? (
         <>
           <label htmlFor="b" className="sr-only">Isi artikel</label>
@@ -84,7 +107,7 @@ export default function ArticleEditor({ defaultValue, cafes }: { defaultValue: s
           {/* Saat pratinjau, isi tetap ikut terkirim */}
           <input type="hidden" name="body" value={text} />
           <div className="min-h-64 p-5">
-            {text.trim() ? <ArticleBody body={text} cafes={[]} placeholders={new Map(cafes.map((c) => [c.slug, c.name]))} />
+            {text.trim() ? <ArticleBody body={text} cafes={[]} line={line} gap={gap} placeholders={new Map(cafes.map((c) => [c.slug, c.name]))} />
               : <p className="text-muted">Belum ada isi.</p>}
           </div>
         </>
