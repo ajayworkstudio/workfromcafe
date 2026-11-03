@@ -19,10 +19,11 @@ const find = cache(async (slug: string) => (await getManualArticles()).find((a) 
 export async function generateMetadata({ params }: { params: P }): Promise<Metadata> {
   const a = await find((await params).slug);
   if (!a) notFound();
-  const d = clip(a.meta_description || a.excerpt || a.body.replace(/\[\[kafe:[\w-]+\]\]|[#*[\]()]/g, ""));
+  const d = clip(a.meta_description || a.excerpt || a.body.replace(/!\[[^\]]*\]\([^)]*\)|\[(?:kiri|tengah|kanan)\]|\[\[kafe:[\w-]+\]\]|[#*[\]()]/g, ""));
   const title = a.meta_title || a.title;
-  // Tanpa foto sampul: pakai foto kafe pertama yang disisipkan, lalu gambar bawaan situs
-  const image = a.cover_url || (await cafesBySlugs(embeddedSlugs(a.body).slice(0, 1))).map((c) => coverUrl(c)).find(Boolean) || "/opengraph-image.png";
+  // Tanpa foto sampul: pakai gambar pertama di isi, foto kafe pertama yang disisipkan, lalu gambar bawaan situs
+  const bodyImage = a.body.match(/^(?:\[(?:kiri|tengah|kanan)\][ \t]*)?!\[[^\]]*\]\((https:\/\/[^\s)]+)\)$/m)?.[1];
+  const image = a.cover_url || bodyImage || (await cafesBySlugs(embeddedSlugs(a.body).slice(0, 1))).map((c) => coverUrl(c)).find(Boolean) || "/opengraph-image.png";
   return {
     title, description: d, alternates: { canonical: `/artikel/${a.slug}` },
     openGraph: { type: "article", title, description: d, url: `/artikel/${a.slug}`, images: [{ url: image, alt: a.cover_alt || a.title }],

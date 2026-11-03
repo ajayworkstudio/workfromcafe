@@ -6,7 +6,7 @@ import {
   EyeSlash, ArrowLeft, Image, BookOpenText, InstagramLogo, Crosshair, Gift, Table, Gauge, SpeakerHigh,
   Armchair, Sparkle, Smiley, Wallet, Car, Moon, ForkKnife, Snowflake, Tree, Cigarette, Desk, PawPrint,
   MusicNotes, PlugCharging, CalendarBlank, ChatCircle, PaperPlaneTilt, Tray, X, CaretRight, Sliders, ArrowRight,
-  CaretLeft, Export, Link, FacebookLogo, Question, Coffee,
+  CaretLeft, Export, Link, FacebookLogo, Question, Coffee, TextAlignLeft, TextAlignCenter, TextAlignRight, ImageSquare,
 } from "@phosphor-icons/react/ssr";
 import type { Icon as PhIcon } from "@phosphor-icons/react";
 
@@ -21,6 +21,7 @@ const icons: Record<string, PhIcon> = {
   paw: PawPrint, music: MusicNotes, calendar: CalendarBlank, chat: ChatCircle, send: PaperPlaneTilt,
   inbox: Tray, x: X, chevron: CaretRight, sliders: Sliders, arrow: ArrowRight, back: CaretLeft,
   share: Export, link: Link, facebook: FacebookLogo, help: Question, cup: Coffee,
+  alignLeft: TextAlignLeft, alignCenter: TextAlignCenter, alignRight: TextAlignRight, picture: ImageSquare,
 };
 
 export default function Icon({ name, className = "h-5 w-5", filled = false, duo = false }: { name: string; className?: string; filled?: boolean; duo?: boolean }) {

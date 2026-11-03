@@ -2,11 +2,14 @@
 import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import ArticleBody, { type Spacing } from "@/components/ArticleBody";
+import Icon from "@/components/Icon";
+import { createClient } from "@/lib/supabase/client";
+import { compressImage, uniqueName } from "@/lib/compressImage";
 
 type CafeOpt = { slug: string; name: string };
 
 /**
- * Kolom isi artikel dengan toolbar (judul bagian, tebal, link, daftar, sisipkan kafe) dan pratinjau.
+ * Kolom isi artikel dengan toolbar (judul bagian, tebal, link, daftar, perataan, gambar, sisipkan kafe) dan pratinjau.
  * Tetap textarea biasa bernama "body", jadi ikut terkirim bersama form tanpa JavaScript tambahan.
  */
 const SPACINGS: Spacing[] = ["rapat", "normal", "lega"];
@@ -21,14 +24,17 @@ export default function ArticleEditor({ defaultValue, cafes, line: line0 = "norm
   const [tab, setTab] = useState<"tulis" | "pratinjau">("tulis");
   const [cafe, setCafe] = useState("");
   const ref = useRef<HTMLTextAreaElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [imgErr, setImgErr] = useState<string | null>(null);
 
   // Bungkus teks yang dipilih (atau sisipkan contoh) lalu kembalikan kursor ke dalamnya
   function apply(fn: (sel: string) => { text: string; select?: [number, number] }) {
     const el = ref.current;
     if (!el) return;
     const [a, b] = [el.selectionStart, el.selectionEnd];
-    const r = fn(text.slice(a, b));
-    const next = text.slice(0, a) + r.text + text.slice(b);
+    const cur = el.value; // isi terbaru, juga saat dipanggil setelah unggah gambar selesai
+    const r = fn(cur.slice(a, b));
+    const next = cur.slice(0, a) + r.text + cur.slice(b);
     // Langsung (tanpa menunggu frame berikutnya) supaya huruf yang diketik setelah menekan tombol tidak hilang
     flushSync(() => setText(next));
     el.focus();
@@ -38,10 +44,52 @@ export default function ArticleEditor({ defaultValue, cafes, line: line0 = "norm
   // Blok (judul, daftar, kartu kafe) selalu di baris sendiri dengan baris kosong di sekitarnya
   const block = (s: string) => {
     const el = ref.current!;
-    const before = text.slice(0, el.selectionStart);
+    const before = el.value.slice(0, el.selectionStart);
     const pre = !before || before.endsWith("\n\n") ? "" : before.endsWith("\n") ? "\n" : "\n\n";
     return pre + s + "\n\n";
   };
+
+  // Perataan berlaku untuk satu blok (dipisah baris kosong) tempat kursor berada
+  function align(to: "kiri" | "tengah" | "kanan") {
+    const el = ref.current;
+    if (!el) return;
+    const pos = el.selectionStart;
+    const s0 = text.lastIndexOf("\n\n", Math.max(0, pos - 1));
+    const start = s0 < 0 ? 0 : s0 + 2;
+    const e0 = text.indexOf("\n\n", pos);
+    const end = e0 < 0 ? text.length : e0;
+    const blockText = text.slice(start, end);
+    const bare = blockText.replace(/^\[(kiri|tengah|kanan)\][ \t]*/, "");
+    const next = (to === "kiri" ? "" : `[${to}] `) + bare;
+    flushSync(() => setText(text.slice(0, start) + next + text.slice(end)));
+    el.focus();
+    const c = Math.min(start + next.length, Math.max(start, pos + next.length - blockText.length));
+    el.setSelectionRange(c, c);
+  }
+
+  async function addImage(file?: File) {
+    if (!file) return;
+    const el = ref.current;
+    const at = el ? el.selectionStart : text.length;
+    setUploading(true); setImgErr(null);
+    try {
+      const supabase = createClient();
+      const path = uniqueName("articles");
+      const { error } = await supabase.storage.from("cafe-photos").upload(path, await compressImage(file), { contentType: "image/webp" });
+      if (error) throw error;
+      const url = supabase.storage.from("cafe-photos").getPublicUrl(path).data.publicUrl;
+      const md = `![Keterangan gambar](${url})`;
+      // Pindah ke Pratinjau saat mengunggah: kolom tulis tidak ada, jadi gambar ditaruh di akhir
+      if (!ref.current) { setText((t) => `${t.trimEnd()}\n\n${md}\n\n`); return; }
+      ref.current.setSelectionRange(at, at);
+      // Keterangan langsung terpilih supaya bisa diketik ulang (dipakai sebagai alt untuk Google)
+      apply(() => { const t = block(md); const i = t.indexOf("![") + 2; return { text: t, select: [i, i + 17] }; });
+    } catch (e) {
+      setImgErr(`Gambar gagal diunggah: ${(e as Error).message}`);
+    } finally {
+      setUploading(false);
+    }
+  }
 
   const tools: { label: string; title: string; run: () => void }[] = [
     { label: "Judul", title: "Judul bagian (##)", run: () => apply((s) => { const t = block(`## ${s || "Judul bagian"}`); return { text: t, select: [t.indexOf("## ") + 3, t.indexOf("## ") + 3 + (s || "Judul bagian").length] }; }) },
@@ -68,7 +116,22 @@ export default function ArticleEditor({ defaultValue, cafes, line: line0 = "norm
             {t.label}
           </button>
         ))}
+        {tab === "tulis" && (
+          <>
+            {([["kiri", "alignLeft", "Rata kiri"], ["tengah", "alignCenter", "Rata tengah"], ["kanan", "alignRight", "Rata kanan"]] as const).map(([v, icon, label]) => (
+              <button key={v} type="button" title={label} aria-label={label} onClick={() => align(v)}
+                className="grid min-h-11 min-w-11 place-items-center rounded-xl border border-line bg-surface hover:border-brand">
+                <Icon name={icon} className="h-5 w-5" />
+              </button>
+            ))}
+            <label title="Sisipkan gambar" className={`flex min-h-11 cursor-pointer items-center gap-1.5 rounded-xl border border-line bg-surface px-3 text-sm font-semibold hover:border-brand has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand ${uploading ? "opacity-60" : ""}`}>
+              <Icon name="picture" className="h-5 w-5" />{uploading ? "Mengunggah…" : "Gambar"}
+              <input type="file" accept="image/*" className="sr-only" disabled={uploading} onChange={(e) => { addImage(e.target.files?.[0]); e.target.value = ""; }} />
+            </label>
+          </>
+        )}
       </div>
+      {imgErr && <p role="alert" className="border-b border-line bg-[#fbeae5] px-3 py-2 text-sm text-[#8c3b25]">{imgErr}</p>}
 
       <div className="flex flex-wrap gap-x-5 gap-y-2 border-b border-line px-3 py-2">
         {([["line_spacing", "Jarak baris", line, setLine], ["paragraph_spacing", "Jarak paragraf", gap, setGap]] as const).map(([name, label, value, set]) => (

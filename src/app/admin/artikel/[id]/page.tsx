@@ -106,6 +106,8 @@ export default async function EditArticle({ params, searchParams }: { params: Pr
               <li>Pakai tombol di atas kolom, atau ketik langsung: baris kosong memisahkan paragraf.</li>
               <li><code>## Judul bagian</code> dan <code>### Sub judul</code> di awal baris.</li>
               <li><code>- butir</code> untuk daftar, <code>**tebal**</code>, <code>[teks](https://link)</code>. Link ke halaman sendiri cukup <code>[teks](/kota/semarang)</code>.</li>
+              <li>Rata tengah atau kanan: taruh kursor di paragraf, judul, atau gambar, lalu tekan tombol perataan. Di teks muncul penanda <code>[tengah]</code> atau <code>[kanan]</code> di awal blok.</li>
+              <li>Gambar: tekan Gambar lalu pilih foto. Ganti <code>Keterangan gambar</code> dengan penjelasan isi foto, karena teks itu dibaca Google dan tampil di bawah gambar.</li>
               <li>Kartu kafe: pilih kafe di bawah kolom lalu tekan Sisipkan, atau ketik <code>[[kafe:slug-kafe]]</code> di baris sendiri.</li>
             </ul>
           </details>

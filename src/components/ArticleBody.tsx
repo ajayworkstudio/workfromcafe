@@ -7,6 +7,8 @@ import type { Cafe } from "@/lib/types";
   ## Judul bagian      ### Sub judul      - butir daftar
   **tebal**            [teks](https://link)
   [[kafe:slug-kafe]]   di baris sendiri: kartu kafe dari database
+  ![keterangan](https://…)  di baris sendiri: gambar, keterangannya jadi alt dan teks di bawah gambar
+  [tengah] atau [kanan] di awal paragraf/judul/gambar: perataan (tanpa penanda = rata kiri)
   Baris kosong memisahkan paragraf. Semua teks di-escape oleh React, tidak ada HTML mentah.
 */
 
@@ -47,8 +49,22 @@ export default function ArticleBody({ body, cafes, placeholders, line = "normal"
   const blocks = body.replace(/\r/g, "").split(/\n{2,}/).map((b) => b.trim()).filter(Boolean);
   return (
     <div className={`${GAP[gap]} ${LINE[line]} text-[17px] text-ink/90`}>
-      {blocks.map((b, i) => {
+      {blocks.map((raw, i) => {
         const k = `b${i}`;
+        const am = raw.match(/^\[(kiri|tengah|kanan)\][ \t]*/);
+        const b = am ? raw.slice(am[0].length) : raw;
+        const al = am?.[1] === "tengah" ? "text-center" : am?.[1] === "kanan" ? "text-right" : "";
+        const img = b.match(/^!\[([^\]]*)\]\(((?:https:\/\/|\/)[^\s)]+)\)$/);
+        if (img) {
+          return (
+            <figure key={k} className={`my-6 ${al}`}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={img[2]} alt={img[1]} loading="lazy" decoding="async"
+                className={`max-h-[70vh] max-w-full rounded-[var(--radius-photo)] bg-tint ${am?.[1] === "tengah" ? "mx-auto" : am?.[1] === "kanan" ? "ml-auto" : ""}`} />
+              {img[1] && <figcaption className="mt-2 text-sm text-muted">{img[1]}</figcaption>}
+            </figure>
+          );
+        }
         const embed = b.match(/^\[\[kafe:([\w-]+)\]\]$/);
         if (embed) {
           const c = bySlug.get(embed[1]);
@@ -58,13 +74,13 @@ export default function ArticleBody({ body, cafes, placeholders, line = "normal"
           }
           return c ? <div key={k} className="not-prose my-6 max-w-sm"><CafeCard cafe={c} /></div> : null;
         }
-        if (b.startsWith("### ")) return <h3 key={k} className="pt-2 font-sans text-xl font-bold tracking-normal text-ink">{inline(b.slice(4), k)}</h3>;
-        if (b.startsWith("## ")) return <h2 key={k} className="pt-4 text-2xl font-bold text-ink">{inline(b.slice(3), k)}</h2>;
+        if (b.startsWith("### ")) return <h3 key={k} className={`${al} pt-2 font-sans text-xl font-bold tracking-normal text-ink`}>{inline(b.slice(4), k)}</h3>;
+        if (b.startsWith("## ")) return <h2 key={k} className={`${al} pt-4 text-2xl font-bold text-ink`}>{inline(b.slice(3), k)}</h2>;
         const lines = b.split("\n");
         if (lines.every((l) => /^[-*] /.test(l))) {
-          return <ul key={k} className="list-disc space-y-1.5 pl-6">{lines.map((l, j) => <li key={j}>{inline(l.slice(2), `${k}-${j}`)}</li>)}</ul>;
+          return <ul key={k} className={`list-disc space-y-1.5 ${al ? `${al} list-inside` : "pl-6"}`}>{lines.map((l, j) => <li key={j}>{inline(l.slice(2), `${k}-${j}`)}</li>)}</ul>;
         }
-        return <p key={k}>{lines.flatMap((l, j) => (j ? [<br key={`br${j}`} />, ...inline(l, `${k}-${j}`)] : inline(l, `${k}-${j}`)))}</p>;
+        return <p key={k} className={al || undefined}>{lines.flatMap((l, j) => (j ? [<br key={`br${j}`} />, ...inline(l, `${k}-${j}`)] : inline(l, `${k}-${j}`)))}</p>;
       })}
     </div>
   );
