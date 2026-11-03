@@ -6,7 +6,7 @@ import StatsPanel, { PeriodTabs } from "@/components/StatsPanel";
 import PrintButton from "@/components/PrintButton";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/auth";
-import { getAutoArticles } from "@/lib/articles";
+import { articlesWithCafe } from "@/lib/articles";
 import { SITE_URL } from "@/lib/utils";
 import { SOURCE_LABEL, periodOf, sumActions, type CafeStats, type Source } from "@/lib/stats";
 
@@ -24,10 +24,9 @@ export default async function CafeReport({ params, searchParams }: { params: Pro
   if (!viewer.user) redirect(`/masuk?next=/laporan/${id}`);
   const days = periodOf(sp.hari);
   const supabase = await createClient();
-  const [{ data: cafe }, { data: stats, error }, articles, { data: owner }] = await Promise.all([
+  const [{ data: cafe }, { data: stats, error }, { data: owner }] = await Promise.all([
     supabase.from("cafes").select("id,name,slug,area,city:cities(name,slug)").eq("id", id).maybeSingle(),
     supabase.rpc("cafe_stats", { p_cafe_id: id, p_days: days }),
-    getAutoArticles(),
     supabase.from("cafe_owners").select("id").eq("cafe_id", id).not("verified_at", "is", null).limit(1),
   ]);
   if (!cafe) notFound();
@@ -48,7 +47,7 @@ export default async function CafeReport({ params, searchParams }: { params: Pro
   const s = stats as CafeStats;
   const end = new Date();
   const start = new Date(Date.now() - (days - 1) * 864e5);
-  const featured = articles.filter((a) => a.cafes.some((x) => x.id === id));
+  const featured = await articlesWithCafe(c.slug);
   const topSource = (Object.entries(s.sources) as [Source, number][]).sort((a, b) => b[1] - a[1])[0];
   const hasOwner = !!owner?.length;
   const actions = sumActions(s);

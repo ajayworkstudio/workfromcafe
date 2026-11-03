@@ -6,7 +6,7 @@ import { abs, breadcrumb, clip } from "@/lib/seo";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import CafeCard from "@/components/CafeCard";
-import { getAutoArticles } from "@/lib/articles";
+import { getManualArticles } from "@/lib/articles";
 import type { Cafe, City } from "@/lib/types";
 import { CAFE_LIST_SELECT, coverUrl } from "@/lib/utils";
 
@@ -49,7 +49,7 @@ export default async function CityPage({ params }: { params: P }) {
   const res = await getCity((await params).slug);
   if (!res) notFound();
   const { city, cafes } = res;
-  const articles = (await getAutoArticles()).filter((a) => a.city.id === city.id);
+  const articles = (await getManualArticles()).filter((a) => a.city_id === city.id);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">

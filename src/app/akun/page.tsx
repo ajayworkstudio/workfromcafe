@@ -30,13 +30,17 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   if (!viewer.user) redirect("/masuk?next=/akun");
   const supabase = await createClient();
 
-  const [{ data: favs }, { data: payments }, { data: left }, { data: notifPrefs }] = await Promise.all([
+  const [{ data: favs }, { data: payments }, { data: left }, { data: notifPrefs }, { data: savedRows }] = await Promise.all([
     supabase.from("favorites").select(`cafe:cafes(${CAFE_LIST_SELECT})`).eq("user_id", viewer.user.id).order("created_at", { ascending: false }),
     supabase.from("payments").select("*").eq("user_id", viewer.user.id).order("created_at", { ascending: false }).limit(10),
     supabase.rpc("free_unlocks_left"),
     // Pilihan notifikasi (kosong kalau migrasi 0021 belum dijalankan: anggap semua menyala)
     supabase.from("profiles").select("notify_new_cafe,notify_activity").eq("id", viewer.user.id).maybeSingle(),
+    // Artikel yang disimpan (kosong kalau migrasi 0027 belum dijalankan)
+    supabase.from("article_saves").select("article:articles(slug,title,excerpt,is_published)").eq("user_id", viewer.user.id).order("created_at", { ascending: false }).limit(20),
   ]);
+  const savedArticles = ((savedRows ?? []) as unknown as { article: { slug: string; title: string; excerpt: string | null; is_published: boolean } | null }[])
+    .map((r) => r.article).filter((a): a is NonNullable<typeof a> => !!a?.is_published);
 
   // Profil lengkap (bio & instagram ada setelah migrasi 0009)
   let ready = true;
@@ -144,6 +148,22 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         {favCafes.map((c) => <CafeCard key={c.id} cafe={c} />)}
       </div>
       {!favCafes.length && <p className="mt-3 text-muted">Belum ada. Tekan Simpan di halaman kafe untuk menyimpannya di sini.</p>}
+
+      {!!savedArticles.length && (
+        <>
+          <h2 className="mt-10 font-display text-2xl font-bold">Artikel tersimpan</h2>
+          <ul className="card mt-4 divide-y divide-line">
+            {savedArticles.map((a) => (
+              <li key={a.slug}>
+                <Link href={`/artikel/${a.slug}`} className="block p-4 hover:bg-tint/60">
+                  <span className="block font-semibold">{a.title}</span>
+                  {a.excerpt && <span className="mt-0.5 block line-clamp-1 text-sm text-muted">{a.excerpt}</span>}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
 
       {!!payments?.length && (
         <>

@@ -20,7 +20,7 @@ type Reach = { views: number; visitors: number; actions: number; cafes: number; 
 const BENEFITS = [
   { icon: "gauge", title: "Lihat siapa yang melihat kafemu", text: "Berapa kali halaman kafemu dibuka, dari Google, Instagram, atau WhatsApp, jam berapa paling ramai, dan berapa yang langsung membuka rute ke kafe." },
   { icon: "sparkle", title: "Tampil paling atas di pencarian", text: "Kafemu muncul berlabel Sponsored saat orang mencari kota, area, atau suasana yang kamu pilih. Bayar hanya saat diklik, budget harian kamu yang atur." },
-  { icon: "book", title: "Ikut masuk artikel yang dibaca dari Google", text: "Artikel seperti \"kafe wifi kencang di kotamu\" disusun dari data kafe dan terindeks Google, jadi orang menemukan kafemu tanpa harus membuka aplikasi." },
+  { icon: "book", title: "Ikut masuk artikel yang dibaca dari Google", text: "Aku menulis artikel rekomendasi kafe per kota yang terindeks Google, jadi orang bisa menemukan kafemu tanpa harus membuka aplikasi." },
   { icon: "chat", title: "Ngobrol langsung dengan admin", text: "Jam buka berubah, ada menu baru, atau mau tanya soal iklan? Kirim lewat chat di dashboard pemilik." },
 ];
 

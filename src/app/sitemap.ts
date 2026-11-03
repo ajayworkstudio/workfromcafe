@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { SITE_URL } from "@/lib/utils";
-import { getAutoArticles, getManualArticles } from "@/lib/articles";
+import { getManualArticles } from "@/lib/articles";
 
 export const revalidate = 3600;
 
@@ -34,12 +34,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (!prev || c.updated_at > prev) cityUpdated.set(c.city_id, c.updated_at);
   }
 
-  const [autoArticles, manualArticles] = await Promise.all([getAutoArticles(), getManualArticles()]);
+  const manualArticles = await getManualArticles();
 
   return [
     ...base,
     ...manualArticles.map((a) => ({ url: `${SITE_URL}/artikel/${a.slug}`, lastModified: a.updated_at, changeFrequency: "monthly" as const, priority: 0.7 })),
-    ...autoArticles.map((a) => ({ url: `${SITE_URL}/artikel/${a.slug}`, lastModified: a.updated, changeFrequency: "weekly" as const, priority: 0.7 })),
     ...(cities ?? [])
       .filter((c) => cityUpdated.has(c.id))
       .map((c) => ({ url: `${SITE_URL}/kota/${c.slug}`, lastModified: cityUpdated.get(c.id), changeFrequency: "weekly" as const, priority: 0.8 })),

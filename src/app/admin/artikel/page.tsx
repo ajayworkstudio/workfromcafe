@@ -4,51 +4,46 @@ import PageHeader from "@/components/admin/PageHeader";
 import Flash from "@/components/admin/Flash";
 import Icon from "@/components/Icon";
 import { createClient } from "@/lib/supabase/server";
-import { getAutoArticles, type ManualArticle } from "@/lib/articles";
+import type { ManualArticle } from "@/lib/articles";
 
 export const metadata: Metadata = { title: "Artikel" };
 
 export default async function ArticlesAdmin({ searchParams }: { searchParams: Promise<{ ok?: string }> }) {
   const sp = await searchParams;
   const supabase = await createClient();
-  const [{ data, error }, auto] = await Promise.all([
+  const [{ data, error }, { data: saves }] = await Promise.all([
     supabase.from("articles").select("*").order("updated_at", { ascending: false }),
-    getAutoArticles(),
+    supabase.from("article_saves").select("article_id"),
   ]);
   const rows = (data ?? []) as ManualArticle[];
+  const saveCount = (id: string) => (saves ?? []).filter((x) => x.article_id === id).length;
 
   return (
     <>
-      <PageHeader title="Artikel" description="Artikel SEO. Yang otomatis disusun dari data kafe; yang manual kamu tulis sendiri."
+      <PageHeader title="Artikel" description="Tulisan SEO yang tampil di /artikel dan masuk sitemap Google."
         action={!error && <Link href="/admin/artikel/baru" className="btn-primary min-h-11"><Icon name="plus" className="h-4 w-4" />Tulis artikel</Link>} />
       <Flash ok={sp.ok} />
 
-      <h2 className="text-lg font-bold">Ditulis manual</h2>
-      {error ? (
-        <p className="mt-2 rounded-xl bg-tint px-4 py-3 text-sm">Editor artikel aktif setelah migrasi <code>0026_statistik_chat_artikel.sql</code> dijalankan. Artikel otomatis di bawah sudah tayang.</p>
+            {error ? (
+        <p className="mt-2 rounded-xl bg-tint px-4 py-3 text-sm">Editor artikel aktif setelah migrasi <code>0026_statistik_chat_artikel.sql</code> dijalankan. </p>
       ) : rows.length ? (
         <ul className="card mt-3 divide-y divide-line">
           {rows.map((a) => (
             <li key={a.id} className="flex flex-wrap items-center gap-3 p-4">
               <Link href={`/admin/artikel/${a.id}`} className="min-w-0 flex-1 font-semibold hover:text-brand">{a.title}</Link>
+              <span className="flex items-center gap-3 text-xs text-muted">
+                <span title="Dilihat" className="inline-flex items-center gap-1"><Icon name="eye" className="h-3.5 w-3.5" />{(a.view_count ?? 0).toLocaleString("id-ID")}</span>
+                <span title="Disukai" className="inline-flex items-center gap-1"><Icon name="heart" className="h-3.5 w-3.5" />{(a.like_count ?? 0).toLocaleString("id-ID")}</span>
+                <span title="Disimpan" className="inline-flex items-center gap-1"><Icon name="book" className="h-3.5 w-3.5" />{saveCount(a.id).toLocaleString("id-ID")}</span>
+              </span>
               <span className={`chip ${a.is_published ? "!bg-ok/10 !text-ok" : ""}`}>{a.is_published ? "Tayang" : "Draf"}</span>
               <Link href={`/admin/artikel/${a.id}`} className="btn-ghost min-h-11 text-sm">Edit</Link>
               {a.is_published && <Link href={`/artikel/${a.slug}`} className="min-h-11 content-center text-sm font-semibold text-brand hover:underline">Lihat</Link>}
             </li>
           ))}
         </ul>
-      ) : <p className="mt-2 text-sm text-muted">Belum ada. Artikel manual cocok untuk topik yang tidak bisa disusun otomatis, misalnya panduan atau cerita kafe tertentu.</p>}
+      ) : <p className="mt-2 text-sm text-muted">Belum ada artikel. Tekan Tulis artikel untuk mulai.</p>}
 
-      <h2 className="mt-10 text-lg font-bold">Otomatis dari data kafe ({auto.length})</h2>
-      <p className="mt-0.5 text-sm text-muted">Muncul sendiri begitu sebuah kota punya minimal 3 kafe yang cocok dengan topiknya. Diperbarui tiap jam dan setiap kafe diubah.</p>
-      <ul className="card mt-3 divide-y divide-line">
-        {auto.map((a) => (
-          <li key={a.slug} className="flex flex-wrap items-center gap-3 p-4 text-sm">
-            <Link href={`/artikel/${a.slug}`} className="min-w-0 flex-1 font-semibold hover:text-brand">{a.title}</Link>
-            <span className="text-muted">{a.city.name} · {a.cafes.length} kafe</span>
-          </li>
-        ))}
-      </ul>
     </>
   );
 }
