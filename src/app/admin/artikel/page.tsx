@@ -32,7 +32,8 @@ export default async function ArticlesAdmin({ searchParams }: { searchParams: Pr
             <li key={a.id} className="flex flex-wrap items-center gap-3 p-4">
               <Link href={`/admin/artikel/${a.id}`} className="min-w-0 flex-1 font-semibold hover:text-brand">{a.title}</Link>
               <span className={`chip ${a.is_published ? "!bg-ok/10 !text-ok" : ""}`}>{a.is_published ? "Tayang" : "Draf"}</span>
-              {a.is_published && <Link href={`/artikel/${a.slug}`} className="text-sm font-semibold text-brand hover:underline">Lihat</Link>}
+              <Link href={`/admin/artikel/${a.id}`} className="btn-ghost min-h-11 text-sm">Edit</Link>
+              {a.is_published && <Link href={`/artikel/${a.slug}`} className="min-h-11 content-center text-sm font-semibold text-brand hover:underline">Lihat</Link>}
             </li>
           ))}
         </ul>

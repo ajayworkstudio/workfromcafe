@@ -29,7 +29,12 @@ function inline(text: string, key: string) {
   return parts;
 }
 
-export default function ArticleBody({ body, cafes }: { body: string; cafes: Cafe[] }) {
+export default function ArticleBody({ body, cafes, placeholders }: {
+  body: string;
+  cafes: Cafe[];
+  /** Pratinjau editor: tampilkan kotak nama kafe sebagai pengganti kartu */
+  placeholders?: Map<string, string>;
+}) {
   const bySlug = new Map(cafes.map((c) => [c.slug, c]));
   const blocks = body.replace(/\r/g, "").split(/\n{2,}/).map((b) => b.trim()).filter(Boolean);
   return (
@@ -39,6 +44,10 @@ export default function ArticleBody({ body, cafes }: { body: string; cafes: Cafe
         const embed = b.match(/^\[\[kafe:([\w-]+)\]\]$/);
         if (embed) {
           const c = bySlug.get(embed[1]);
+          if (!c && placeholders) {
+            const name = placeholders.get(embed[1]);
+            return <p key={k} className={`my-6 max-w-sm rounded-2xl border-2 border-dashed p-4 text-sm ${name ? "border-mist text-muted" : "border-[#b4533a] text-[#8c3b25]"}`}>{name ? `Kartu kafe: ${name}` : `Kafe "${embed[1]}" tidak ditemukan atau belum tayang`}</p>;
+          }
           return c ? <div key={k} className="not-prose my-6 max-w-sm"><CafeCard cafe={c} /></div> : null;
         }
         if (b.startsWith("### ")) return <h3 key={k} className="pt-2 font-sans text-xl font-bold tracking-normal text-ink">{inline(b.slice(4), k)}</h3>;

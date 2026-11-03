@@ -6,6 +6,7 @@ import PageHeader from "@/components/admin/PageHeader";
 import Flash from "@/components/admin/Flash";
 import SubmitButton from "@/components/admin/SubmitButton";
 import ConfirmButton from "@/components/admin/ConfirmButton";
+import ArticleEditor from "@/components/admin/ArticleEditor";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import type { ManualArticle } from "@/lib/articles";
@@ -82,17 +83,16 @@ export default async function EditArticle({ params, searchParams }: { params: Pr
         <div><label htmlFor="e" className="label">Ringkasan untuk Google (maks 300 huruf)</label><textarea id="e" name="excerpt" rows={2} maxLength={300} defaultValue={a?.excerpt ?? ""} className="input" /></div>
         <div><label htmlFor="cv" className="label">Link foto sampul (opsional)</label><input id="cv" name="cover_url" defaultValue={a?.cover_url ?? ""} placeholder="https://…" className="input" /></div>
         <div>
-          <label htmlFor="b" className="label">Isi artikel</label>
-          <textarea id="b" name="body" rows={18} defaultValue={a?.body ?? ""} className="input font-mono text-sm" />
+          <p className="label">Isi artikel</p>
+          <ArticleEditor defaultValue={a?.body ?? ""} cafes={cafes ?? []} />
           <details className="mt-2 rounded-xl bg-tint p-3 text-sm">
             <summary className="cursor-pointer font-semibold">Cara menulis</summary>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-muted">
-              <li>Baris kosong memisahkan paragraf.</li>
+              <li>Pakai tombol di atas kolom, atau ketik langsung: baris kosong memisahkan paragraf.</li>
               <li><code>## Judul bagian</code> dan <code>### Sub judul</code> di awal baris.</li>
-              <li><code>- butir</code> untuk daftar, <code>**tebal**</code>, <code>[teks](https://link)</code>.</li>
-              <li><code>[[kafe:slug-kafe]]</code> di baris sendiri untuk menyisipkan kartu kafe. Slug ada di daftar di bawah.</li>
+              <li><code>- butir</code> untuk daftar, <code>**tebal**</code>, <code>[teks](https://link)</code>. Link ke halaman sendiri cukup <code>[teks](/kota/semarang)</code>.</li>
+              <li>Kartu kafe: pilih kafe di bawah kolom lalu tekan Sisipkan, atau ketik <code>[[kafe:slug-kafe]]</code> di baris sendiri.</li>
             </ul>
-            <p className="mt-2 max-h-40 overflow-y-auto text-xs text-muted">{(cafes ?? []).map((c) => `${c.name}: ${c.slug}`).join(" · ")}</p>
           </details>
         </div>
         <label className="flex min-h-11 items-center gap-2 font-semibold"><input type="checkbox" name="is_published" defaultChecked={a?.is_published} className="h-5 w-5" />Tayangkan</label>

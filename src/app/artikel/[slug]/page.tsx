@@ -10,6 +10,7 @@ import { abs, breadcrumb, clip, ORGANIZATION } from "@/lib/seo";
 import { cafesBySlugs, embeddedSlugs, getAutoArticles, getManualArticles } from "@/lib/articles";
 import { APP_NAME, SITE_URL, coverUrl, priceLabel } from "@/lib/utils";
 import { averageScore } from "@/lib/review";
+import { getViewer } from "@/lib/auth";
 
 export const revalidate = 3600;
 
@@ -40,7 +41,7 @@ const dateText = (d: string) => new Date(d).toLocaleDateString("id-ID", { day: "
 
 export default async function ArticlePage({ params }: { params: P }) {
   const { slug } = await params;
-  const r = await find(slug);
+  const [r, viewer] = await Promise.all([find(slug), getViewer()]);
   if (!r) notFound();
   const url = `${SITE_URL}/artikel/${slug}`;
   const crumbs = breadcrumb([{ name: "Beranda", path: "/" }, { name: "Artikel", path: "/artikel" }, { name: r.kind === "manual" ? r.m.title : r.a.title, path: `/artikel/${slug}` }]);
@@ -55,7 +56,10 @@ export default async function ArticlePage({ params }: { params: P }) {
           image: a.cover_url ? [abs(a.cover_url)] : undefined, datePublished: a.published_at ?? a.created_at, dateModified: a.updated_at,
           author: { "@type": "Organization", name: APP_NAME, url: SITE_URL }, publisher: ORGANIZATION, mainEntityOfPage: url,
         }]} />
-        <Link href="/artikel" className="inline-flex min-h-11 items-center text-sm font-semibold text-muted hover:text-ink">← Artikel</Link>
+        <div className="flex items-center justify-between gap-3">
+          <Link href="/artikel" className="inline-flex min-h-11 items-center text-sm font-semibold text-muted hover:text-ink">← Artikel</Link>
+          {viewer.isAdmin && <Link href={`/admin/artikel/${a.id}`} className="btn-ghost min-h-11 text-sm">Edit artikel</Link>}
+        </div>
         <h1 className="mt-2 text-[clamp(2rem,5vw,3rem)] font-extrabold leading-tight">{a.title}</h1>
         <p className="mt-2 text-sm text-muted">{APP_NAME} · {dateText(a.published_at ?? a.created_at)}</p>
         {a.cover_url && (
@@ -90,6 +94,9 @@ export default async function ArticlePage({ params }: { params: P }) {
         }] : []),
       ]} />
       <Link href="/artikel" className="inline-flex min-h-11 items-center text-sm font-semibold text-muted hover:text-ink">← Artikel</Link>
+      {viewer.isAdmin && (
+        <p className="mt-2 rounded-xl bg-tint px-4 py-3 text-sm text-muted">Artikel otomatis: isinya mengikuti data kafe. Ubah nilai, tag, atau ulasan singkat kafe di <Link href="/admin/kafe" className="font-semibold text-brand underline">Admin → Kafe</Link>, artikel ini ikut berubah.</p>
+      )}
       <h1 className="mt-2 text-[clamp(2rem,5vw,3rem)] font-extrabold leading-tight">{a.h1}</h1>
       <p className="mt-2 text-sm text-muted">{APP_NAME} · diperbarui {dateText(a.updated)}</p>
       <p className="mt-6 text-lg">{a.intro}</p>
