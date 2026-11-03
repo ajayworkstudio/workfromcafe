@@ -11,6 +11,7 @@ import SuggestionBox from "@/components/SuggestionBox";
 import { toStackCafe } from "@/lib/stackCafe";
 import HomeMotion from "@/components/HomeMotion";
 import Avatar from "@/components/Avatar";
+import TimeGreeting from "@/components/TimeGreeting";
 import AuthorBadge from "@/components/AuthorBadge";
 import { authorHref, getAuthors, pickFeatured } from "@/lib/author";
 import JsonLd from "@/components/JsonLd";
@@ -89,8 +90,9 @@ export default async function Home() {
           <div className="hero-in max-w-2xl">
             {viewer.name && (
               <p className="glass mb-5 inline-flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-4 text-sm font-bold">
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-tan text-ink">{viewer.name.trim().charAt(0).toUpperCase()}</span>
-                Halo, {viewer.name.split(" ")[0]}
+                {/* Foto sama dengan yang di header; inisial kalau belum ada foto */}
+                <Avatar url={viewer.avatarUrl} name={viewer.name} className="h-8 w-8 text-sm" />
+                <TimeGreeting name={viewer.name.split(" ")[0]} />
               </p>
             )}
             <h1 className="text-[clamp(2rem,7vw,5.2rem)] font-extrabold leading-[1.02] [text-shadow:0_2px_18px_rgb(0_0_0/0.35)] md:leading-[0.95]">
