@@ -1,5 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+import { notifyOwnerMessage } from "@/lib/notify";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { MIN_BID, activeSub, parseRupiah, type CafePlan, type CafeSubscription, type TargetType } from "@/lib/ads";
@@ -131,4 +133,17 @@ export async function deleteTarget(f: FormData) {
   if (error) back(cafeId, `Gagal menghapus target: ${error.message}`, true);
   revalidatePath("/pemilik");
   back(cafeId, "Target dihapus.");
+}
+
+export async function sendOwnerMessage(f: FormData) {
+  const { supabase, user } = await session();
+  const cafeId = String(f.get("cafe_id") ?? "");
+  const body = String(f.get("body") ?? "").trim().slice(0, 2000);
+  const back2 = (q: Record<string, string>) => redirect(`/pemilik?${new URLSearchParams({ kafe: cafeId, tab: "pesan", ...q })}`);
+  if (!body) back2({ err: "Pesannya masih kosong." });
+  const { error } = await supabase.from("owner_messages").insert({ cafe_id: cafeId, sender_id: user.id, from_admin: false, body });
+  if (error) back2({ err: /does not exist|schema cache/.test(error.message) ? "Chat belum aktif. Admin perlu menjalankan migrasi 0026." : `Pesan gagal terkirim: ${error.message}` });
+  after(() => notifyOwnerMessage(cafeId, false, body));
+  revalidatePath("/pemilik");
+  back2({});
 }

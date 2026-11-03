@@ -17,6 +17,8 @@ export default async function Footer() {
         <div className="flex flex-wrap gap-x-5 gap-y-2">
           <Link href="/kafe" className="hover:text-ink">Semua kafe</Link>
           <Link href="/peta" className="hover:text-ink">Peta</Link>
+          <Link href="/artikel" className="hover:text-ink">Artikel</Link>
+          <Link href="/untuk-kafe" className="hover:text-ink">Untuk pemilik kafe</Link>
           <Link href="/kirim" className="hover:text-ink">Jadi author</Link>
           <Link href="/author" className="hover:text-ink">Para author</Link>
           <Link href="/event" className="hover:text-ink">Event</Link>

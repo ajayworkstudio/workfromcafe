@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import AdminBadge from "@/components/AdminBadge";
 import { cache, Suspense } from "react";
 import JsonLd from "@/components/JsonLd";
+import CafeTracker from "@/components/CafeTracker";
 import { breadcrumb, clip } from "@/lib/seo";
 import Image from "next/image";
 import Link from "next/link";
@@ -202,11 +203,12 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
   return (
     <article className="mx-auto max-w-6xl px-4 pb-10 md:pt-6">
       <JsonLd data={jsonLd} />
+      <CafeTracker cafeId={cafe.id} />
 
       <PhotoGallery photos={photos.map((p) => ({ id: p.id, url: p.url, thumb_url: p.thumb_url }))} name={cafe.name} overlay={<>
         <BackButton fallback={cafe.city ? `/kota/${cafe.city.slug}` : "/kafe"} className={round} />
         <span className="flex gap-2">
-          <ShareButton url={`${SITE_URL}/kafe/${cafe.slug}`} title={cafe.name} text={shareText} storyUrl={`/kafe/${cafe.slug}/story`} iconOnly className={round} />
+          <span data-track="share" className="contents"><ShareButton url={`${SITE_URL}/kafe/${cafe.slug}`} title={cafe.name} text={shareText} storyUrl={`/kafe/${cafe.slug}/story`} iconOnly className={round} /></span>
           <FavoriteButton cafeId={cafe.id} slug={cafe.slug} active={!!fav.data} loggedIn={!!viewer.user} round />
         </span>
       </>} badge={live ? (
@@ -270,15 +272,15 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
             </span>
             <VisitedButton cafeId={cafe.id} slug={cafe.slug} active={!!visit.data} loggedIn={!!viewer.user} />
             <span className="hidden md:contents">
-              <ShareButton url={`${SITE_URL}/kafe/${cafe.slug}`} title={cafe.name} text={shareText} storyUrl={`/kafe/${cafe.slug}/story`} />
+              <span data-track="share" className="contents"><ShareButton url={`${SITE_URL}/kafe/${cafe.slug}`} title={cafe.name} text={shareText} storyUrl={`/kafe/${cafe.slug}/story`} /></span>
             </span>
             {cafe.menu_url && (
-              <a href={cafe.menu_url} target="_blank" rel="noopener" className="btn-primary"><Icon name="book" className="h-4 w-4" />Lihat menu</a>
+              <a href={cafe.menu_url} target="_blank" rel="noopener" data-track="menu" className="btn-primary"><Icon name="book" className="h-4 w-4" />Lihat menu</a>
             )}
-            <a href={mapsUrl} target="_blank" rel="noopener" className="btn-ghost"><Icon name="external" className="h-4 w-4" />Buka di Google Maps</a>
+            <a href={mapsUrl} target="_blank" rel="noopener" data-track="maps" className="btn-ghost"><Icon name="external" className="h-4 w-4" />Buka di Google Maps</a>
             {mySub && <Link href={`/kirim/${mySub.id}`} className="btn-ghost"><Icon name="edit" className="h-4 w-4" />Edit rekomendasimu</Link>}
             {cafe.instagram && (
-              <a href={`https://instagram.com/${cafe.instagram.replace(/^@/, "")}`} target="_blank" rel="noopener" className="btn-ghost" aria-label={`Instagram ${cafe.name}`}>
+              <a href={`https://instagram.com/${cafe.instagram.replace(/^@/, "")}`} target="_blank" rel="noopener" data-track="instagram" className="btn-ghost" aria-label={`Instagram ${cafe.name}`}>
                 <Icon name="instagram" className="h-4 w-4" />@{cafe.instagram.replace(/^@/, "")}
               </a>
             )}

@@ -17,6 +17,18 @@ import {
   addTarget, claimCafe, createCampaign, deleteCampaign, deleteTarget, requestPlan, setCampaignStatus, updateBid,
 } from "./actions";
 import TopupBox from "./TopupBox";
+import { sendOwnerMessage } from "./actions";
+import OwnerChat, { type OwnerMessage } from "@/components/OwnerChat";
+import StatsPanel, { PeriodTabs } from "@/components/StatsPanel";
+import { periodOf, sumActions, type CafeStats } from "@/lib/stats";
+
+const TABS = [
+  { key: "ringkasan", label: "Ringkasan" },
+  { key: "audiens", label: "Audiens" },
+  { key: "iklan", label: "Iklan" },
+  { key: "pesan", label: "Pesan" },
+] as const;
+type Tab = (typeof TABS)[number]["key"];
 
 export const metadata: Metadata = { title: "Kafe saya", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -31,8 +43,10 @@ type OwnedCafe = {
 const fmtDate = (d: string) =>
   new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jakarta" });
 
-export default async function OwnerPage({ searchParams }: { searchParams: Promise<{ kafe?: string; ok?: string; err?: string }> }) {
+export default async function OwnerPage({ searchParams }: { searchParams: Promise<{ kafe?: string; ok?: string; err?: string; tab?: string; hari?: string }> }) {
   const sp = await searchParams;
+  const tab: Tab = (TABS.find((t) => t.key === sp.tab)?.key ?? "ringkasan");
+  const days = periodOf(sp.hari);
   const [viewer, settings] = await Promise.all([getViewer(), getSettings()]);
   if (!viewer.user) redirect("/masuk?next=/pemilik");
   const supabase = await createClient();
@@ -104,6 +118,9 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
               <p className="font-semibold">{p.cafe!.name}</p>
               <p className="text-sm text-muted">Menunggu verifikasi</p>
             </div>
+            <Link href={`/pemilik?kafe=${p.cafe_id}&tab=pesan`} className="btn-primary min-h-11 text-sm">
+              <Icon name="chat" className="h-4 w-4" />Chat admin
+            </Link>
             <a href={`https://wa.me/${wa}?text=${encodeURIComponent(text)}`} target="_blank" rel="noopener"
               className="btn bg-[#1f8f4e] min-h-11 text-sm text-white hover:bg-[#187540]">
               <Icon name="whatsapp" className="h-4 w-4" />Kirim bukti
@@ -113,6 +130,22 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
       })}
     </section>
   );
+
+  // Klaim yang belum diverifikasi tetap bisa chat dengan admin (misalnya untuk mengirim bukti kepemilikan)
+  const pendingChat = tab === "pesan" ? pending.find((p) => p.cafe_id === sp.kafe) : undefined;
+  if (pendingChat) {
+    const { messages } = await loadChat(supabase, pendingChat.cafe_id, true);
+    return (
+      <Shell>
+        <Link href="/pemilik" className="mb-3 inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-muted hover:text-ink">← Kafe saya</Link>
+        <Flash ok={sp.ok} err={sp.err} />
+        <h1 className="text-3xl font-extrabold">Chat admin</h1>
+        <p className="mt-1 mb-5 text-muted">Klaim <b className="text-ink">{pendingChat.cafe!.name}</b> masih dicek. Kirim bukti kepemilikan atau pertanyaanmu di sini.</p>
+        <OwnerChat messages={messages} side="owner" cafeId={pendingChat.cafe_id} action={sendOwnerMessage}
+          emptyText="Belum ada pesan. Ceritakan hubunganmu dengan kafe ini, misalnya pemilik atau manajer, supaya klaimnya cepat diverifikasi." />
+      </Shell>
+    );
+  }
 
   if (!current) {
     return (
@@ -124,6 +157,7 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
           {pendingList}
           {claimForm}
         </div>
+        <Link href="/untuk-kafe" className="mt-6 inline-flex min-h-11 items-center text-sm font-semibold text-brand hover:underline">Apa untungnya kafe di WFC Hunters? →</Link>
       </Shell>
     );
   }
@@ -148,6 +182,12 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
     supabase.from("cities").select("slug,name").eq("is_active", true).order("name"),
     supabase.from("tags").select("name").order("name"),
   ]);
+  const [{ data: statsRaw, error: statsErr }, chat] = await Promise.all([
+    supabase.rpc("cafe_stats", { p_cafe_id: cafeId, p_days: tab === "audiens" ? days : 30 }),
+    loadChat(supabase, cafeId, tab === "pesan"),
+  ]);
+  const stats = statsErr ? null : (statsRaw as CafeStats);
+  const tabHref = (t: Tab, extra = "") => `/pemilik?kafe=${cafeId}&tab=${t}${extra}`;
 
   const subs = (subsRaw ?? []) as CafeSubscription[];
   const plans = (plansRaw ?? []) as CafePlan[];
@@ -214,14 +254,76 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
             <p className="text-4xl font-extrabold tracking-tight">{rupiah(balance)}</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <a href="#isi-saldo" className="btn bg-white text-brand hover:bg-foam">Isi saldo</a>
-            <Link href={`/kafe/${cafe.slug}`} className="btn border border-white/40 text-white hover:bg-white/10">Lihat halaman kafe</Link>
+            <Link href={tabHref("iklan", "#isi-saldo")} className="btn min-h-11 bg-white text-brand hover:bg-foam">Isi saldo</Link>
+            <Link href={`/kafe/${cafe.slug}`} className="btn min-h-11 border border-white/40 text-white hover:bg-white/10">Lihat halaman kafe</Link>
           </div>
         </div>
       </section>
 
+      <nav aria-label="Bagian dashboard" className="sticky top-16 z-20 -mx-4 mt-4 flex gap-1.5 overflow-x-auto bg-canvas/90 px-4 py-2 backdrop-blur [scrollbar-width:none]">
+        {TABS.map((t) => (
+          <Link key={t.key} href={tabHref(t.key)} aria-current={t.key === tab ? "page" : undefined}
+            className={`flex min-h-11 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm font-semibold ${t.key === tab ? "bg-ink text-white" : "border border-line bg-surface text-muted hover:text-ink"}`}>
+            {t.label}
+            {t.key === "pesan" && tab !== "pesan" && !!chat.unread && <span className="rounded-full bg-[#b4533a] px-1.5 text-xs text-white">{chat.unread}</span>}
+          </Link>
+        ))}
+      </nav>
+
+      {tab === "ringkasan" && (
+        <section className="mt-6">
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <h2 className="text-xl font-bold">Halaman kafemu, 30 hari terakhir</h2>
+            <Link href={tabHref("audiens")} className="text-sm font-semibold text-brand hover:underline">Lihat audiens lengkap →</Link>
+          </div>
+          {!stats ? (
+            <p className="mt-2 text-sm text-muted">Statistik pengunjung sedang disiapkan admin.</p>
+          ) : stats.views ? (
+            <dl className="mt-3 grid grid-cols-3 gap-3">
+              <MiniStat label="Dilihat" value={stats.views} />
+              <MiniStat label="Pengunjung unik" value={stats.visitors} />
+              <MiniStat label="Aksi ke kafe" value={sumActions(stats)} />
+            </dl>
+          ) : (
+            <p className="mt-2 text-sm text-muted">Belum ada kunjungan tercatat. Bagikan link halaman kafemu supaya angka ini mulai terisi.</p>
+          )}
+          {!!chat.unread && (
+            <Link href={tabHref("pesan")} className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-brand/30 bg-brand-soft px-5 py-4">
+              <span className="font-semibold">{chat.unread} pesan baru dari admin</span><span className="btn-dark min-h-11 text-sm">Baca</span>
+            </Link>
+          )}
+        </section>
+      )}
+
+      {tab === "audiens" && (
+        <section className="mt-6">
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-bold">Audiens kafemu</h2>
+              <p className="text-sm text-muted">Orang yang membuka halaman {cafe.name} di WFC Hunters.</p>
+            </div>
+            <PeriodTabs days={days} hrefFor={(d) => tabHref("audiens", `&hari=${d}`)} />
+          </div>
+          {stats ? <StatsPanel s={stats} /> : <p className="text-sm text-muted">Statistik pengunjung sedang disiapkan admin.</p>}
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Link href={`/laporan/${cafeId}?hari=${days}`} className="btn-ghost min-h-11"><Icon name="book" className="h-4 w-4" />Laporan siap cetak</Link>
+          </div>
+          <p className="mt-3 text-xs text-muted">Kunjunganmu sendiri ke halaman kafe tidak dihitung. Satu orang yang membuka berkali-kali dalam 30 menit dihitung sekali.</p>
+        </section>
+      )}
+
+      {tab === "pesan" && (
+        <section className="mt-6">
+          <h2 className="mb-1 text-xl font-bold">Pesan admin</h2>
+          <p className="mb-4 text-sm text-muted">Tanya soal paket, iklan, atau minta info kafemu diperbarui. Admin biasanya membalas di hari yang sama.</p>
+          <OwnerChat messages={chat.messages} side="owner" cafeId={cafeId} action={sendOwnerMessage}
+            emptyText="Belum ada pesan. Mulai dengan pertanyaan apa saja ke admin WFC Hunters." />
+        </section>
+      )}
+
+      {tab === "ringkasan" && (<>
       {/* Paket */}
-      <section className="mt-6">
+      <section className="mt-8">
         <h2 className="text-xl font-bold">Paket</h2>
         {plan && sub ? (
           <div className="card mt-3 flex flex-wrap items-center gap-3 p-5">
@@ -268,9 +370,12 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
         )}
       </section>
 
+      </>)}
+
+      {tab === "iklan" && (<>
       {/* Ringkasan 30 hari */}
       <section className="mt-8">
-        <h2 className="text-xl font-bold">30 hari terakhir</h2>
+        <h2 className="text-xl font-bold">Iklan Sponsored, 30 hari terakhir</h2>
         {impressions ? (
           <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Stat label="Tampil" value={impressions.toLocaleString("id-ID")} />
@@ -445,10 +550,14 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
         )}
       </section>
 
-      <div className="mt-10 space-y-4">
-        {pendingList}
-        {claimForm}
-      </div>
+      </>)}
+
+      {tab === "ringkasan" && (
+        <div className="mt-10 space-y-4">
+          {pendingList}
+          {claimForm}
+        </div>
+      )}
     </Shell>
   );
 }
@@ -473,4 +582,23 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return <div className="mx-auto max-w-3xl px-4 py-8 md:py-10">{children}</div>;
+}
+
+function MiniStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-2xl border border-line bg-surface p-3 sm:p-4">
+      <dt className="text-xs text-muted sm:text-sm">{label}</dt>
+      <dd className="mt-1 text-2xl font-extrabold tracking-tight">{value.toLocaleString("id-ID")}</dd>
+    </div>
+  );
+}
+
+type Supa = Awaited<ReturnType<typeof createClient>>;
+async function loadChat(supabase: Supa, cafeId: string, markRead = false) {
+  const { data, error } = await supabase.from("owner_messages").select("id,from_admin,body,created_at,read_at")
+    .eq("cafe_id", cafeId).order("created_at").limit(300);
+  if (error) return { messages: [] as OwnerMessage[], unread: 0 };
+  const messages = (data ?? []) as OwnerMessage[];
+  if (markRead && messages.some((m) => m.from_admin && !m.read_at)) await supabase.rpc("owner_messages_mark_read", { p_cafe_id: cafeId });
+  return { messages, unread: messages.filter((m) => m.from_admin && !m.read_at).length };
 }

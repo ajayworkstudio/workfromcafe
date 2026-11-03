@@ -6,6 +6,7 @@ import { abs, breadcrumb, clip } from "@/lib/seo";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import CafeCard from "@/components/CafeCard";
+import { getAutoArticles } from "@/lib/articles";
 import type { Cafe, City } from "@/lib/types";
 import { CAFE_LIST_SELECT, coverUrl } from "@/lib/utils";
 
@@ -48,6 +49,7 @@ export default async function CityPage({ params }: { params: P }) {
   const res = await getCity((await params).slug);
   if (!res) notFound();
   const { city, cafes } = res;
+  const articles = (await getAutoArticles()).filter((a) => a.city.id === city.id);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -68,6 +70,13 @@ export default async function CityPage({ params }: { params: P }) {
       <p className="mt-2 max-w-2xl text-muted">
         {cafes.length ? `${cafes.length} kafe di ${city.name}, ${city.province}` : `Kafe di ${city.name}, ${city.province}`} yang sudah dicoba langsung untuk kerja dan nugas, lengkap dengan penilaian wifi, colokan, ketenangan, dan menu rekomendasi.
       </p>
+      {!!articles.length && (
+        <nav aria-label={`Artikel tentang ${city.name}`} className="mt-5 flex flex-wrap gap-2">
+          {articles.map((a) => (
+            <Link key={a.slug} href={`/artikel/${a.slug}`} className="flex min-h-11 items-center rounded-full border border-line bg-surface px-4 text-sm font-semibold hover:border-brand">{a.title}</Link>
+          ))}
+        </nav>
+      )}
       <div className="mt-8 grid gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
         {cafes.map((c) => <CafeCard key={c.id} cafe={c} />)}
       </div>

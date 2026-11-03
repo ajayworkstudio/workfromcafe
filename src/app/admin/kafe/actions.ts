@@ -92,6 +92,7 @@ async function writeCafe(formData: FormData): Promise<WriteResult> {
   const mailNote = await notifyAuthorLevel(owner?.contributor_id);
 
   revalidateTag("authors");
+  revalidateTag("cafes");
   revalidatePath("/", "layout");
   return { cafeId: cafeId!, myRating: cafe.my_rating, mailNote };
 }
@@ -151,6 +152,7 @@ export async function deleteCafe(formData: FormData) {
   if (paths.length) await supabase.storage.from("cafe-photos").remove(paths);
   const { error } = await supabase.from("cafes").delete().eq("id", id);
   revalidateTag("authors");
+  revalidateTag("cafes");
   revalidatePath("/", "layout");
   // Dari daftar kafe: kembali ke daftar dengan filter yang sama
   const back = String(formData.get("back") ?? "");
@@ -173,6 +175,7 @@ export async function toggleCafeFlag(formData: FormData) {
     await notifyAuthorLevel(owner?.contributor_id);
   }
   revalidateTag("authors");
+  revalidateTag("cafes");
   revalidatePath("/", "layout");
 }
 

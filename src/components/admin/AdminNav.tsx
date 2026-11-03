@@ -6,6 +6,7 @@ import Icon from "@/components/Icon";
 const ITEMS = [
   { href: "/admin", label: "Ringkasan", icon: "grid", exact: true },
   { href: "/admin/kafe", label: "Kafe", icon: "cup" },
+  { href: "/admin/statistik", label: "Statistik", icon: "gauge" },
   { href: "/admin/rekomendasi", label: "Rekomendasi", icon: "inbox" },
   { href: "/admin/event", label: "Event", icon: "calendar" },
   { href: "/admin/komentar", label: "Komentar", icon: "chat" },
@@ -17,6 +18,8 @@ const ITEMS = [
   { href: "/admin/pelanggan", label: "Pelanggan", icon: "users" },
   { href: "/admin/pendukung", label: "Pendukung", icon: "heart" },
   { href: "/admin/iklan", label: "Iklan kafe", icon: "wallet" },
+  { href: "/admin/owner-chat", label: "Chat owner", icon: "chat" },
+  { href: "/admin/artikel", label: "Artikel", icon: "book" },
   { href: "/admin/backup", label: "Backup", icon: "inbox" },
   { href: "/admin/pengaturan", label: "Pengaturan", icon: "settings" },
 ];

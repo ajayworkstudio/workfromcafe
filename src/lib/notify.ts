@@ -107,3 +107,40 @@ export async function pushTest(userId: string) {
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return 0;
   return pushTo(createAdminClient(), [userId], { title: "Notifikasi WFC Hunters aktif", body: "Kamu akan dikabari kafe baru dan kondisi terbaru di kafe favoritmu.", url: "/notifikasi", tag: "test" });
 }
+
+/**
+ * Pesan baru di chat owner kafe. Dari owner: kabari semua admin. Dari admin: kabari owner/pengaju klaim kafe itu.
+ * Satu notifikasi lonceng per percakapan per 10 menit supaya beberapa pesan beruntun tidak membanjiri.
+ */
+export async function notifyOwnerMessage(cafeId: string, fromAdmin: boolean, preview: string) {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return;
+  try {
+    const db = createAdminClient();
+    const { data: cafe } = await db.from("cafes").select("name").eq("id", cafeId).maybeSingle();
+    if (!cafe) return;
+    const { data: people } = fromAdmin
+      ? await db.from("cafe_owners").select("user_id").eq("cafe_id", cafeId)
+      : await db.from("profiles").select("user_id:id").eq("role", "admin");
+    const ids = [...new Set((people ?? []).map((p) => p.user_id as string))];
+    if (!ids.length) return;
+
+    const url = fromAdmin ? `/pemilik?kafe=${cafeId}&tab=pesan` : `/admin/owner-chat/${cafeId}`;
+    const since = new Date(Date.now() - 10 * 6e4).toISOString();
+    const { data: recent } = await db.from("notifications").select("user_id")
+      .eq("cafe_id", cafeId).eq("kind", "owner_message").eq("url", url).gt("created_at", since);
+    const skip = new Set((recent ?? []).map((r) => r.user_id as string));
+    const targets = ids.filter((id) => !skip.has(id));
+    if (!targets.length) return;
+
+    const msg: Push = {
+      title: fromAdmin ? "Balasan dari admin WFC Hunters" : `Pesan dari owner ${cafe.name}`,
+      body: preview.slice(0, 140),
+      url,
+      tag: `owner-${cafeId}`,
+    };
+    await db.from("notifications").insert(targets.map((user_id) => ({ user_id, kind: "owner_message", title: msg.title, body: msg.body, url, cafe_id: cafeId })));
+    await pushTo(db, targets, msg);
+  } catch (e) {
+    console.error("[notifyOwnerMessage]", e);
+  }
+}
