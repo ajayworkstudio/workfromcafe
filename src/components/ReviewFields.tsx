@@ -12,7 +12,7 @@ export function ScoreFields({ scores, exclude = [] }: { scores?: Scores | null; 
         return (
           <div key={a.key} className="grid gap-2 py-3 first:pt-0 last:pb-0 sm:grid-cols-[190px_150px_1fr] sm:items-center sm:gap-3">
             <label htmlFor={`score_${a.key}`} className="flex items-center gap-2.5 text-sm font-semibold">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand-soft text-brand"><Icon name={a.icon} className="h-4 w-4" /></span>
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand-soft text-brand"><Icon duo name={a.icon} className="h-4 w-4" /></span>
               {a.label}
             </label>
             <select id={`score_${a.key}`} name={`score_${a.key}`} defaultValue={v ?? ""} className="input !py-2">

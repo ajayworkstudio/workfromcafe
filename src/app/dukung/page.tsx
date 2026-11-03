@@ -85,7 +85,7 @@ export default async function SupportPage() {
           {FREE_WAYS.map((w) => {
             const inner = (
               <>
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon name={w.icon} className="h-5 w-5" /></span>
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon duo name={w.icon} className="h-5 w-5" /></span>
                 <span className="min-w-0">
                   <span className="block font-semibold">{w.title}</span>
                   <span className="mt-0.5 block text-sm text-muted">{w.text}</span>

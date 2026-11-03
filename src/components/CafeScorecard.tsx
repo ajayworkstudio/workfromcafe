@@ -58,7 +58,7 @@ export default function CafeScorecard({
               return (
                 <li key={a.key} className="flex gap-3.5 border-b border-line py-4 last:border-b-0 sm:[&:nth-last-child(2):nth-child(odd)]:border-b-0">
                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand">
-                    <Icon name={a.icon} className="h-5 w-5" />
+                    <Icon name={a.icon} duo className="h-6 w-6" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-3">
@@ -97,7 +97,7 @@ export default function CafeScorecard({
                   >
                     <Icon name={state === "yes" ? "check" : state === "no" ? "x" : "help"} className="h-3 w-3" />
                   </span>
-                  <Icon name={m.icon} className="h-4 w-4 shrink-0 text-muted" />
+                  <Icon name={m.icon} duo className="h-[18px] w-[18px] shrink-0 text-muted" />
                   <span className={state === "no" ? "line-through decoration-mist" : ""}>{m.label}</span>
                 </li>
               );

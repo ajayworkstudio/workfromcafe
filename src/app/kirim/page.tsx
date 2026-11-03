@@ -74,7 +74,7 @@ export default async function SubmissionsPage({ searchParams }: { searchParams: 
           <ol className="mt-8 grid gap-2.5 sm:grid-cols-3 md:mt-12">
             {STEPS.map((s, i) => (
               <li key={s.title} className="glass-dark flex gap-3 rounded-[1.5rem] p-4">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-foam/10 text-gold"><Icon name={s.icon} className="h-5 w-5" /></span>
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-foam/10 text-gold"><Icon duo name={s.icon} className="h-5 w-5" /></span>
                 <span>
                   <span className="block text-xs font-bold uppercase tracking-wider text-foam/55">Langkah {i + 1}</span>
                   <span className="block font-bold">{s.title}</span>
@@ -134,7 +134,7 @@ export default async function SubmissionsPage({ searchParams }: { searchParams: 
             </div>
             {!subs.length ? (
               <div className="mt-4 flex flex-col items-center gap-3 rounded-[1.75rem] border border-dashed border-mist bg-surface p-8 text-center">
-                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-brand-soft text-brand"><Icon name="cup" className="h-6 w-6" /></span>
+                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-brand-soft text-brand"><Icon duo name="cup" className="h-6 w-6" /></span>
                 <p className="max-w-sm text-muted">Belum ada. Mulai dari kafe yang paling sering kamu datangi untuk kerja.</p>
                 <Link href="/kirim/baru" className="btn-primary min-h-11"><Icon name="send" className="h-4 w-4" />Kirim rekomendasi pertama</Link>
               </div>

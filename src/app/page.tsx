@@ -211,7 +211,7 @@ export default async function Home() {
         ) : (
           <Link href="/kirim" className="group flex flex-wrap items-center justify-between gap-4 rounded-[1.75rem] border border-line bg-surface p-6 transition-colors hover:border-brand md:col-span-2 md:p-9">
             <span className="flex items-center gap-4">
-              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-soft text-brand"><Icon name="send" className="h-6 w-6" /></span>
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-soft text-brand"><Icon duo name="send" className="h-6 w-6" /></span>
               <span>
                 <span className="block text-xl font-bold md:text-2xl">Punya kafe andalan buat kerja?</span>
                 <span className="block text-muted">Kirim rekomendasimu dan tampil sebagai author.</span>

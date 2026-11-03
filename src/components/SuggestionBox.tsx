@@ -19,7 +19,7 @@ export default function SuggestionBox() {
         {SUGGESTION_TOPICS.map((t) => (
           <Link key={t.value} href={`/kontak?topik=${t.value}#pesan`}
             className="group flex min-h-24 gap-3 rounded-2xl border border-line p-4 transition-colors hover:border-brand hover:bg-brand-soft/40">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon name={ICONS[t.value]} className="h-5 w-5" /></span>
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon duo name={ICONS[t.value]} className="h-5 w-5" /></span>
             <span className="min-w-0">
               <span className="flex items-center gap-1 font-semibold">{t.label}<Icon name="chevron" className="h-4 w-4 text-muted transition-transform group-hover:translate-x-0.5" /></span>
               <span className="mt-0.5 block text-sm text-muted">{t.hint}</span>

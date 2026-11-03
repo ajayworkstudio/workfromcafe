@@ -80,7 +80,7 @@ export default async function ForCafes() {
           <ul className="mt-6 grid gap-x-10 gap-y-8 md:grid-cols-2">
             {BENEFITS.map((b) => (
               <li key={b.title} className="flex gap-4">
-                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-soft text-brand"><Icon name={b.icon} className="h-6 w-6" /></span>
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-soft text-brand"><Icon duo name={b.icon} className="h-6 w-6" /></span>
                 <span>
                   <span className="block text-lg font-bold">{b.title}</span>
                   <span className="mt-1 block text-muted">{b.text}</span>

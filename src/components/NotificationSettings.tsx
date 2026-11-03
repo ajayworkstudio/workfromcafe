@@ -106,7 +106,7 @@ export default function NotificationSettings({ prefs, compact = false }: { prefs
   return (
     <section aria-labelledby="notif-judul" className="card space-y-4 p-5">
       <div className="flex items-start gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon name="bell" className="h-5 w-5" /></span>
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon duo name="bell" className="h-5 w-5" /></span>
         <div className="min-w-0 flex-1">
           <h2 id="notif-judul" className="font-sans text-base font-bold tracking-normal">Notifikasi di perangkat ini</h2>
           <p className="mt-0.5 text-sm text-muted">

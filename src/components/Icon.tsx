@@ -1,72 +1,29 @@
-// Ikon garis sederhana (gaya lucide), tanpa dependensi tambahan.
-const paths: Record<string, React.ReactNode> = {
-  home: <><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5" /></>,
-  search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></>,
-  map: <><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z" /><path d="M9 4v14M15 6v14" /></>,
-  user: <><circle cx="12" cy="8" r="4" /><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" /></>,
-  whatsapp: <><path d="M3.5 20.5 4.8 16A8.5 8.5 0 1 1 8 19.2l-4.5 1.3Z" /><path d="M9 8.5c0 3.5 3 6.5 6.5 6.5l1-1.5-2-1-1 .8a4.5 4.5 0 0 1-2.3-2.3l.8-1-1-2-1.5 1Z" /></>,
-  wifi: <><path d="M2 8.5a15 15 0 0 1 20 0" /><path d="M5.5 12a10 10 0 0 1 13 0" /><path d="M9 15.5a5 5 0 0 1 6 0" /><circle cx="12" cy="19" r="1" /></>,
-  plug: <><path d="M9 2v6M15 2v6" /><path d="M6 8h12v3a6 6 0 0 1-12 0V8Z" /><path d="M12 17v5" /></>,
-  star: <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9L12 3Z" />,
-  bell: <><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6.5 2 6.5H4S6 14 6 9Z" /><path d="M10 19a2 2 0 0 0 4 0" /></>,
-  bug: <><rect x="7" y="7" width="10" height="13" rx="5" /><path d="M9 7a3 3 0 0 1 6 0M12 11v9M3 13h4M17 13h4M4 7l3 2M20 7l-3 2M4 20l3-2M20 20l-3-2" /></>,
-  heart: <path d="M12 20s-7.5-4.6-9.3-9.2C1.4 7.4 3.6 4 7 4c2 0 3.5 1.1 5 3 1.5-1.9 3-3 5-3 3.4 0 5.6 3.4 4.3 6.8C19.5 15.4 12 20 12 20Z" />,
-  check: <path d="m4 12 5 5L20 6" />,
-  pin: <><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z" /><circle cx="12" cy="10" r="2.5" /></>,
-  clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
-  lock: <><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></>,
-  external: <><path d="M14 4h6v6" /><path d="M20 4 10 14" /><path d="M19 14v6H4V5h6" /></>,
-  grid: <><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></>,
-  tag: <><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9-9-9Z" /><circle cx="7.5" cy="7.5" r="1.5" /></>,
-  users: <><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20c1-3.5 3.6-5.5 6.5-5.5s5.5 2 6.5 5.5" /><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c2 .8 3.2 2.5 3.8 5.2" /></>,
-  settings: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" /></>,
-  plus: <path d="M12 5v14M5 12h14" />,
-  edit: <><path d="M4 20h4L19 9l-4-4L4 16v4Z" /><path d="m13.5 6.5 4 4" /></>,
-  trash: <><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" /></>,
-  eye: <><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></>,
-  eyeOff: <><path d="M3 3l18 18" /><path d="M10.6 5.1A10.6 10.6 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4M6.6 6.6A17 17 0 0 0 2 12s3.5 7 10 7c1.6 0 3-.4 4.3-1" /></>,
-  arrowLeft: <path d="M19 12H5m6-6-6 6 6 6" />,
-  image: <><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="10" r="2" /><path d="m21 16-5-5-9 9" /></>,
-  book: <><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5Z" /><path d="M4 19a2 2 0 0 1 2-2h13" /><path d="M9 7h6M9 11h4" /></>,
-  instagram: <><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" /></>,
-  locate: <><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /><circle cx="12" cy="12" r="7" /></>,
-  gift: <><rect x="3" y="8" width="18" height="4" rx="1" /><path d="M5 12v9h14v-9M12 8v13" /><path d="M12 8S10.5 3 8 3.5 7 8 12 8ZM12 8s1.5-5 4-4.5S17 8 12 8Z" /></>,
-  table: <><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 10h18M3 15h18M9 4v16" /></>,
-  gauge: <><path d="M3.5 17a9 9 0 1 1 17 0" /><path d="m12 13 4-5" /><circle cx="12" cy="13" r="1.2" /></>,
-  volume: <><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4v-5Z" /><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" /></>,
-  sofa: <><path d="M5 11V8a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v3" /><path d="M3 13a2 2 0 0 1 4 0v1h10v-1a2 2 0 0 1 4 0v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4Z" /><path d="M6 18v2M18 18v2" /></>,
-  sparkle: <><path d="M10 3.5 11.6 8.4 16.5 10l-4.9 1.6L10 16.5 8.4 11.6 3.5 10l4.9-1.6L10 3.5Z" /><path d="M18 14v6M15 17h6" /></>,
-  smile: <><circle cx="12" cy="12" r="9" /><path d="M8.5 14.5c1.8 2 5.2 2 7 0" /><path d="M9 9.5h.01M15 9.5h.01" /></>,
-  wallet: <><path d="M4 7a2 2 0 0 1 2-2h11v4" /><rect x="3" y="8" width="18" height="12" rx="2" /><path d="M16 14h2" /></>,
-  car: <><path d="M5 16V11l2-5h10l2 5v5" /><path d="M3 16h18v3H3z" /><path d="M5 11h14" /><circle cx="7.5" cy="13.5" r=".6" /><circle cx="16.5" cy="13.5" r=".6" /></>,
-  moon: <path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z" />,
-  utensils: <><path d="M6 3v7a2 2 0 0 0 4 0V3M8 10v11" /><path d="M17 21V3c-2 1-3 3.5-3 7h3" /></>,
-  snow: <><path d="M12 2v20M4 6.5l16 11M4 17.5l16-11" /><path d="m9.5 3.5 2.5 2 2.5-2M9.5 20.5l2.5-2 2.5 2" /></>,
-  tree: <><path d="M12 3c3 0 5.5 2.4 5.5 5.3a4.5 4.5 0 0 1-1.2 7.7H7.7a4.5 4.5 0 0 1-1.2-7.7C6.5 5.4 9 3 12 3Z" /><path d="M12 10v11" /></>,
-  smoke: <><rect x="2.5" y="14" width="15" height="4" rx="1" /><path d="M20.5 14v4M17.5 4c0 2 2.5 2 2.5 4.5S17.5 11 17.5 11" /></>,
-  desk: <><rect x="6" y="3" width="12" height="9" rx="1" /><path d="M12 12v9M8 21h8" /></>,
-  paw: <><circle cx="6.5" cy="10" r="1.8" /><circle cx="10" cy="6" r="1.8" /><circle cx="14" cy="6" r="1.8" /><circle cx="17.5" cy="10" r="1.8" /><path d="M12 11.5c-3 0-5.5 4-5.5 6.2 0 1.8 1.6 2.3 3 1.9 1.2-.3 1.8-.6 2.5-.6s1.3.3 2.5.6c1.4.4 3-.1 3-1.9 0-2.2-2.5-6.2-5.5-6.2Z" /></>,
-  music: <><path d="M9 18V5l11-2v13" /><circle cx="6.5" cy="18" r="2.5" /><circle cx="17.5" cy="16" r="2.5" /></>,
-  calendar: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></>,
-  chat: <path d="M4 5h16v11H9l-5 4V5Z" />,
-  send: <><path d="M21 3 10 14" /><path d="m21 3-7 18-4-7-7-4 18-7Z" /></>,
-  inbox: <><path d="M3 13h5l1.5 3h5L16 13h5" /><path d="M5.5 5h13L21 13v6H3v-6l2.5-8Z" /></>,
-  x: <path d="M6 6l12 12M18 6 6 18" />,
-  chevron: <path d="m9 5 7 7-7 7" />,
-  sliders: <><path d="M4 7h9M17 7h3M4 17h3M11 17h9" /><circle cx="15" cy="7" r="2" /><circle cx="9" cy="17" r="2" /></>,
-  arrow: <><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></>,
-  back: <path d="m15 5-7 7 7 7" />,
-  share: <><path d="M12 3v12" /><path d="m7.5 7.5 4.5-4.5 4.5 4.5" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" /></>,
-  link: <><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" /><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" /></>,
-  facebook: <path d="M14 8h3V4h-3a4 4 0 0 0-4 4v3H7v4h3v6h4v-6h3l1-4h-4V8Z" />,
-  help: <><path d="M9.2 9a3 3 0 0 1 5.6 1.2c0 2-2.8 2.5-2.8 4.3" /><path d="M12 18h.01" /></>,
-  cup:<><path d="M4 8h13v6a6 6 0 0 1-6 6H10a6 6 0 0 1-6-6V8Z" /><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17" /><path d="M8 2.5c0 1.5 1 1.5 1 3M12 2.5c0 1.5 1 1.5 1 3" /></>,
+// Ikon dari Phosphor (bukan gaya lucide yang umum dipakai situs lain).
+// `duo` dipakai untuk ikon fitur di dalam kotak (penilaian, fasilitas, manfaat).
+import {
+  House, MagnifyingGlass, MapTrifold, User, WhatsappLogo, WifiHigh, Star, Bell, Bug, Heart, Check,
+  MapPin, Clock, Lock, ArrowSquareOut, SquaresFour, Tag, Users, GearSix, Plus, PencilSimple, Trash, Eye,
+  EyeSlash, ArrowLeft, Image, BookOpenText, InstagramLogo, Crosshair, Gift, Table, Gauge, SpeakerHigh,
+  Armchair, Sparkle, Smiley, Wallet, Car, Moon, ForkKnife, Snowflake, Tree, Cigarette, Desk, PawPrint,
+  MusicNotes, PlugCharging, CalendarBlank, ChatCircle, PaperPlaneTilt, Tray, X, CaretRight, Sliders, ArrowRight,
+  CaretLeft, Export, Link, FacebookLogo, Question, Coffee,
+} from "@phosphor-icons/react/ssr";
+import type { Icon as PhIcon } from "@phosphor-icons/react";
+
+const icons: Record<string, PhIcon> = {
+  home: House, search: MagnifyingGlass, map: MapTrifold, user: User, whatsapp: WhatsappLogo, wifi: WifiHigh,
+  plug: PlugCharging, star: Star, bell: Bell, bug: Bug, heart: Heart, check: Check, pin: MapPin, clock: Clock,
+  lock: Lock, external: ArrowSquareOut, grid: SquaresFour, tag: Tag, users: Users, settings: GearSix,
+  plus: Plus, edit: PencilSimple, trash: Trash, eye: Eye, eyeOff: EyeSlash, arrowLeft: ArrowLeft,
+  image: Image, book: BookOpenText, instagram: InstagramLogo, locate: Crosshair, gift: Gift, table: Table,
+  gauge: Gauge, volume: SpeakerHigh, sofa: Armchair, sparkle: Sparkle, smile: Smiley, wallet: Wallet,
+  car: Car, moon: Moon, utensils: ForkKnife, snow: Snowflake, tree: Tree, smoke: Cigarette, desk: Desk,
+  paw: PawPrint, music: MusicNotes, calendar: CalendarBlank, chat: ChatCircle, send: PaperPlaneTilt,
+  inbox: Tray, x: X, chevron: CaretRight, sliders: Sliders, arrow: ArrowRight, back: CaretLeft,
+  share: Export, link: Link, facebook: FacebookLogo, help: Question, cup: Coffee,
 };
 
-export default function Icon({ name, className = "h-5 w-5", filled = false }: { name: keyof typeof paths | string; className?: string; filled?: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      {paths[name]}
-    </svg>
-  );
+export default function Icon({ name, className = "h-5 w-5", filled = false, duo = false }: { name: string; className?: string; filled?: boolean; duo?: boolean }) {
+  const C = icons[name] ?? Question;
+  return <C className={className} weight={filled ? "fill" : duo ? "duotone" : "regular"} aria-hidden />;
 }

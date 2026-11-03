@@ -120,7 +120,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       </div>}
 
       <Link href="/kirim" className="card mt-6 flex items-center gap-4 p-5 transition-colors hover:border-brand">
-        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon name="send" className="h-5 w-5" /></span>
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon duo name="send" className="h-5 w-5" /></span>
         <span className="flex-1">
           <span className="block font-semibold">Rekomendasi kafe kamu</span>
           <span className="block text-sm text-muted">Kirim kafe andalanmu dan pantau statusnya.</span>
@@ -129,7 +129,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       </Link>
 
       <Link href="/pemilik" className="card mt-3 flex items-center gap-4 p-5 transition-colors hover:border-brand">
-        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon name="cup" className="h-5 w-5" /></span>
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon duo name="cup" className="h-5 w-5" /></span>
         <span className="flex-1">
           <span className="block font-semibold">Punya kafe?</span>
           <span className="block text-sm text-muted">Klaim kafemu, pilih paket, dan atur iklan Sponsored.</span>

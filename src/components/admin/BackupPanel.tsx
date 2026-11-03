@@ -142,7 +142,7 @@ export default function BackupPanel() {
     <div className="space-y-5">
       <div className="card space-y-4 p-5 md:p-6">
         <div className="flex items-start gap-3">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon name="inbox" className="h-5 w-5" /></span>
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon duo name="inbox" className="h-5 w-5" /></span>
           <div>
             <h2 className="font-sans text-lg font-bold tracking-normal">Unduh backup (zip)</h2>
             <p className="mt-0.5 text-sm text-muted">Semua data kafe, menu, ulasan, pengguna, laporan, pesan, dan pengaturan, plus foto kafe. Simpan file zip-nya di tempat lain (Google Drive, laptop, atau Files di iPad).</p>

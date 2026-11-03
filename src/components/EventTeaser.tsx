@@ -27,7 +27,7 @@ export default function EventTeaser({ communityUrl }: { communityUrl: string }) 
       <ul className="mt-5 grid gap-3 sm:grid-cols-2">
         {IDEAS.map((i) => (
           <li key={i.title} className="card flex gap-4 p-5">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon name={i.icon} className="h-5 w-5" /></span>
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon duo name={i.icon} className="h-5 w-5" /></span>
             <span>
               <span className="block font-bold">{i.title}</span>
               <span className="mt-0.5 block text-sm text-muted">{i.text}</span>
