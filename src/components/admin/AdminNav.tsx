@@ -18,6 +18,7 @@ const ITEMS = [
   { href: "/admin/pelanggan", label: "Pelanggan", icon: "users" },
   { href: "/admin/pendukung", label: "Pendukung", icon: "heart" },
   { href: "/admin/iklan", label: "Iklan kafe", icon: "wallet" },
+  { href: "/admin/owner", label: "Owner kafe", icon: "users" },
   { href: "/admin/owner-chat", label: "Chat owner", icon: "chat" },
   { href: "/admin/artikel", label: "Artikel", icon: "book" },
   { href: "/admin/backup", label: "Backup", icon: "inbox" },

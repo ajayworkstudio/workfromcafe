@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import StatsPanel, { PeriodTabs } from "@/components/StatsPanel";
 import PrintButton from "@/components/PrintButton";
+import Icon from "@/components/Icon";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/auth";
 import { articlesWithCafe } from "@/lib/articles";
@@ -56,7 +57,12 @@ export default async function CafeReport({ params, searchParams }: { params: Pro
     <div className="print-sheet mx-auto max-w-4xl px-4 py-8">
       <div className="no-print mb-6 flex flex-wrap items-center justify-between gap-3">
         <PeriodTabs days={days} hrefFor={(d) => `/laporan/${id}?hari=${d}`} />
-        <PrintButton />
+        <div className="flex flex-wrap gap-2">
+          {/* PDF dibuat di server: jalan juga di aplikasi layar utama iPhone yang tidak bisa mencetak */}
+          <a href={`/laporan/${id}/pdf?hari=${days}&unduh=1`} download data-no-transition className="btn-primary min-h-11"><Icon name="book" className="h-4 w-4" />Unduh PDF</a>
+          <a href={`/laporan/${id}/pdf?hari=${days}`} data-no-transition target="_blank" rel="noopener" className="btn-ghost min-h-11">Buka PDF</a>
+          <PrintButton label="Cetak" />
+        </div>
       </div>
 
       <header className="flex items-start justify-between gap-4 border-b border-line pb-5">

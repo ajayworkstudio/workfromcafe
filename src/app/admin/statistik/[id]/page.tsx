@@ -28,7 +28,8 @@ export default async function CafeStatsAdmin({ params, searchParams }: { params:
         action={<PeriodTabs days={days} hrefFor={(d) => `/admin/statistik/${id}?hari=${d}`} />} />
 
       <div className="mb-5 flex flex-wrap gap-2">
-        <Link href={`/laporan/${id}?hari=${days}`} className="btn-primary min-h-11"><Icon name="book" className="h-4 w-4" />Laporan untuk owner</Link>
+        <a href={`/laporan/${id}/pdf?hari=${days}&unduh=1`} download data-no-transition className="btn-primary min-h-11"><Icon name="book" className="h-4 w-4" />Unduh laporan PDF</a>
+        <Link href={`/laporan/${id}?hari=${days}`} className="btn-ghost min-h-11">Lihat laporan</Link>
         <Link href={`/admin/owner-chat/${id}`} className="btn-ghost min-h-11"><Icon name="chat" className="h-4 w-4" />Chat dengan owner</Link>
         <Link href={`/kafe/${c.slug}`} className="btn-ghost min-h-11">Halaman kafe</Link>
         <span className="chip self-center">{owners?.some((o) => o.verified_at) ? "Owner terverifikasi" : owners?.length ? "Klaim menunggu verifikasi" : "Belum diklaim owner"}</span>

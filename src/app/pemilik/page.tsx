@@ -306,7 +306,8 @@ export default async function OwnerPage({ searchParams }: { searchParams: Promis
           </div>
           {stats ? <StatsPanel s={stats} /> : <p className="text-sm text-muted">Statistik pengunjung sedang disiapkan admin.</p>}
           <div className="mt-5 flex flex-wrap gap-2">
-            <Link href={`/laporan/${cafeId}?hari=${days}`} className="btn-ghost min-h-11"><Icon name="book" className="h-4 w-4" />Laporan siap cetak</Link>
+            <a href={`/laporan/${cafeId}/pdf?hari=${days}&unduh=1`} download data-no-transition className="btn-primary min-h-11"><Icon name="book" className="h-4 w-4" />Unduh laporan PDF</a>
+            <Link href={`/laporan/${cafeId}?hari=${days}`} className="btn-ghost min-h-11">Lihat laporan</Link>
           </div>
           <p className="mt-3 text-xs text-muted">Kunjunganmu sendiri ke halaman kafe tidak dihitung. Satu orang yang membuka berkali-kali dalam 30 menit dihitung sekali.</p>
         </section>

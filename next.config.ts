@@ -50,6 +50,7 @@ const nextConfig: NextConfig = {
     "/author/[key]/kartu": ["./src/assets/fonts/**", "./public/logo.png"],
     "/author/[key]/opengraph-image": ["./src/assets/fonts/**", "./public/logo.png"],
     "/kafe/[slug]/story": ["./src/assets/fonts/**", "./public/logo.png"],
+    "/laporan/[id]/pdf": ["./src/assets/fonts/**", "./public/logo.png"],
   },
   images: {
     // Gambar sudah dikompres saat diunggah (src/lib/compressImage.ts), jadi tidak lewat
