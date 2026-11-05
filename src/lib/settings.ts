@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
-import { createPublicClient } from "./supabase/server";
+import { createAdminClient, createPublicClient } from "./supabase/server";
 import type { Plan } from "./types";
 
 export type Settings = {
@@ -39,7 +39,9 @@ export const DEFAULT_COMMUNITY_URL = "https://chat.whatsapp.com/J08g0t98OCG3ZLNM
 // Disimpan di cache server 60 detik (tag "settings"); disegarkan langsung saat admin menyimpan Pengaturan.
 const loadSettingRows = unstable_cache(
   async () => {
-    const { data, error } = await createPublicClient().from("app_settings").select("key,value");
+    // Kunci internal (sheet_url, auto_approve, …) hanya terbaca dengan service role (migrasi 0030)
+    const db = process.env.SUPABASE_SERVICE_ROLE_KEY ? createAdminClient() : createPublicClient();
+    const { data, error } = await db.from("app_settings").select("key,value");
     if (error) throw new Error(error.message); // jangan simpan hasil gagal ke cache
     return (data ?? []) as { key: string; value: string }[];
   },
