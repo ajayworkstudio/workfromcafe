@@ -10,11 +10,15 @@ import { setArticleLike, setArticleSave } from "@/app/artikel/actions";
  * Suka dan simpan berubah langsung di layar, lalu dikirim ke server; kalau gagal, dikembalikan.
  * Pengunjung yang belum login diarahkan ke halaman Masuk.
  */
-export default function ArticleActions({ id, slug, title, url, liked, saved, likes, views, loggedIn, track = false }: {
+export default function ArticleActions({ id, slug, title, url, liked, saved, likes, views, loggedIn, track = false, variant = "bar", hideSave = false }: {
   id: string; slug: string; title: string; url: string;
   liked: boolean; saved: boolean; likes: number; views: number; loggedIn: boolean;
   /** Catat kunjungan (pasang di satu baris aksi saja per halaman) */
   track?: boolean;
+  /** "save" = hanya tombol simpan bulat kaca, untuk di atas foto sampul */
+  variant?: "bar" | "save";
+  /** Sembunyikan tombol simpan di baris aksi (kalau tombol simpan sudah ada di atas foto) */
+  hideSave?: boolean;
 }) {
   const router = useRouter();
   const [like, setLike] = useState({ on: liked, n: likes });
@@ -56,6 +60,17 @@ export default function ArticleActions({ id, slug, title, url, liked, saved, lik
   }
 
   const n = (v: number) => v.toLocaleString("id-ID");
+  if (variant === "save") {
+    return (
+      <>
+        <button type="button" onClick={toggleSave} aria-pressed={save} aria-label={save ? "Tersimpan, ketuk untuk batal" : "Simpan artikel"}
+          className="glass-dark grid h-11 w-11 shrink-0 place-items-center rounded-full text-foam transition active:scale-95">
+          <Icon name="bookmark" filled={save} className="h-5 w-5" />
+        </button>
+        <span role="status" className="sr-only">{msg}</span>
+      </>
+    );
+  }
   return (
     <div>
       <div className="flex flex-wrap items-center gap-2">
@@ -63,10 +78,12 @@ export default function ArticleActions({ id, slug, title, url, liked, saved, lik
           className={`btn min-h-11 border ${like.on ? "border-[#b4533a] bg-[#b4533a]/10 text-[#8c3b25]" : "border-line bg-surface hover:border-mist"}`}>
           <Icon name="heart" filled={like.on} className="h-4 w-4" />{like.on ? "Disukai" : "Suka"}{like.n > 0 && <span className="font-normal">· {n(like.n)}</span>}
         </button>
-        <button type="button" onClick={toggleSave} aria-pressed={save}
-          className={`btn min-h-11 border ${save ? "border-ink bg-ink text-white" : "border-line bg-surface hover:border-mist"}`}>
-          <Icon name="book" className="h-4 w-4" />{save ? "Tersimpan" : "Simpan"}
-        </button>
+        {!hideSave && (
+          <button type="button" onClick={toggleSave} aria-pressed={save}
+            className={`btn min-h-11 border ${save ? "border-ink bg-ink text-white" : "border-line bg-surface hover:border-mist"}`}>
+            <Icon name="bookmark" filled={save} className="h-4 w-4" />{save ? "Tersimpan" : "Simpan"}
+          </button>
+        )}
         <ShareButton url={url} title={title} text={title} className="btn min-h-11 border border-line bg-surface hover:border-mist" />
         <span className="ml-auto flex items-center gap-1.5 text-sm text-muted"><Icon name="eye" className="h-4 w-4" />Dilihat {n(views)} kali</span>
       </div>

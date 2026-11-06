@@ -2,7 +2,7 @@
 // Kartu kafe disisipkan di isi artikel dengan [[kafe:slug]].
 
 import { createPublicClient } from "./supabase/server";
-import { CAFE_LIST_SELECT } from "./utils";
+import { CAFE_LIST_SELECT, coverUrl } from "./utils";
 import type { Cafe } from "./types";
 
 export type ManualArticle = {
@@ -34,4 +34,29 @@ export const embeddedSlugs = (body: string) => [...body.matchAll(/\[\[kafe:([\w-
 /** Artikel tayang yang menyisipkan kafe ini (untuk laporan owner dan halaman kafe). */
 export async function articlesWithCafe(slug: string) {
   return (await getManualArticles()).filter((a) => embeddedSlugs(a.body).includes(slug));
+}
+
+/** Perkiraan waktu baca dari jumlah kata (200 kata per menit), minimal 1 menit. */
+export function readingMinutes(body: string) {
+  const words = body.replace(/\[\[kafe:[\w-]+\]\]|!\[[^\]]*\]\([^)]*\)|\[(?:kiri|tengah|kanan)\]|[#*_[\]()>-]/g, " ").split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 200));
+}
+
+/** Foto untuk kartu artikel: sampul, gambar pertama di isi, lalu foto kafe pertama yang disisipkan. */
+export async function articleCovers(articles: ManualArticle[]) {
+  const firstSlug = (a: ManualArticle) => embeddedSlugs(a.body).at(0);
+  const need = [...new Set(articles.filter((a) => !a.cover_url).map(firstSlug).filter((s): s is string => !!s))];
+  const cafes = await cafesBySlugs(need);
+  const bySlug = new Map(cafes.map((c) => [c.slug, coverUrl(c)]));
+  return new Map(articles.map((a) => {
+    const inBody = a.body.match(/^(?:\[(?:kiri|tengah|kanan)\][ \t]*)?!\[[^\]]*\]\(((?:https:\/\/|\/)[^\s)]+)\)$/m)?.[1];
+    const s = firstSlug(a);
+    return [a.id, a.cover_url || inBody || (s ? bySlug.get(s) ?? null : null)];
+  }));
+}
+
+/** Nama kota per id, untuk label kategori artikel. */
+export async function cityNames() {
+  const { data } = await createPublicClient().from("cities").select("id,name");
+  return new Map(((data as { id: string; name: string }[] | null) ?? []).map((c) => [c.id, c.name]));
 }
