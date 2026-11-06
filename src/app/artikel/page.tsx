@@ -4,7 +4,7 @@ import JsonLd from "@/components/JsonLd";
 import FadeImage from "@/components/FadeImage";
 import Icon from "@/components/Icon";
 import { breadcrumb } from "@/lib/seo";
-import ArticleByline from "@/components/ArticleByline";
+import ArticleCard from "@/components/ArticleCard";
 import { articleCovers, cityNames, getManualArticles, type ManualArticle } from "@/lib/articles";
 
 export const metadata: Metadata = {
@@ -37,20 +37,11 @@ export default async function ArticlesIndex() {
             <h2 id="terbaru" className="text-xl font-bold">Terbaru</h2>
             {/* Kartu foto digeser ke samping; kartu berikutnya mengintip supaya terlihat bisa digeser */}
             <ul className="-mx-4 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pb-2 [scrollbar-width:none] md:gap-4 [&::-webkit-scrollbar]:hidden">
-              {latest.map((a, i) => {
-                const cover = covers.get(a.id);
-                return (
-                  <li key={a.id} className="w-[78vw] max-w-[22rem] shrink-0 snap-start">
-                    <Link href={`/artikel/${a.slug}`} className="group relative isolate flex aspect-[4/5] flex-col justify-end overflow-hidden rounded-[1.75rem] bg-espresso p-5 text-foam">
-                      {cover && <FadeImage src={cover} alt="" fill priority={i < 2} sizes="(max-width:768px) 78vw, 352px" className="-z-10 object-cover transition duration-500 group-hover:scale-[1.04]" />}
-                      <span className="absolute inset-0 -z-10 bg-gradient-to-t from-espresso via-espresso/55 to-espresso/0" aria-hidden />
-                      <span className="glass-dark absolute left-4 top-4 rounded-full px-3 py-1 text-xs font-semibold">{label(a)}</span>
-                      <h3 className="line-clamp-3 text-[1.6rem] font-extrabold leading-[1.12] [text-shadow:0_2px_14px_rgb(0_0_0/0.35)]">{a.title}</h3>
-                      <ArticleByline a={a} light />
-                    </Link>
-                  </li>
-                );
-              })}
+              {latest.map((a, i) => (
+                <li key={a.id} className="w-[78vw] max-w-[22rem] shrink-0 snap-start">
+                  <ArticleCard a={a} cover={covers.get(a.id)} label={label(a)} priority={i < 2} />
+                </li>
+              ))}
             </ul>
           </section>
 

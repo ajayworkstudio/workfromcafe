@@ -21,13 +21,17 @@ import type { Cafe } from "@/lib/types";
 import { APP_NAME, CAFE_LIST_SELECT, INSTAGRAM_URL, SITE_URL } from "@/lib/utils";
 import { getViewer } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
+import ArticleCard from "@/components/ArticleCard";
+import { articleCovers, cityNames, getManualArticles } from "@/lib/articles";
 
 export const revalidate = 300;
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default async function Home() {
   const supabase = await createClient();
-  const [viewer, settings] = await Promise.all([getViewer(), getSettings()]);
+  const [viewer, settings, allArticles] = await Promise.all([getViewer(), getSettings(), getManualArticles()]);
+  const articles = allArticles.slice(0, 3);
+  const [articleCoverMap, articleCities] = await Promise.all([articleCovers(articles), cityNames()]);
   const free = settings.free_mode;
   const featuredAuthor = pickFeatured(await getAuthors(), settings.featured_author);
   const showTrial = !free && !viewer.user && settings.trial_days > 0;
@@ -176,6 +180,23 @@ export default async function Home() {
           </>
         )}
       </section>
+
+      {!!articles.length && (
+        <section className="reveal mx-auto max-w-6xl px-4 pt-16">
+          <div className="flex items-baseline justify-between gap-4">
+            <h2 className="text-2xl font-bold md:text-3xl">Bacaan terbaru</h2>
+            <Link href="/artikel" className="shrink-0 py-2 text-sm font-semibold text-brand hover:underline">Semua artikel</Link>
+          </div>
+          {/* HP: digeser ke samping, kartu berikutnya mengintip. Layar lebar: tiga kolom. */}
+          <ul className="-mx-4 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pb-2 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:gap-5 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
+            {articles.map((a) => (
+              <li key={a.id} className="w-[78vw] max-w-[22rem] shrink-0 snap-start md:w-auto md:max-w-none">
+                <ArticleCard a={a} cover={articleCoverMap.get(a.id)} label={(a.city_id && articleCities.get(a.city_id)) || "Panduan"} excerpt />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* Kartu ajakan: satu kartu utama (author/kirim) lebar penuh, dua kartu pendukung berdampingan */}
       <section className="reveal mx-auto grid max-w-6xl gap-5 px-4 pt-16 md:grid-cols-2">
