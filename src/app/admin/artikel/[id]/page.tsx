@@ -6,6 +6,7 @@ import PageHeader from "@/components/admin/PageHeader";
 import Flash from "@/components/admin/Flash";
 import SubmitButton from "@/components/admin/SubmitButton";
 import ConfirmButton from "@/components/admin/ConfirmButton";
+import ImageUploader from "@/components/admin/ImageUploader";
 import ArticleEditor from "@/components/admin/ArticleEditor";
 import { asSpacing } from "@/components/ArticleBody";
 import { createClient } from "@/lib/supabase/server";
@@ -87,7 +88,7 @@ export default async function EditArticle({ params, searchParams }: { params: Pr
             <select id="c" name="city_id" defaultValue={a?.city_id ?? ""} className="input"><option value="">Tanpa kota</option>{(cities ?? []).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
         </div>
         <div><label htmlFor="e" className="label">Ringkasan untuk Google (maks 300 huruf)</label><textarea id="e" name="excerpt" rows={2} maxLength={300} defaultValue={a?.excerpt ?? ""} className="input" /></div>
-        <div><label htmlFor="cv" className="label">Link foto sampul (opsional)</label><input id="cv" name="cover_url" defaultValue={a?.cover_url ?? ""} placeholder="https://…" className="input" /></div>
+        <div><p className="label">Foto sampul (opsional)</p><ImageUploader name="cover_url" initial={a?.cover_url} folder="articles" label="Unggah foto sampul" allowLink /></div>
         <div><label htmlFor="ca" className="label">Keterangan foto sampul (alt text)</label><input id="ca" name="cover_alt" maxLength={160} defaultValue={a?.cover_alt ?? ""} placeholder="Meja kerja dekat jendela di Kedai Besok Pagi, Semarang" className="input" /></div>
         <details className="rounded-xl border border-line p-3" open={!!(a?.meta_title || a?.meta_description)}>
           <summary className="cursor-pointer text-sm font-semibold">Pengaturan Google (opsional)</summary>
