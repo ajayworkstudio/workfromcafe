@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useId, useRef, useState } from "react";
 import Icon from "./Icon";
+import { useT } from "@/components/I18nProvider";
 
 /*
   Tombol "Bagikan" + menu: aplikasi lain lewat menu bagikan bawaan HP (termasuk Instagram,
@@ -19,6 +20,7 @@ export default function ShareButton({ url, title, text, align = "left", classNam
   storyUrl?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const { t } = useT();
   const [copied, setCopied] = useState(false);
   const [canNative, setCanNative] = useState(false);
   const [side, setSide] = useState<"left" | "right">(align);
@@ -100,8 +102,8 @@ export default function ShareButton({ url, title, text, align = "left", classNam
         const r = trigger.current?.getBoundingClientRect();
         if (r) setSide(r.left + r.width / 2 < window.innerWidth / 2 ? "left" : "right");
         setOpen((o) => !o);
-      }} aria-expanded={open} aria-controls={menuId} aria-label={iconOnly ? "Bagikan" : undefined} className={className}>
-        <Icon name="share" className={iconOnly ? "h-5 w-5" : "h-4 w-4"} />{!iconOnly && "Bagikan"}
+      }} aria-expanded={open} aria-controls={menuId} aria-label={iconOnly ? t("Bagikan") : undefined} className={className}>
+        <Icon name="share" className={iconOnly ? "h-5 w-5" : "h-4 w-4"} />{!iconOnly && t("Bagikan")}
       </button>
       {open && (
         <div id={menuId} role="dialog" aria-label={`Bagikan ${title}`}
@@ -110,22 +112,22 @@ export default function ShareButton({ url, title, text, align = "left", classNam
             <button type="button" data-share-item onClick={shareStory} disabled={story === "busy"} className={item}>
               <Icon name="image" className="h-5 w-5 text-[#c13584]" />
               <span className="min-w-0">
-                {story === "busy" ? "Menyiapkan kartu…" : "Kartu Story Instagram"}
-                {story === "saved" && <span className="block text-xs font-normal text-muted">Terunduh. Unggah ke Story dari galeri.</span>}
-                {story === "error" && <span className="block text-xs font-normal text-[#8c3b25]">Kartu belum bisa dibuat. Coba lagi.</span>}
+                {story === "busy" ? t("Menyiapkan kartu…") : t("Kartu Story Instagram")}
+                {story === "saved" && <span className="block text-xs font-normal text-muted">{t("Terunduh. Unggah ke Story dari galeri.")}</span>}
+                {story === "error" && <span className="block text-xs font-normal text-[#8c3b25]">{t("Kartu belum bisa dibuat. Coba lagi.")}</span>}
               </span>
             </button>
           )}
           {canNative && (
             <button type="button" data-share-item onClick={native} className={item}>
-              <Icon name="instagram" className="h-5 w-5 text-[#c13584]" />Instagram &amp; aplikasi lain
+              <Icon name="instagram" className="h-5 w-5 text-[#c13584]" />{t("Instagram & aplikasi lain")}
             </button>
           )}
           <button type="button" data-share-item onClick={copy} className={item}>
             <Icon name={copied ? "check" : "link"} className={`h-5 w-5 ${copied ? "text-[#2f7049]" : ""}`} />
-            {copied ? "Link disalin" : "Salin link"}
+            {copied ? t("Link disalin") : t("Salin link")}
           </button>
-          <span role="status" aria-live="polite" className="sr-only">{copied ? "Link sudah disalin" : ""}</span>
+          <span role="status" aria-live="polite" className="sr-only">{copied ? t("Link sudah disalin") : ""}</span>
           <div className="my-1 h-px bg-line" />
           {links.map((l) => (
             <a key={l.label} data-share-item href={l.href} target="_blank" rel="noopener" onClick={() => setOpen(false)} className={item}>

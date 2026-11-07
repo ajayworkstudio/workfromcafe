@@ -7,6 +7,7 @@ import { coverThumb, isOpenNow, priceLabel } from "@/lib/utils";
 import { averageScore } from "@/lib/review";
 import { CROWD, reportAgo, type LiveSummary } from "@/lib/reports";
 import Icon from "./Icon";
+import { useT } from "@/components/I18nProvider";
 
 type Item = { c: Cafe; d: number | null };
 
@@ -19,6 +20,7 @@ const fmt = (d: number) => (d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(d
  * semua kafe tetap terlihat berurutan dan bisa digeser bolak-balik.
  */
 export default function CafeCarousel({ items, live }: { items: Item[]; live: Record<string, LiveSummary> }) {
+  const { t, locale } = useT();
   const track = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
 
@@ -55,7 +57,7 @@ export default function CafeCarousel({ items, live }: { items: Item[]; live: Rec
 
   if (!items.length) return null;
   return (
-    <div className="mt-5" aria-roledescription="carousel" aria-label="Daftar kafe">
+    <div className="mt-5" aria-roledescription="carousel" aria-label={t("Daftar kafe")}>
       <div ref={track} className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-[9%] pb-2 [scrollbar-width:none]">
         {items.map(({ c, d }, i) => {
           const cover = coverThumb(c);
@@ -78,7 +80,7 @@ export default function CafeCarousel({ items, live }: { items: Item[]; live: Rec
               <div className="absolute inset-x-3 top-3 flex flex-wrap gap-1.5 text-xs font-bold">
                 {open !== null && (
                   <span className="glass-dark flex items-center gap-1.5 rounded-full px-2.5 py-1">
-                    <span className={`h-1.5 w-1.5 rounded-full ${open ? "bg-[#6fd09a]" : "bg-mist"}`} />{open ? "Buka" : "Tutup"}
+                    <span className={`h-1.5 w-1.5 rounded-full ${open ? "bg-[#6fd09a]" : "bg-mist"}`} />{open ? t("Buka") : t("Tutup")}
                   </span>
                 )}
                 {d != null && <span className="glass-dark rounded-full px-2.5 py-1">{fmt(d)}</span>}
@@ -97,11 +99,11 @@ export default function CafeCarousel({ items, live }: { items: Item[]; live: Rec
                   )}
                 </div>
                 <p className="flex flex-wrap gap-1.5 text-xs font-bold">
-                  {l && <span className={`rounded-full px-2 py-1 ${CROWD_CHIP[l.crowd]}`}>{CROWD[l.crowd].label} · {reportAgo(l.last_at)}</span>}
+                  {l && <span className={`rounded-full px-2 py-1 ${CROWD_CHIP[l.crowd]}`}>{t(CROWD[l.crowd].label)} · {reportAgo(l.last_at, t, locale)}</span>}
                   {l?.download_mbps != null && <span className="rounded-full bg-white/15 px-2 py-1">{Math.round(Number(l.download_mbps))} Mbps</span>}
-                  <span className="rounded-full bg-white/15 px-2 py-1">{priceLabel(c.price_range)}</span>
+                  <span className="rounded-full bg-white/15 px-2 py-1">{t(priceLabel(c.price_range))}</span>
                   {wifi && <span className="rounded-full bg-white/15 px-2 py-1">Wifi</span>}
-                  {plug && <span className="rounded-full bg-white/15 px-2 py-1">Colokan</span>}
+                  {plug && <span className="rounded-full bg-white/15 px-2 py-1">{t("Colokan")}</span>}
                 </p>
               </div>
             </Link>
@@ -111,7 +113,7 @@ export default function CafeCarousel({ items, live }: { items: Item[]; live: Rec
 
       {/* Penanda posisi + tombol geser (juga untuk pengguna keyboard / pembaca layar) */}
       <div className="mt-3 flex items-center justify-between gap-3 px-1">
-        <button type="button" onClick={() => go(Math.max(0, active - 1))} disabled={active === 0} aria-label="Kafe sebelumnya"
+        <button type="button" onClick={() => go(Math.max(0, active - 1))} disabled={active === 0} aria-label={t("Kafe sebelumnya")}
           className="grid h-11 w-11 place-items-center rounded-full border border-line bg-surface disabled:opacity-40">
           <Icon name="back" className="h-5 w-5" />
         </button>
@@ -121,7 +123,7 @@ export default function CafeCarousel({ items, live }: { items: Item[]; live: Rec
             : null}
         </div>
         <span className="shrink-0 text-sm font-semibold tabular-nums text-muted" aria-live="polite">{active + 1}/{items.length}</span>
-        <button type="button" onClick={() => go(Math.min(items.length - 1, active + 1))} disabled={active === items.length - 1} aria-label="Kafe berikutnya"
+        <button type="button" onClick={() => go(Math.min(items.length - 1, active + 1))} disabled={active === items.length - 1} aria-label={t("Kafe berikutnya")}
           className="grid h-11 w-11 place-items-center rounded-full bg-ink text-white disabled:opacity-40">
           <Icon name="chevron" className="h-5 w-5" />
         </button>

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { safeNext } from "@/lib/safeNext";
+import { useT } from "@/components/I18nProvider";
 
 function GoogleLogo() {
   return (
@@ -28,6 +29,7 @@ function friendlyAuthError(msg: string) {
 const GOOGLE_LOGIN_ENABLED = true;
 
 export default function LoginForm({ next, initialMode = "login" }: { next: string; initialMode?: "login" | "daftar" }) {
+  const { t } = useT();
   const supabase = createClient();
   const router = useRouter();
   const [mode, setMode] = useState<"login" | "daftar">(initialMode);
@@ -49,7 +51,7 @@ export default function LoginForm({ next, initialMode = "login" }: { next: strin
     });
     if (error) {
       setGoogleLoading(false);
-      setMsg({ type: "error", text: "Login Google belum aktif. Pastikan provider Google sudah dinyalakan di Supabase." });
+      setMsg({ type: "error", text: t("Login Google belum aktif. Pastikan provider Google sudah dinyalakan di Supabase.") });
     }
   }
 
@@ -59,13 +61,13 @@ export default function LoginForm({ next, initialMode = "login" }: { next: strin
     setMsg(null);
     if (mode === "login") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) setMsg({ type: "error", text: "Email atau kata sandi tidak cocok." });
+      if (error) setMsg({ type: "error", text: t("Email atau kata sandi tidak cocok.") });
       else { router.push(safeNext(next)); router.refresh(); }
     } else {
       const { error } = await supabase.auth.signUp({
         email, password, options: { emailRedirectTo: `${redirectTo()}&src=email`, data: { full_name: name } },
       });
-      setMsg(error ? { type: "error", text: friendlyAuthError(error.message) } : { type: "info", text: `Link konfirmasi sudah dikirim ke ${email}. Buka email itu (cek juga folder Spam), lalu klik link-nya untuk mengaktifkan akun.` });
+      setMsg(error ? { type: "error", text: friendlyAuthError(error.message) } : { type: "info", text: t("Link konfirmasi sudah dikirim ke {email}. Buka email itu (cek juga folder Spam), lalu klik link-nya untuk mengaktifkan akun.", { email }) });
     }
     setLoading(false);
   }
@@ -77,11 +79,11 @@ export default function LoginForm({ next, initialMode = "login" }: { next: strin
       <button onClick={google} disabled={googleLoading}
         className="btn w-full border border-line bg-surface !py-3 text-[15px] hover:border-mist hover:bg-tint">
         <GoogleLogo />
-        {googleLoading ? "Mengarahkan ke Google…" : "Masuk dengan Google"}
+        {googleLoading ? t("Mengarahkan ke Google…") : t("Masuk dengan Google")}
       </button>
 
       <div className="my-6 flex items-center gap-3 text-sm text-muted">
-        <span className="h-px flex-1 bg-line" />atau pakai email<span className="h-px flex-1 bg-line" />
+        <span className="h-px flex-1 bg-line" />{t("atau pakai email")}<span className="h-px flex-1 bg-line" />
       </div>
         </>
       )}
@@ -89,7 +91,7 @@ export default function LoginForm({ next, initialMode = "login" }: { next: strin
       <form onSubmit={submit} className="space-y-3">
         {mode === "daftar" && (
           <div>
-            <label htmlFor="name" className="label">Nama</label>
+            <label htmlFor="name" className="label">{t("Nama")}</label>
             <input id="name" required autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} className="input" />
           </div>
         )}
@@ -98,26 +100,26 @@ export default function LoginForm({ next, initialMode = "login" }: { next: strin
           <input id="email" required type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="input" />
         </div>
         <div>
-          <label htmlFor="password" className="label">Kata sandi</label>
+          <label htmlFor="password" className="label">{t("Kata sandi")}</label>
           <input id="password" required type="password" minLength={6} autoComplete={mode === "login" ? "current-password" : "new-password"}
             value={password} onChange={(e) => setPassword(e.target.value)} className="input" />
         </div>
         <button disabled={loading} className="btn-dark w-full !py-3">
-          {loading ? "Memproses…" : mode === "login" ? "Masuk" : "Buat akun"}
+          {loading ? t("Memproses…") : mode === "login" ? t("Masuk") : t("Buat akun")}
         </button>
       </form>
 
       {msg && (
         <p role={msg.type === "error" ? "alert" : "status"}
           className={`mt-4 rounded-xl p-3 text-sm ${msg.type === "error" ? "border border-red-200 bg-red-50 text-red-800" : "bg-brand-soft text-brand"}`}>
-          {msg.text}
+          {t(msg.text)}
         </p>
       )}
 
       <p className="mt-6 text-center text-sm text-muted">
-        {mode === "login" ? "Belum punya akun? " : "Sudah punya akun? "}
+        {mode === "login" ? t("Belum punya akun? ") : t("Sudah punya akun? ")}
         <button onClick={() => { setMode(mode === "login" ? "daftar" : "login"); setMsg(null); }} className="font-semibold text-brand hover:underline">
-          {mode === "login" ? "Daftar dengan email" : "Masuk"}
+          {mode === "login" ? t("Daftar dengan email") : t("Masuk")}
         </button>
       </p>
     </div>

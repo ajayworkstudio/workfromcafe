@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useTransition, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useT } from "./I18nProvider";
 
 /*
   Form filter (GET) yang langsung menerapkan pilihan tanpa tombol "Terapkan":
@@ -9,6 +10,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
   Tanpa JavaScript, tombol Terapkan muncul lagi lewat <noscript> supaya filter tetap bisa dipakai.
 */
 export default function AutoFilterForm({ children, className, delay = 450 }: { children: ReactNode; className?: string; delay?: number }) {
+  const { t } = useT();
   const router = useRouter();
   const pathname = usePathname();
   const ref = useRef<HTMLFormElement>(null);
@@ -73,9 +75,9 @@ export default function AutoFilterForm({ children, className, delay = 450 }: { c
       onInput={onChange}
       onSubmit={(e) => { e.preventDefault(); apply(); }}>
       {children}
-      <noscript><button className="btn-dark">Terapkan</button></noscript>
+      <noscript><button className="btn-dark">{t("Terapkan")}</button></noscript>
       <p role="status" aria-live="polite" className={`pointer-events-none absolute -bottom-5 left-0 text-xs text-muted transition-opacity ${pending ? "opacity-100" : "opacity-0"}`}>
-        {pending ? "Memperbarui hasil…" : ""}
+        {pending ? t("Memperbarui hasil…") : ""}
       </p>
     </form>
   );

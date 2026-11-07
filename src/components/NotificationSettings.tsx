@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Icon from "./Icon";
 import { removePushSubscription, savePushSubscription, sendTestPush, setNotifyPrefs } from "@/app/notifikasi/actions";
+import { useT } from "@/components/I18nProvider";
 
 type State = "checking" | "unsupported" | "ios-browser" | "denied" | "off" | "on" | "no-key";
 
@@ -34,6 +35,7 @@ const isStandalone = () => window.matchMedia("(display-mode: standalone)").match
  * dan pilih jenisnya (kafe baru, aktivitas di kafe yang disimpan).
  */
 export default function NotificationSettings({ prefs, compact = false }: { prefs: { newCafe: boolean; activity: boolean }; compact?: boolean }) {
+  const { t } = useT();
   const [state, setState] = useState<State>("checking");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -108,53 +110,53 @@ export default function NotificationSettings({ prefs, compact = false }: { prefs
       <div className="flex items-start gap-3">
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon duo name="bell" className="h-5 w-5" /></span>
         <div className="min-w-0 flex-1">
-          <h2 id="notif-judul" className="font-sans text-base font-bold tracking-normal">Notifikasi di perangkat ini</h2>
+          <h2 id="notif-judul" className="font-sans text-base font-bold tracking-normal">{t("Notifikasi di perangkat ini")}</h2>
           <p className="mt-0.5 text-sm text-muted">
-            {state === "on" ? "Aktif. Kabar kafe baru dan kondisi di kafe favoritmu muncul di HP atau laptop ini."
-              : state === "ios-browser" ? "Di iPhone dan iPad, notifikasi hanya bisa lewat aplikasi di Layar Utama."
-              : state === "denied" ? "Notifikasi diblokir di browser ini."
-              : state === "unsupported" ? "Browser ini belum mendukung notifikasi. Coba Chrome, Edge, Firefox, atau Safari terbaru."
-              : state === "no-key" ? "Notifikasi perangkat belum diatur di server."
-              : "Dapat kabar saat ada kafe baru dan saat ada yang melapor kondisi di kafe yang kamu simpan."}
+            {state === "on" ? t("Aktif. Kabar kafe baru dan kondisi di kafe favoritmu muncul di HP atau laptop ini.")
+              : state === "ios-browser" ? t("Di iPhone dan iPad, notifikasi hanya bisa lewat aplikasi di Layar Utama.")
+              : state === "denied" ? t("Notifikasi diblokir di browser ini.")
+              : state === "unsupported" ? t("Browser ini belum mendukung notifikasi. Coba Chrome, Edge, Firefox, atau Safari terbaru.")
+              : state === "no-key" ? t("Notifikasi perangkat belum diatur di server.")
+              : t("Dapat kabar saat ada kafe baru dan saat ada yang melapor kondisi di kafe yang kamu simpan.")}
           </p>
         </div>
       </div>
 
       {state === "ios-browser" && (
         <ol className="list-decimal space-y-1 rounded-2xl bg-tint p-4 pl-8 text-sm">
-          <li>Ketuk tombol <b>Bagikan</b> di Safari.</li>
-          <li>Pilih <b>Tambah ke Layar Utama</b>, lalu <b>Tambah</b>.</li>
-          <li>Buka WFC Hunters dari ikon di Layar Utama, masuk, lalu nyalakan notifikasi di halaman ini.</li>
+          <li>{t("Ketuk tombol Bagikan di Safari.")}</li>
+          <li>{t("Pilih Tambah ke Layar Utama, lalu Tambah.")}</li>
+          <li>{t("Buka WFC Hunters dari ikon di Layar Utama, masuk, lalu nyalakan notifikasi di halaman ini.")}</li>
         </ol>
       )}
       {state === "denied" && (
-        <p className="rounded-2xl bg-tint p-4 text-sm">Buka pengaturan situs di browser (ikon gembok di kolom alamat) → Notifikasi → Izinkan, lalu muat ulang halaman ini.</p>
+        <p className="rounded-2xl bg-tint p-4 text-sm">{t("Buka pengaturan situs di browser (ikon gembok di kolom alamat) → Notifikasi → Izinkan, lalu muat ulang halaman ini.")}</p>
       )}
 
       <div className="flex flex-wrap gap-2">
-        {state === "off" && <button type="button" onClick={enable} disabled={busy} className="btn-primary min-h-11"><Icon name="bell" className="h-4 w-4" />{busy ? "Menyalakan…" : "Nyalakan notifikasi"}</button>}
+        {state === "off" && <button type="button" onClick={enable} disabled={busy} className="btn-primary min-h-11"><Icon name="bell" className="h-4 w-4" />{busy ? t("Menyalakan…") : t("Nyalakan notifikasi")}</button>}
         {state === "on" && (
           <>
-            <button type="button" onClick={test} disabled={busy} className="btn-ghost min-h-11">Kirim notifikasi uji</button>
-            <button type="button" onClick={disable} disabled={busy} className="btn-ghost min-h-11 text-muted">Matikan di perangkat ini</button>
+            <button type="button" onClick={test} disabled={busy} className="btn-ghost min-h-11">{t("Kirim notifikasi uji")}</button>
+            <button type="button" onClick={disable} disabled={busy} className="btn-ghost min-h-11 text-muted">{t("Matikan di perangkat ini")}</button>
           </>
         )}
       </div>
-      {msg && <p role="status" className={`text-sm ${msg.ok ? "text-[#2f7049]" : "text-[#b4533a]"}`}>{msg.text}</p>}
+      {msg && <p role="status" className={`text-sm ${msg.ok ? "text-[#2f7049]" : "text-[#b4533a]"}`}>{t(msg.text)}</p>}
 
       {!compact && (
         <fieldset className="space-y-1 border-t border-line pt-4">
-          <legend className="sr-only">Jenis notifikasi</legend>
+          <legend className="sr-only">{t("Jenis notifikasi")}</legend>
           {([
             ["newCafe", "Kafe baru", "Saat ada kafe baru yang tayang di WFC Hunters."],
             ["activity", "Kondisi di kafe favorit", "Saat ada yang melapor seramai apa kafe yang kamu simpan dan seberapa kencang wifinya."],
           ] as const).map(([k, label, hint]) => (
             <label key={k} className="flex cursor-pointer items-start justify-between gap-4 rounded-xl py-2">
-              <span><span className="block text-sm font-semibold">{label}</span><span className="block text-sm text-muted">{hint}</span></span>
+              <span><span className="block text-sm font-semibold">{t(label)}</span><span className="block text-sm text-muted">{t(hint)}</span></span>
               <input type="checkbox" role="switch" checked={p[k]} onChange={() => toggle(k)} className="mt-1 h-5 w-5 shrink-0 accent-brand" />
             </label>
           ))}
-          <p className="pt-1 text-xs text-muted">Pilihan ini berlaku untuk notifikasi di semua perangkatmu.</p>
+          <p className="pt-1 text-xs text-muted">{t("Pilihan ini berlaku untuk notifikasi di semua perangkatmu.")}</p>
         </fieldset>
       )}
     </section>

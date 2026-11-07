@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getT } from "@/lib/i18n/server";
+import { translateArticles } from "@/lib/i18n/content";
 import { cache } from "react";
 import { notFound } from "next/navigation";
 import JsonLd from "@/components/JsonLd";
@@ -55,13 +57,14 @@ export async function generateMetadata({ params }: { params: P }): Promise<Metad
 
 export default async function AreaPage({ params }: { params: P }) {
   const { slug, area } = await params;
-  const r = await getArea(slug, area);
+  const [r, { t, lang }] = await Promise.all([getArea(slug, area), getT()]);
   if (!r) notFound();
   const { city, cafes, others } = r;
   const f = facts(cafes);
   const path = `/kota/${city.slug}/${r.area.slug}`;
   const ids = new Set(cafes.map((c) => c.slug));
   const articles = (await getManualArticles()).filter((a) => embeddedSlugs(a.body).some((s) => ids.has(s)) || a.city_id === city.id).slice(0, 4);
+  const shownArticles = await translateArticles(lang, articles);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -73,39 +76,39 @@ export default async function AreaPage({ params }: { params: P }) {
         },
       ]} />
       <nav aria-label="Breadcrumb" className="text-sm text-muted">
-        <Link href="/" className="hover:text-brand">Beranda</Link> <span aria-hidden>/</span>{" "}
+        <Link href="/" className="hover:text-brand">{t("Beranda")}</Link> <span aria-hidden>/</span>{" "}
         <Link href={`/kota/${city.slug}`} className="hover:text-brand">{city.name}</Link> <span aria-hidden>/</span> <span>{r.area.name}</span>
       </nav>
-      <h1 className="mt-2 text-4xl font-extrabold md:text-5xl">Kafe untuk kerja di {r.area.name}, {city.name}</h1>
+      <h1 className="mt-2 text-4xl font-extrabold md:text-5xl">{t("Kafe untuk kerja di {place}", { place: `${r.area.name}, ${city.name}` })}</h1>
       <p className="mt-3 max-w-2xl text-muted">
-        {cafes.length} kafe di {r.area.name} yang sudah didatangi langsung untuk kerja dan nugas
-        {f.wifi || f.plug ? <>: {[f.wifi && `${f.wifi} punya wifi`, f.plug && `${f.plug} punya colokan`].filter(Boolean).join(" dan ")}</> : null}
-        {f.price ? <>, dengan kisaran harga {f.price} per orang</> : null}. Ketuk kafenya untuk melihat penilaian internet, colokan, ketenangan, jam buka, dan menu rekomendasi.
+        {t("{n} kafe di {area} yang sudah didatangi langsung untuk kerja dan nugas", { n: cafes.length, area: r.area.name })}
+        {f.wifi || f.plug ? <>: {[f.wifi && t("{n} punya wifi", { n: f.wifi }), f.plug && t("{n} punya colokan", { n: f.plug })].filter(Boolean).join(` ${t("dan")} `)}</> : null}
+        {f.price ? <>{t(", dengan kisaran harga {price} per orang", { price: f.price.replace(" sampai ", ` ${t("sampai")} `).replace("ke atas", t("ke atas")) })}</> : null}. {t("Ketuk kafenya untuk melihat penilaian internet, colokan, ketenangan, jam buka, dan menu rekomendasi.")}
       </p>
 
-      <h2 className="sr-only">Daftar kafe di {r.area.name}</h2>
+      <h2 className="sr-only">{t("Daftar kafe di {place}", { place: r.area.name })}</h2>
       <div className="mt-8 grid gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
         {cafes.map((c) => <CafeCard key={c.id} cafe={c} />)}
       </div>
 
       {!!articles.length && (
         <section className="mt-14">
-          <h2 className="text-2xl font-bold">Bacaan terkait</h2>
+          <h2 className="text-2xl font-bold">{t("Bacaan terkait")}</h2>
           <ul className="mt-3 space-y-1">
-            {articles.map((a) => <li key={a.id}><Link href={`/artikel/${a.slug}`} className="inline-flex min-h-11 items-center font-semibold text-brand hover:underline">{a.title}</Link></li>)}
+            {shownArticles.map((a) => <li key={a.id}><Link href={`/artikel/${a.slug}`} className="inline-flex min-h-11 items-center font-semibold text-brand hover:underline">{a.title}</Link></li>)}
           </ul>
         </section>
       )}
 
       <section className="mt-14">
-        <h2 className="text-2xl font-bold">Area lain di {city.name}</h2>
+        <h2 className="text-2xl font-bold">{t("Area lain di {place}", { place: city.name })}</h2>
         <div className="mt-4 flex flex-wrap gap-2">
           {others.map((o) => (
             <Link key={o.slug} href={`/kota/${city.slug}/${o.slug}`} className="flex min-h-11 items-center rounded-full border border-line bg-surface px-4 text-sm font-semibold hover:border-brand">
               {o.name} <span className="ml-1.5 font-normal text-muted">{o.count}</span>
             </Link>
           ))}
-          <Link href={`/kota/${city.slug}`} className="flex min-h-11 items-center rounded-full bg-ink px-4 text-sm font-semibold text-white">Semua {r.cityCount} kafe di {city.name}</Link>
+          <Link href={`/kota/${city.slug}`} className="flex min-h-11 items-center rounded-full bg-ink px-4 text-sm font-semibold text-white">{t("Semua {n} kafe di {place}", { n: r.cityCount, place: city.name })}</Link>
         </div>
       </section>
     </div>

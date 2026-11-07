@@ -10,6 +10,7 @@ import { isOpenNow } from "@/lib/utils";
 import { CROWD, distanceM, reportAgo } from "@/lib/reports";
 import type { OpeningHours } from "@/lib/types";
 import Icon from "./Icon";
+import { useT } from "@/components/I18nProvider";
 
 export type MapCafe = {
   slug: string; name: string; lat: number; lng: number; area: string | null; city: string;
@@ -65,6 +66,7 @@ function MapSync({ cafes, active, follow, me }: { cafes: MapCafe[]; active: MapC
 }
 
 export default function CafeMap({ cafes, autoLocate = false }: { cafes: MapCafe[]; autoLocate?: boolean }) {
+  const { t, locale } = useT();
   const [chip, setChip] = useState<ChipKey>("semua");
   const [active, setActive] = useState(0);
   const [follow, setFollow] = useState(false); // peta baru ikut kartu setelah pengguna menyentuh kartu/pin
@@ -122,11 +124,11 @@ export default function CafeMap({ cafes, autoLocate = false }: { cafes: MapCafe[
   };
 
   const locate = () => {
-    if (!navigator.geolocation) { setLocErr("Browser ini tidak bisa membaca lokasi."); return; }
+    if (!navigator.geolocation) { setLocErr(t("Browser ini tidak bisa membaca lokasi.")); return; }
     setLocating(true); setLocErr(null);
     navigator.geolocation.getCurrentPosition(
       (p) => { setMe({ lat: p.coords.latitude, lng: p.coords.longitude }); setFollow(true); setLocating(false); }, // kartu pertama = kafe terdekat, peta terbang ke sana
-      () => { setLocErr("Lokasi tidak bisa dibaca. Izinkan akses lokasi di browser."); setLocating(false); },
+      () => { setLocErr(t("Lokasi tidak bisa dibaca. Izinkan akses lokasi di browser.")); setLocating(false); },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
     );
   };
@@ -158,14 +160,14 @@ export default function CafeMap({ cafes, autoLocate = false }: { cafes: MapCafe[
 
       {/* Filter cepat di atas peta */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-[1000] p-3">
-        <div role="group" aria-label="Saring kafe di peta" className="pointer-events-auto -mx-3 flex gap-2 overflow-x-auto px-3 pb-1 [scrollbar-width:none]">
+        <div role="group" aria-label={t("Saring kafe di peta")} className="pointer-events-auto -mx-3 flex gap-2 overflow-x-auto px-3 pb-1 [scrollbar-width:none]">
           {CHIPS.map((ch) => {
             const on = chip === ch.key;
             return (
               <button key={ch.key} type="button" aria-pressed={on} onClick={() => { setChip(ch.key); setFollow(false); }}
                 className={`flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-bold shadow-sm transition-colors ${on ? "border-espresso bg-espresso text-foam" : "border-line bg-surface text-ink hover:bg-tint"}`}>
                 {ch.key === "sepi" && <span className="h-2 w-2 rounded-full bg-[#2f7049]" aria-hidden />}
-                {ch.label}
+                {t(ch.label)}
               </button>
             );
           })}
@@ -174,13 +176,13 @@ export default function CafeMap({ cafes, autoLocate = false }: { cafes: MapCafe[
 
       {/* Tombol bulat di atas kartu */}
       <div className="pointer-events-none absolute inset-x-0 bottom-[10.75rem] z-[1000] flex items-end justify-between px-3">
-        <Link href="/kafe" aria-label="Lihat sebagai daftar" title="Lihat sebagai daftar"
+        <Link href="/kafe" aria-label={t("Lihat sebagai daftar")} title={t("Lihat sebagai daftar")}
           className="pointer-events-auto grid h-12 w-12 place-items-center rounded-full bg-surface text-ink shadow-md hover:bg-tint">
           <Icon name="grid" className="h-5 w-5" />
         </Link>
         <div className="flex flex-col items-end gap-2">
           {locErr && <p role="alert" className="pointer-events-auto max-w-56 rounded-2xl bg-surface px-3 py-2 text-xs shadow-md">{locErr}</p>}
-          <button type="button" onClick={locate} disabled={locating} aria-label="Urutkan dari lokasi saya" title="Urutkan dari lokasi saya"
+          <button type="button" onClick={locate} disabled={locating} aria-label={t("Urutkan dari lokasi saya")} title={t("Urutkan dari lokasi saya")}
             className={`pointer-events-auto grid h-14 w-14 place-items-center rounded-full shadow-lg disabled:opacity-70 ${me ? "bg-gold text-espresso" : "bg-espresso text-foam"}`}>
             <Icon name="locate" className={`h-6 w-6 ${locating ? "motion-safe:animate-spin" : ""}`} />
           </button>
@@ -191,11 +193,11 @@ export default function CafeMap({ cafes, autoLocate = false }: { cafes: MapCafe[
       <div className="absolute inset-x-0 bottom-3 z-[1000]">
         {list.length === 0 ? (
           <div className="mx-3 flex items-center justify-between gap-3 rounded-3xl bg-surface p-4 shadow-lg">
-            <p className="text-sm">{chip === "sepi" ? "Belum ada kafe yang dilaporkan sepi 3 jam terakhir." : "Tidak ada kafe yang cocok."}</p>
-            <button type="button" onClick={() => setChip("semua")} className="btn-primary shrink-0">Tampilkan semua</button>
+            <p className="text-sm">{chip === "sepi" ? t("Belum ada kafe yang dilaporkan sepi 3 jam terakhir.") : t("Tidak ada kafe yang cocok.")}</p>
+            <button type="button" onClick={() => setChip("semua")} className="btn-primary shrink-0">{t("Tampilkan semua")}</button>
           </div>
         ) : (
-          <div ref={track} aria-roledescription="carousel" aria-label="Kafe di peta"
+          <div ref={track} aria-roledescription="carousel" aria-label={t("Kafe di peta")}
             className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-[6%] [scrollbar-width:none] md:px-3">
             {list.map(({ c, d }, i) => {
               const open = isOpenNow(c.hours);
@@ -217,15 +219,15 @@ export default function CafeMap({ cafes, autoLocate = false }: { cafes: MapCafe[
                     </h2>
                     <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold text-muted">
                       {c.rating != null && <span className="flex items-center gap-0.5 text-ink"><Icon name="star" filled className="h-3.5 w-3.5 text-gold" />{c.rating.toFixed(1)}</span>}
-                      <span>{c.price}</span>
-                      {open !== null && <span className={open ? "text-[#2f7049]" : ""}>{open ? "Buka" : "Tutup"}</span>}
+                      <span>{t(c.price)}</span>
+                      {open !== null && <span className={open ? "text-[#2f7049]" : ""}>{open ? t("Buka") : t("Tutup")}</span>}
                     </p>
                     <div className="mt-auto flex items-end justify-between gap-2">
                       {c.live
-                        ? <span title={`Dilaporkan ${reportAgo(c.live.at)}`} className={`truncate rounded-full px-2 py-1 text-[11px] font-bold ${CROWD_CHIP[c.live.crowd]}`}>{CROWD[c.live.crowd].label}{c.live.mbps != null ? ` · ${c.live.mbps} Mbps` : ""}</span>
+                        ? <span title={t("Dilaporkan {when}", { when: reportAgo(c.live.at, t, locale) })} className={`truncate rounded-full px-2 py-1 text-[11px] font-bold ${CROWD_CHIP[c.live.crowd]}`}>{t(CROWD[c.live.crowd].label)}{c.live.mbps != null ? ` · ${c.live.mbps} Mbps` : ""}</span>
                         : <span />}
                       <a href={`https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}`} target="_blank" rel="noopener noreferrer"
-                        aria-label={`Rute ke ${c.name} di Google Maps`} title="Rute di Google Maps"
+                        aria-label={t("Rute ke {name} di Google Maps", { name: c.name })} title={t("Rute di Google Maps")}
                         className="relative z-10 grid h-10 w-10 shrink-0 place-items-center rounded-full bg-espresso text-foam hover:bg-ink">
                         <Icon name="send" className="h-4 w-4" />
                       </a>

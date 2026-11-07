@@ -23,14 +23,17 @@ import { getViewer } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
 import ArticleCard from "@/components/ArticleCard";
 import { articleCovers, cityNames, getManualArticles } from "@/lib/articles";
+import { getT } from "@/lib/i18n/server";
+import { translateArticles } from "@/lib/i18n/content";
 
 export const revalidate = 300;
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default async function Home() {
   const supabase = await createClient();
+  const { t, lang } = await getT();
   const [viewer, settings, allArticles] = await Promise.all([getViewer(), getSettings(), getManualArticles()]);
-  const articles = allArticles.slice(0, 3);
+  const articles = await translateArticles(lang, allArticles.slice(0, 3));
   const [articleCoverMap, articleCities] = await Promise.all([articleCovers(articles), cityNames()]);
   const free = settings.free_mode;
   const featuredAuthor = pickFeatured(await getAuthors(), settings.featured_author);
@@ -42,11 +45,11 @@ export default async function Home() {
     // Kondisi 3 jam terakhir dari laporan pengunjung (kosong kalau migrasi 0018 belum dijalankan)
     supabase.rpc("cafe_reports_live"),
   ]);
-  // "Lagi sepi sekarang" kalau ada kafe yang dilaporkan sepi; kalau tidak, kondisi terbaru apa pun
+  // t("Lagi sepi sekarang") kalau ada kafe yang dilaporkan sepi; kalau tidak, kondisi terbaru apa pun
   const liveAll = ((liveRows as LiveSummary[] | null) ?? []).sort((a, b) => a.crowd - b.crowd || +new Date(b.last_at) - +new Date(a.last_at));
   const quiet = liveAll.filter((l) => l.crowd === 1);
   const livePick = (quiet.length ? quiet : liveAll).slice(0, 8);
-  const liveTitle = quiet.length ? "Lagi sepi sekarang" : "Kondisi terbaru";
+  const liveTitle = quiet.length ? t("Lagi sepi sekarang") : t("Kondisi terbaru");
   const { data: liveCafeRows } = livePick.length
     ? await supabase.from("cafes").select(CAFE_LIST_SELECT).in("id", livePick.map((l) => l.cafe_id))
     : { data: [] };
@@ -100,16 +103,16 @@ export default async function Home() {
               </p>
             )}
             <h1 className="text-[clamp(2rem,7vw,5.2rem)] font-extrabold leading-[1.02] [text-shadow:0_2px_18px_rgb(0_0_0/0.35)] md:leading-[0.95]">
-              Kerja dari kafe mana hari ini?
+              {t("Kerja dari kafe mana hari ini?")}
             </h1>
             <p className="mt-3 max-w-xl text-foam/85 md:mt-5 md:text-lg">
-              {count ?? 0} kafe di kota-kota besar Pulau Jawa yang sudah dicoba langsung. Lengkap dengan colokan, wifi, dan menu rekomendasi.
+              {t("{n} kafe di kota-kota besar Pulau Jawa yang sudah dicoba langsung. Lengkap dengan colokan, wifi, dan menu rekomendasi.", { n: count ?? 0 })}
             </p>
             <form action="/kafe" className="glass mt-6 flex max-w-xl items-center gap-2 rounded-full p-1.5 pl-5 focus-within:ring-4 focus-within:ring-gold/40 md:mt-8">
               <Icon name="search" className="h-5 w-5 shrink-0 text-foam" />
-              <input name="q" type="search" enterKeyHint="search" aria-label="Cari kafe" placeholder="Cari kafe, area, atau suasana" className="min-w-0 flex-1 bg-transparent py-2 text-base text-foam outline-none placeholder:text-foam/75" />
-              <button aria-label="Cari" className="btn min-h-11 shrink-0 bg-gold text-ink hover:bg-[#eab25e] max-md:h-11 max-md:w-11 max-md:!p-0">
-                <Icon name="search" className="h-5 w-5 md:hidden" /><span className="hidden md:inline">Cari</span>
+              <input name="q" type="search" enterKeyHint="search" aria-label={t("Cari kafe")} placeholder={t("Cari kafe, area, atau suasana")} className="min-w-0 flex-1 bg-transparent py-2 text-base text-foam outline-none placeholder:text-foam/75" />
+              <button aria-label={t("Cari")} className="btn min-h-11 shrink-0 bg-gold text-ink hover:bg-[#eab25e] max-md:h-11 max-md:w-11 max-md:!p-0">
+                <Icon name="search" className="h-5 w-5 md:hidden" /><span className="hidden md:inline">{t("Cari")}</span>
               </button>
             </form>
           </div>
@@ -117,10 +120,10 @@ export default async function Home() {
           {/* Dua jalan pintas pengganti pilihan kota & suasana: kafe terdekat (di peta) dan semua kafe */}
           <div className="mt-4 grid max-w-xl grid-cols-2 gap-2">
             <Link href="/peta?dekat=1" className="glass flex min-h-12 items-center justify-center gap-2 rounded-full px-4 text-sm font-bold transition-colors hover:bg-foam hover:text-ink">
-              <Icon name="locate" className="h-4 w-4" />Kafe terdekat
+              <Icon name="locate" className="h-4 w-4" />{t("Kafe terdekat")}
             </Link>
             <Link href="/kafe" className="glass flex min-h-12 items-center justify-center gap-2 rounded-full px-4 text-sm font-bold transition-colors hover:bg-foam hover:text-ink">
-              <Icon name="grid" className="h-4 w-4" />Semua kafe
+              <Icon name="grid" className="h-4 w-4" />{t("Semua kafe")}
             </Link>
           </div>
 
@@ -131,7 +134,7 @@ export default async function Home() {
                   <span className="h-2 w-2 rounded-full bg-[#6fd09a] shadow-[0_0_0_4px_rgb(111_208_154/0.22)]" />
                   {liveTitle}
                 </h2>
-                <Link href={liveTitle === "Lagi sepi sekarang" ? "/kafe?sepi=1" : "/kafe"} className="glass-dark flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-semibold text-foam">Lihat semua</Link>
+                <Link href={quiet.length ? "/kafe?sepi=1" : "/kafe"} className="glass-dark flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-semibold text-foam">{t("Lihat semua")}</Link>
               </div>
               <div className="-mx-4 mt-3 flex snap-x gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:px-0">
                 {liveCafes.map(({ cafe, live }) => <LiveCafeCard key={cafe.id} cafe={cafe} live={live} />)}
@@ -144,8 +147,8 @@ export default async function Home() {
       {!!featured?.length && (
         <section className="mx-auto max-w-6xl px-4 pt-8 md:pt-14">
           <div className="flex items-baseline justify-between gap-4">
-            <h2 className="text-xl font-bold md:text-3xl">Yang paling sering aku datangi</h2>
-            <Link href="/kafe" className="shrink-0 py-2 text-sm font-semibold text-brand hover:underline">Lihat semua</Link>
+            <h2 className="text-xl font-bold md:text-3xl">{t("Yang paling sering aku datangi")}</h2>
+            <Link href="/kafe" className="shrink-0 py-2 text-sm font-semibold text-brand hover:underline">{t("Lihat semua")}</Link>
           </div>
           {/* HP: kartu foto besar yang digeser ke samping; kartu berikutnya mengintip di kanan sebagai tanda bisa digeser */}
           <div className="-mx-4 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:hidden">
@@ -164,18 +167,18 @@ export default async function Home() {
       <section className="mx-auto max-w-6xl px-4 pt-16">
         {latestErr ? (
           <>
-            <h2 className="text-2xl font-bold md:text-3xl">Baru ditambahkan</h2>
+            <h2 className="text-2xl font-bold md:text-3xl">{t("Baru ditambahkan")}</h2>
             <p role="alert" className="mt-6 rounded-2xl border border-dashed border-line p-6 text-muted">
-              Daftar kafe terbaru gagal dimuat. Muat ulang halaman ini, atau buka <Link href="/kafe" className="font-semibold text-brand hover:underline">semua kafe</Link>.
+              {t("Daftar kafe terbaru gagal dimuat. Muat ulang halaman ini, atau buka")} <Link href="/kafe" className="font-semibold text-brand hover:underline">{t("semua kafe")}</Link>.
             </p>
           </>
         ) : stackCafes.length ? (
-          <CafeShowcase cafes={stackCafes} title="Baru ditambahkan" />
+          <CafeShowcase cafes={stackCafes} title={t("Baru ditambahkan")} />
         ) : (
           <>
-            <h2 className="text-2xl font-bold md:text-3xl">Baru ditambahkan</h2>
+            <h2 className="text-2xl font-bold md:text-3xl">{t("Baru ditambahkan")}</h2>
             <p className="mt-6 rounded-2xl border border-dashed border-line p-6 text-muted">
-              Belum ada kafe yang tayang. Punya kafe andalan? <Link href="/kirim" className="font-semibold text-brand hover:underline">Kirim rekomendasi pertama</Link>.
+              {t("Belum ada kafe yang tayang. Punya kafe andalan?")} <Link href="/kirim" className="font-semibold text-brand hover:underline">{t("Kirim rekomendasi pertama")}</Link>.
             </p>
           </>
         )}
@@ -184,14 +187,14 @@ export default async function Home() {
       {!!articles.length && (
         <section className="reveal mx-auto max-w-6xl px-4 pt-16">
           <div className="flex items-baseline justify-between gap-4">
-            <h2 className="text-2xl font-bold md:text-3xl">Bacaan terbaru</h2>
-            <Link href="/artikel" className="shrink-0 py-2 text-sm font-semibold text-brand hover:underline">Semua artikel</Link>
+            <h2 className="text-2xl font-bold md:text-3xl">{t("Bacaan terbaru")}</h2>
+            <Link href="/artikel" className="shrink-0 py-2 text-sm font-semibold text-brand hover:underline">{t("Semua artikel")}</Link>
           </div>
           {/* HP: digeser ke samping, kartu berikutnya mengintip. Layar lebar: tiga kolom. */}
           <ul className="-mx-4 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pb-2 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:gap-5 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
             {articles.map((a) => (
               <li key={a.id} className="w-[78vw] max-w-[22rem] shrink-0 snap-start md:w-auto md:max-w-none">
-                <ArticleCard a={a} cover={articleCoverMap.get(a.id)} label={(a.city_id && articleCities.get(a.city_id)) || "Panduan"} excerpt />
+                <ArticleCard a={a} cover={articleCoverMap.get(a.id)} label={(a.city_id && articleCities.get(a.city_id)) || t("Panduan")} excerpt />
               </li>
             ))}
           </ul>
@@ -208,24 +211,24 @@ export default async function Home() {
                 <span className="absolute -bottom-1 -right-1 grid h-9 w-9 place-items-center rounded-full bg-gold text-ink ring-4 ring-surface"><Icon name="star" filled className="h-4 w-4" /></span>
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-brand">Author bulan ini</p>
+                <p className="text-sm font-semibold text-brand">{t("Author bulan ini")}</p>
                 <p className="mt-1 text-2xl font-bold group-hover:text-brand md:text-3xl">{featuredAuthor.name}</p>
                 <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-muted">
                   <AuthorBadge count={featuredAuthor.cafe_count} />
-                  <span>{featuredAuthor.cafe_count} kafe direkomendasikan</span>
+                  <span>{t("{n} kafe direkomendasikan", { n: featuredAuthor.cafe_count })}</span>
                 </div>
                 {featuredAuthor.bio && <p className="mt-2 line-clamp-2 text-ink/75">{featuredAuthor.bio}</p>}
-                <span className="mt-3 inline-block text-sm font-semibold text-brand">Lihat profil &amp; kafenya →</span>
+                <span className="mt-3 inline-block text-sm font-semibold text-brand">{t("Lihat profil & kafenya →")}</span>
               </div>
             </Link>
             <div className="flex flex-col justify-center gap-4 border-t border-line bg-brand-soft p-6 md:border-l md:border-t-0 md:p-9">
               <div>
-                <p className="text-xl font-bold md:text-2xl">Punya kafe andalan buat kerja?</p>
-                <p className="mt-1 text-ink/75">Kirim rekomendasimu, dapat halaman author sendiri, dan naik level sampai Kurator Utama.</p>
+                <p className="text-xl font-bold md:text-2xl">{t("Punya kafe andalan buat kerja?")}</p>
+                <p className="mt-1 text-ink/75">{t("Kirim rekomendasimu, dapat halaman author sendiri, dan naik level sampai Kurator Utama.")}</p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Link href="/kirim" className="btn-primary min-h-11"><Icon name="send" className="h-4 w-4" />Kirim rekomendasi</Link>
-                <Link href="/author" className="btn-ghost min-h-11">Para author</Link>
+                <Link href="/kirim" className="btn-primary min-h-11"><Icon name="send" className="h-4 w-4" />{t("Kirim rekomendasi")}</Link>
+                <Link href="/author" className="btn-ghost min-h-11">{t("Para author")}</Link>
               </div>
             </div>
           </article>
@@ -234,21 +237,21 @@ export default async function Home() {
             <span className="flex items-center gap-4">
               <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-soft text-brand"><Icon duo name="send" className="h-6 w-6" /></span>
               <span>
-                <span className="block text-xl font-bold md:text-2xl">Punya kafe andalan buat kerja?</span>
-                <span className="block text-muted">Kirim rekomendasimu dan tampil sebagai author.</span>
+                <span className="block text-xl font-bold md:text-2xl">{t("Punya kafe andalan buat kerja?")}</span>
+                <span className="block text-muted">{t("Kirim rekomendasimu dan tampil sebagai author.")}</span>
               </span>
             </span>
-            <span className="btn-dark min-h-11">Kirim rekomendasi</span>
+            <span className="btn-dark min-h-11">{t("Kirim rekomendasi")}</span>
           </Link>
         )}
 
         {settings.community_url && (
           <article className="flex flex-col rounded-[1.75rem] bg-ink p-6 text-white md:p-9">
             <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#25d366]/15 text-[#25d366]"><Icon name="whatsapp" className="h-6 w-6" /></span>
-            <h2 className="mt-5 text-2xl font-bold leading-tight md:text-3xl">Gabung bareng WFC Hunters &amp; Author.</h2>
-            <p className="mt-2 text-white/75">Tukar rekomendasi, cari teman kerja bareng, dan dapat kabar kafe baru lebih dulu. Gratis, terbuka untuk semua.</p>
+            <h2 className="mt-5 text-2xl font-bold leading-tight md:text-3xl">{t("Gabung bareng WFC Hunters & Author.")}</h2>
+            <p className="mt-2 text-white/75">{t("Tukar rekomendasi, cari teman kerja bareng, dan dapat kabar kafe baru lebih dulu. Gratis, terbuka untuk semua.")}</p>
             <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-2 pt-6">
-              <a href={settings.community_url} target="_blank" rel="noopener" className="btn min-h-11 bg-[#25d366] text-ink hover:bg-[#1fbe5b]">Gabung komunitas WhatsApp</a>
+              <a href={settings.community_url} target="_blank" rel="noopener" className="btn min-h-11 bg-[#25d366] text-ink hover:bg-[#1fbe5b]">{t("Gabung komunitas WhatsApp")}</a>
               <a href={INSTAGRAM_URL} target="_blank" rel="noopener" className="flex min-h-11 items-center gap-2 text-sm font-semibold text-white/85 hover:text-white">
                 <Icon name="instagram" className="h-4 w-4" />@wfchunters
               </a>
@@ -258,18 +261,18 @@ export default async function Home() {
 
         <article className={`flex flex-col rounded-[1.75rem] bg-brand p-6 text-white md:p-9 ${settings.community_url ? "" : "md:col-span-2"}`}>
           <span className="grid h-12 w-12 place-items-center rounded-2xl bg-white/15"><Icon name="map" className="h-6 w-6" /></span>
-          <h2 className="mt-5 text-2xl font-bold leading-tight md:text-3xl">Tahu mau pesan apa sebelum sampai.</h2>
+          <h2 className="mt-5 text-2xl font-bold leading-tight md:text-3xl">{t("Tahu mau pesan apa sebelum sampai.")}</h2>
           <p className="mt-2 text-white/85">
             {free
-              ? "Baca penilaian kerja, ulasan lengkap, menu yang wajib dicoba, dan lihat peta semua kafe. Semuanya gratis."
-              : "Pelanggan bisa membaca ulasan lengkap, menu yang wajib dicoba, meja terbaik untuk kerja, dan peta semua kafe."}
+              ? t("Baca penilaian kerja, ulasan lengkap, menu yang wajib dicoba, dan lihat peta semua kafe. Semuanya gratis.")
+              : t("Pelanggan bisa membaca ulasan lengkap, menu yang wajib dicoba, meja terbaik untuk kerja, dan peta semua kafe.")}
           </p>
           <div className="mt-auto pt-6">
             {free
-              ? <Link href="/peta" className="btn min-h-11 bg-white text-brand hover:bg-brand-soft">Buka peta kafe</Link>
+              ? <Link href="/peta" className="btn min-h-11 bg-white text-brand hover:bg-brand-soft">{t("Buka peta kafe")}</Link>
               : showTrial
-              ? <Link href="/masuk?daftar=1" className="btn min-h-11 bg-white text-brand hover:bg-brand-soft">Coba gratis {settings.trial_days} hari</Link>
-              : <Link href="/harga" className="btn min-h-11 bg-white text-brand hover:bg-brand-soft">Lihat harga langganan</Link>}
+              ? <Link href="/masuk?daftar=1" className="btn min-h-11 bg-white text-brand hover:bg-brand-soft">{t("Coba gratis {n} hari", { n: settings.trial_days })}</Link>
+              : <Link href="/harga" className="btn min-h-11 bg-white text-brand hover:bg-brand-soft">{t("Lihat harga langganan")}</Link>}
           </div>
         </article>
       </section>

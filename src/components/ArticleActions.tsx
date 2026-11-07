@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Icon from "./Icon";
 import ShareButton from "./ShareButton";
 import { setArticleLike, setArticleSave } from "@/app/artikel/actions";
+import { useT } from "@/components/I18nProvider";
 
 /**
  * Baris aksi artikel: suka, simpan, bagikan, dan jumlah dilihat.
@@ -21,6 +22,7 @@ export default function ArticleActions({ id, slug, title, url, liked, saved, lik
   hideSave?: boolean;
 }) {
   const router = useRouter();
+  const { t, locale } = useT();
   const [like, setLike] = useState({ on: liked, n: likes });
   const [save, setSave] = useState(saved);
   const [msg, setMsg] = useState("");
@@ -45,7 +47,7 @@ export default function ArticleActions({ id, slug, title, url, liked, saved, lik
     setLike(next);
     start(async () => {
       const r = await setArticleLike(id, next.on, slug);
-      if (!r.ok) { setLike(prev); if (r.login) needLogin(); else setMsg("Gagal menyimpan. Coba lagi."); }
+      if (!r.ok) { setLike(prev); if (r.login) needLogin(); else setMsg(t("Gagal menyimpan. Coba lagi.")); }
     });
   }
   function toggleSave() {
@@ -54,16 +56,16 @@ export default function ArticleActions({ id, slug, title, url, liked, saved, lik
     setSave(next);
     start(async () => {
       const r = await setArticleSave(id, next, slug);
-      if (!r.ok) { setSave(!next); if (r.login) needLogin(); else setMsg("Gagal menyimpan. Coba lagi."); }
-      else setMsg(next ? "Tersimpan. Buka lagi kapan saja dari halaman Akun." : "");
+      if (!r.ok) { setSave(!next); if (r.login) needLogin(); else setMsg(t("Gagal menyimpan. Coba lagi.")); }
+      else setMsg(next ? t("Tersimpan. Buka lagi kapan saja dari halaman Akun.") : "");
     });
   }
 
-  const n = (v: number) => v.toLocaleString("id-ID");
+  const n = (v: number) => v.toLocaleString(locale);
   if (variant === "save") {
     return (
       <>
-        <button type="button" onClick={toggleSave} aria-pressed={save} aria-label={save ? "Tersimpan, ketuk untuk batal" : "Simpan artikel"}
+        <button type="button" onClick={toggleSave} aria-pressed={save} aria-label={save ? t("Tersimpan, ketuk untuk batal") : t("Simpan artikel")}
           className="glass-dark grid h-11 w-11 shrink-0 place-items-center rounded-full text-foam transition active:scale-95">
           <Icon name="bookmark" filled={save} className="h-5 w-5" />
         </button>
@@ -76,16 +78,16 @@ export default function ArticleActions({ id, slug, title, url, liked, saved, lik
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" onClick={toggleLike} aria-pressed={like.on}
           className={`btn min-h-11 border ${like.on ? "border-[#b4533a] bg-[#b4533a]/10 text-[#8c3b25]" : "border-line bg-surface hover:border-mist"}`}>
-          <Icon name="heart" filled={like.on} className="h-4 w-4" />{like.on ? "Disukai" : "Suka"}{like.n > 0 && <span className="font-normal">· {n(like.n)}</span>}
+          <Icon name="heart" filled={like.on} className="h-4 w-4" />{like.on ? t("Disukai") : t("Suka")}{like.n > 0 && <span className="font-normal">· {n(like.n)}</span>}
         </button>
         {!hideSave && (
           <button type="button" onClick={toggleSave} aria-pressed={save}
             className={`btn min-h-11 border ${save ? "border-ink bg-ink text-white" : "border-line bg-surface hover:border-mist"}`}>
-            <Icon name="bookmark" filled={save} className="h-4 w-4" />{save ? "Tersimpan" : "Simpan"}
+            <Icon name="bookmark" filled={save} className="h-4 w-4" />{save ? t("Tersimpan") : t("Simpan")}
           </button>
         )}
         <ShareButton url={url} title={title} text={title} className="btn min-h-11 border border-line bg-surface hover:border-mist" />
-        <span className="ml-auto flex items-center gap-1.5 text-sm text-muted"><Icon name="eye" className="h-4 w-4" />Dilihat {n(views)} kali</span>
+        <span className="ml-auto flex items-center gap-1.5 text-sm text-muted"><Icon name="eye" className="h-4 w-4" />{t("Dilihat {n} kali", { n: n(views) })}</span>
       </div>
       {msg && <p role="status" className="mt-2 text-sm text-muted">{msg}</p>}
     </div>

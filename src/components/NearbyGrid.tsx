@@ -5,6 +5,7 @@ import CafeCarousel from "./CafeCarousel";
 import Icon from "./Icon";
 import type { Cafe } from "@/lib/types";
 import type { LiveSummary } from "@/lib/reports";
+import { useT } from "@/components/I18nProvider";
 
 function km(a: [number, number], b: [number, number]) {
   const R = 6371, rad = Math.PI / 180;
@@ -27,6 +28,7 @@ function pageList(cur: number, total: number): (number | "…")[] {
 }
 
 export default function NearbyGrid({ cafes, live = {}, initialPage = 1 }: { cafes: Cafe[]; live?: Record<string, LiveSummary>; initialPage?: number }) {
+  const { t, lang } = useT();
   const [pos, setPos] = useState<[number, number] | null>(null);
   const [state, setState] = useState<"idle" | "loading" | "denied" | "unsupported">("idle");
   // HP: kartu yang digeser (bawaan) atau daftar biasa
@@ -70,21 +72,21 @@ export default function NearbyGrid({ cafes, live = {}, initialPage = 1 }: { cafe
   return (
     <>
       <div ref={top} className="mt-4 flex scroll-mt-24 flex-wrap items-center gap-3">
-        <div role="group" aria-label="Tampilan" className="flex rounded-full border border-line bg-surface p-1 md:hidden">
+        <div role="group" aria-label={t("Tampilan")} className="flex rounded-full border border-line bg-surface p-1 md:hidden">
           {(["kartu", "daftar"] as const).map((v) => (
             <button key={v} type="button" aria-pressed={view === v} onClick={() => setView(v)}
               className={`min-h-9 rounded-full px-3.5 text-sm font-semibold capitalize ${view === v ? "bg-ink text-white" : "text-muted"}`}>
-              {v}
+              {v === "kartu" ? t("Kartu") : lang === "en" ? "List" : "Daftar"}
             </button>
           ))}
         </div>
         {pos ? (
-          <button onClick={() => setPos(null)} className="btn min-h-11 border border-brand bg-brand-soft text-brand !py-2"><Icon name="locate" className="h-4 w-4" />Terdekat dulu<span className="hidden md:inline"> (diurutkan)</span></button>
+          <button onClick={() => setPos(null)} className="btn min-h-11 border border-brand bg-brand-soft text-brand !py-2"><Icon name="locate" className="h-4 w-4" />{t("Terdekat dulu")}<span className="hidden md:inline"> {t("(diurutkan)")}</span></button>
         ) : (
-          <button onClick={locate} disabled={state === "loading"} className="btn-ghost min-h-11 !py-2"><Icon name="locate" className="h-4 w-4" />{state === "loading" ? "Mencari lokasimu…" : <><span className="md:hidden">Terdekat</span><span className="hidden md:inline">Urutkan dari yang terdekat</span></>}</button>
+          <button onClick={locate} disabled={state === "loading"} className="btn-ghost min-h-11 !py-2"><Icon name="locate" className="h-4 w-4" />{state === "loading" ? t("Mencari lokasimu…") : <><span className="md:hidden">{t("Terdekat")}</span><span className="hidden md:inline">{t("Urutkan dari yang terdekat")}</span></>}</button>
         )}
-        {state === "denied" && <span className="text-sm text-muted">Izin lokasi ditolak. Aktifkan izin lokasi di browser, lalu coba lagi.</span>}
-        {state === "unsupported" && <span className="text-sm text-muted">Browser ini tidak mendukung lokasi.</span>}
+        {state === "denied" && <span className="text-sm text-muted">{t("Izin lokasi ditolak. Aktifkan izin lokasi di browser, lalu coba lagi.")}</span>}
+        {state === "unsupported" && <span className="text-sm text-muted">{t("Browser ini tidak mendukung lokasi.")}</span>}
       </div>
       {view === "kartu" && <div className="md:hidden"><CafeCarousel items={shown} live={live} /></div>}
       <div className={`mt-6 gap-x-5 gap-y-9 sm:grid-cols-2 md:grid lg:grid-cols-3 ${view === "daftar" ? "grid" : "hidden"}`}>
@@ -97,9 +99,9 @@ export default function NearbyGrid({ cafes, live = {}, initialPage = 1 }: { cafe
       </div>
 
       {pages > 1 && (
-        <nav aria-label="Halaman daftar kafe" className="mt-10 flex flex-col items-center gap-3">
+        <nav aria-label={t("Halaman daftar kafe")} className="mt-10 flex flex-col items-center gap-3">
           <div className="flex flex-wrap items-center justify-center gap-1.5">
-            <button type="button" onClick={() => go(page - 1)} disabled={page === 1} aria-label="Halaman sebelumnya"
+            <button type="button" onClick={() => go(page - 1)} disabled={page === 1} aria-label={t("Halaman sebelumnya")}
               className="grid h-11 w-11 place-items-center rounded-full border border-line bg-surface disabled:opacity-40">
               <Icon name="back" className="h-5 w-5" />
             </button>
@@ -111,12 +113,12 @@ export default function NearbyGrid({ cafes, live = {}, initialPage = 1 }: { cafe
                   {n}
                 </button>
               ))}
-            <button type="button" onClick={() => go(page + 1)} disabled={page === pages} aria-label="Halaman berikutnya"
+            <button type="button" onClick={() => go(page + 1)} disabled={page === pages} aria-label={t("Halaman berikutnya")}
               className="grid h-11 w-11 place-items-center rounded-full bg-ink text-white disabled:opacity-40">
               <Icon name="chevron" className="h-5 w-5" />
             </button>
           </div>
-          <p className="text-sm text-muted">Kafe {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, list.length)} dari {list.length}</p>
+          <p className="text-sm text-muted">{t("Kafe {a}–{b} dari {n}", { a: (page - 1) * PER_PAGE + 1, b: Math.min(page * PER_PAGE, list.length), n: list.length })}</p>
         </nav>
       )}
     </>

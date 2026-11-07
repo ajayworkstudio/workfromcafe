@@ -6,6 +6,7 @@ import { INSTAGRAM_URL } from "@/lib/utils";
 import { createPublicClient } from "@/lib/supabase/server";
 import { reportAgo } from "@/lib/reports";
 import type { PublicSupporter } from "@/lib/supporters";
+import { getT } from "@/lib/i18n/server";
 
 export const metadata: Metadata = {
   title: "Dukung WFC Hunters",
@@ -31,6 +32,7 @@ const FREE_WAYS = [
 ];
 
 export default async function SupportPage() {
+  const { t, locale } = await getT();
   const [{ support_url: url }, { data: supData }] = await Promise.all([
     getSettings(),
     createPublicClient().rpc("supporters_public", { p_limit: 60 }), // kosong kalau migrasi 0024 belum dijalankan
@@ -41,25 +43,25 @@ export default async function SupportPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 md:py-16">
       <section className="overflow-hidden rounded-[2rem] bg-espresso p-7 text-foam md:p-12">
-        <p className="text-sm font-semibold uppercase tracking-wider text-gold">Dukung WFC Hunters</p>
-        <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] md:text-5xl">Bantu WFC Hunters tetap gratis dan terus berkembang</h1>
+        <p className="text-sm font-semibold uppercase tracking-wider text-gold">{t("Dukung WFC Hunters")}</p>
+        <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] md:text-5xl">{t("Bantu WFC Hunters tetap gratis dan terus berkembang")}</h1>
         <p className="mt-4 max-w-2xl text-lg text-foam/80">
-          Semua kafe di sini didatangi dan dinilai langsung, lalu disusun supaya kamu gampang cari tempat kerja yang nyaman. Dukunganmu dipakai untuk biaya server, domain, dan penyimpanan foto, juga untuk mencoba kafe-kafe baru.
+          {t("Semua kafe di sini didatangi dan dinilai langsung, lalu disusun supaya kamu gampang cari tempat kerja yang nyaman. Dukunganmu dipakai untuk biaya server, domain, dan penyimpanan foto, juga untuk mencoba kafe-kafe baru.")}
         </p>
         {url ? (
           <div className="mt-7 flex flex-wrap items-center gap-3">
             <a href={url} target="_blank" rel="noopener" className="btn min-h-12 bg-gold px-6 text-base text-espresso hover:bg-[#eab25e]">
-              <Icon name="heart" className="h-5 w-5" />{name ? `Dukung lewat ${name}` : "Kirim dukungan"}
+              <Icon name="heart" className="h-5 w-5" />{name ? t("Dukung lewat {name}", { name }) : t("Kirim dukungan")}
             </a>
-            <span className="text-sm text-foam/70">Sukarela, berapa pun nominalnya. Semua fitur tetap gratis.</span>
+            <span className="text-sm text-foam/70">{t("Sukarela, berapa pun nominalnya. Semua fitur tetap gratis.")}</span>
           </div>
         ) : (
-          <p className="mt-7 text-sm text-foam/70">Halaman donasi segera dibuka. Sementara itu, kamu tetap bisa membantu dengan cara di bawah.</p>
+          <p className="mt-7 text-sm text-foam/70">{t("Halaman donasi segera dibuka. Sementara itu, kamu tetap bisa membantu dengan cara di bawah.")}</p>
         )}
       </section>
 
       <section aria-labelledby="pendukung" className="mt-12">
-        <h2 id="pendukung" className="text-2xl font-bold md:text-3xl">Terima kasih, para pendukung</h2>
+        <h2 id="pendukung" className="text-2xl font-bold md:text-3xl">{t("Terima kasih, para pendukung")}</h2>
         {supporters.length ? (
           <ul className="mt-5 grid gap-3 sm:grid-cols-2">
             {supporters.map((p) => (
@@ -68,28 +70,28 @@ export default async function SupportPage() {
                 <span className="min-w-0">
                   <span className="block font-semibold">{p.name}</span>
                   {p.message && <span className="mt-0.5 block break-words text-sm text-ink/80">&ldquo;{p.message}&rdquo;</span>}
-                  <span className="mt-1 block text-xs text-muted">{reportAgo(p.created_at)}</span>
+                  <span className="mt-1 block text-xs text-muted">{reportAgo(p.created_at, t, locale)}</span>
                 </span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="mt-3 rounded-2xl border border-dashed border-line p-6 text-center text-muted">Belum ada pendukung yang tercatat. Jadilah yang pertama.</p>
+          <p className="mt-3 rounded-2xl border border-dashed border-line p-6 text-center text-muted">{t("Belum ada pendukung yang tercatat. Jadilah yang pertama.")}</p>
         )}
       </section>
 
       <section aria-labelledby="tanpa-uang" className="mt-12">
-        <h2 id="tanpa-uang" className="text-2xl font-bold md:text-3xl">Dukung tanpa uang</h2>
-        <p className="mt-1 text-muted">Bantuan seperti ini sama berharganya untuk komunitas.</p>
+        <h2 id="tanpa-uang" className="text-2xl font-bold md:text-3xl">{t("Dukung tanpa uang")}</h2>
+        <p className="mt-1 text-muted">{t("Bantuan seperti ini sama berharganya untuk komunitas.")}</p>
         <ul className="mt-6 grid gap-3 sm:grid-cols-2">
           {FREE_WAYS.map((w) => {
             const inner = (
               <>
                 <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon duo name={w.icon} className="h-5 w-5" /></span>
                 <span className="min-w-0">
-                  <span className="block font-semibold">{w.title}</span>
-                  <span className="mt-0.5 block text-sm text-muted">{w.text}</span>
-                  <span className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-brand">{w.cta}<Icon name="chevron" className="h-4 w-4" /></span>
+                  <span className="block font-semibold">{t(w.title)}</span>
+                  <span className="mt-0.5 block text-sm text-muted">{t(w.text)}</span>
+                  <span className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-brand">{t(w.cta)}<Icon name="chevron" className="h-4 w-4" /></span>
                 </span>
               </>
             );

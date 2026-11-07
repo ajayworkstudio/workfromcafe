@@ -91,14 +91,15 @@ export const CAFE_LIST_SELECT =
   "*, city:cities(*), photos:cafe_photos(*), tags:cafe_tags(tag:tags(*))"; // photos(*): ikut thumb_url kalau migrasi 0019 sudah jalan
 
 /** "baru saja", "5 menit lalu", "3 hari lalu", lalu tanggal untuk yang lebih lama. */
-export function timeAgo(iso: string) {
+/** `lang` "en" untuk tampilan English; selain itu bahasa Indonesia. */
+export function timeAgo(iso: string, lang: "id" | "en" = "id") {
   const s = (Date.now() - new Date(iso).getTime()) / 1000;
-  const rtf = new Intl.RelativeTimeFormat("id", { numeric: "auto" });
-  if (s < 60) return "baru saja";
+  const rtf = new Intl.RelativeTimeFormat(lang, { numeric: "auto" });
+  if (s < 60) return lang === "en" ? "just now" : "baru saja";
   if (s < 3600) return rtf.format(-Math.floor(s / 60), "minute");
   if (s < 86400) return rtf.format(-Math.floor(s / 3600), "hour");
   if (s < 86400 * 7) return rtf.format(-Math.floor(s / 86400), "day");
-  return new Date(iso).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" });
+  return new Date(iso).toLocaleDateString(lang === "en" ? "en-GB" : "id-ID", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" });
 }
 
 const PHOTO_BASE = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/cafe-photos/`;

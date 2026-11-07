@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getT } from "@/lib/i18n/server";
+import { translateArticles } from "@/lib/i18n/content";
 import { cache } from "react";
 import JsonLd from "@/components/JsonLd";
 import { abs, breadcrumb, clip } from "@/lib/seo";
@@ -26,7 +28,7 @@ const getCity = cache(async (slug: string) => {
 });
 
 export async function generateMetadata({ params }: { params: P }): Promise<Metadata> {
-  const res = await getCity((await params).slug);
+  const [res, { t }] = await Promise.all([getCity((await params).slug), getT()]);
   if (!res) notFound();
   const { city, cafes } = res;
   const n = cafes.length;
@@ -47,10 +49,10 @@ export async function generateMetadata({ params }: { params: P }): Promise<Metad
 }
 
 export default async function CityPage({ params }: { params: P }) {
-  const res = await getCity((await params).slug);
+  const [res, { t, lang }] = await Promise.all([getCity((await params).slug), getT()]);
   if (!res) notFound();
   const { city, cafes } = res;
-  const articles = (await getManualArticles()).filter((a) => a.city_id === city.id);
+  const articles = await translateArticles(lang, (await getManualArticles()).filter((a) => a.city_id === city.id));
   const areas = areasOf(cafes.filter((c) => c.is_published));
 
   return (
@@ -66,14 +68,14 @@ export default async function CityPage({ params }: { params: P }) {
         },
       ]} />
       <nav aria-label="Breadcrumb" className="text-sm text-muted">
-        <Link href="/" className="hover:text-brand">Beranda</Link> <span aria-hidden>/</span> <span>{city.name}</span>
+        <Link href="/" className="hover:text-brand">{t("Beranda")}</Link> <span aria-hidden>/</span> <span>{city.name}</span>
       </nav>
-      <h1 className="mt-2 text-4xl font-extrabold md:text-5xl">Kafe untuk kerja di {city.name}</h1>
+      <h1 className="mt-2 text-4xl font-extrabold md:text-5xl">{t("Kafe untuk kerja di {place}", { place: city.name })}</h1>
       <p className="mt-2 max-w-2xl text-muted">
-        {cafes.length ? `${cafes.length} kafe di ${city.name}, ${city.province}` : `Kafe di ${city.name}, ${city.province}`} yang sudah dicoba langsung untuk kerja dan nugas, lengkap dengan penilaian wifi, colokan, ketenangan, dan menu rekomendasi.
+        {cafes.length ? t("{n} kafe di {place}", { n: cafes.length, place: `${city.name}, ${city.province}` }) : t("Kafe di {place}", { place: `${city.name}, ${city.province}` })} {t("yang sudah dicoba langsung untuk kerja dan nugas, lengkap dengan penilaian wifi, colokan, ketenangan, dan menu rekomendasi.")}
       </p>
       {!!articles.length && (
-        <nav aria-label={`Artikel tentang ${city.name}`} className="mt-5 flex flex-wrap gap-2">
+        <nav aria-label={t("Artikel tentang {place}", { place: city.name })} className="mt-5 flex flex-wrap gap-2">
           {articles.map((a) => (
             <Link key={a.slug} href={`/artikel/${a.slug}`} className="flex min-h-11 items-center rounded-full border border-line bg-surface px-4 text-sm font-semibold hover:border-brand">{a.title}</Link>
           ))}
@@ -81,7 +83,7 @@ export default async function CityPage({ params }: { params: P }) {
       )}
       {!!areas.length && (
         <section className="mt-6">
-          <h2 className="font-sans text-base font-bold tracking-normal">Kafe per area</h2>
+          <h2 className="font-sans text-base font-bold tracking-normal">{t("Kafe per area")}</h2>
           <div className="mt-2 flex flex-wrap gap-2">
             {areas.map((a) => (
               <Link key={a.slug} href={`/kota/${city.slug}/${a.slug}`} className="flex min-h-11 items-center rounded-full border border-line bg-surface px-4 text-sm font-semibold hover:border-brand">
@@ -91,13 +93,13 @@ export default async function CityPage({ params }: { params: P }) {
           </div>
         </section>
       )}
-      <h2 className="mt-8 text-2xl font-bold">Semua kafe di {city.name}</h2>
+      <h2 className="mt-8 text-2xl font-bold">{t("Semua kafe di {place}", { place: city.name })}</h2>
       <div className="mt-4 grid gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
         {cafes.map((c) => <CafeCard key={c.id} cafe={c} />)}
       </div>
       {!cafes.length && (
         <div className="mt-6 rounded-2xl bg-tint p-8 text-center text-muted">
-          Belum ada kafe di kota ini. <Link href="/kirim" className="font-semibold text-brand hover:underline">Punya rekomendasi? Kirim di sini.</Link>
+          {t("Belum ada kafe di kota ini.")} <Link href="/kirim" className="font-semibold text-brand hover:underline">{t("Punya rekomendasi? Kirim di sini.")}</Link>
         </div>
       )}
     </div>

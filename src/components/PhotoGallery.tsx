@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import FadeImage from "./FadeImage";
 import Icon from "./Icon";
+import { useT } from "@/components/I18nProvider";
 
 type P = { id: string; url: string; thumb_url?: string | null };
 
@@ -12,6 +13,7 @@ type P = { id: string; url: string; thumb_url?: string | null };
  * - Klik foto mana pun membuka tampilan layar penuh dengan navigasi panah/geser/keyboard.
  */
 export default function PhotoGallery({ photos, name, overlay, badge }: { photos: P[]; name: string; /** Tombol bulat di atas foto (HP) */ overlay?: ReactNode; /** Label kaca di kiri bawah foto (HP), mis. kondisi live */ badge?: ReactNode }) {
+  const { t } = useT();
   const [open, setOpen] = useState<number | null>(null);
   const [slide, setSlide] = useState(0);
   const track = useRef<HTMLDivElement>(null);
@@ -50,7 +52,7 @@ export default function PhotoGallery({ photos, name, overlay, badge }: { photos:
         <div ref={track} className="flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none]"
           onScroll={(e) => { const el = e.currentTarget; setSlide(Math.round(el.scrollLeft / el.clientWidth)); }}>
           {photos.map((p, i) => (
-            <button key={p.id} type="button" onClick={() => setOpen(i)} className={`relative aspect-[4/3.6] w-full shrink-0 snap-center overflow-hidden bg-tint ${i === 0 ? "vt-cafe-photo" : ""}`} aria-label={`Foto ${i + 1} dari ${n}`}>
+            <button key={p.id} type="button" onClick={() => setOpen(i)} className={`relative aspect-[4/3.6] w-full shrink-0 snap-center overflow-hidden bg-tint ${i === 0 ? "vt-cafe-photo" : ""}`} aria-label={t("Foto {i} dari {n}", { i: i + 1, n })}>
               <FadeImage src={p.url} alt={`${name}, foto ${i + 1}`} fill priority={i === 0} sizes="100vw" lowSrc={i === 0 ? p.thumb_url : null} className="object-cover" />
             </button>
           ))}
@@ -93,7 +95,7 @@ export default function PhotoGallery({ photos, name, overlay, badge }: { photos:
         <div role="dialog" aria-modal="true" aria-label={`Foto ${name}`} className="fixed inset-0 z-[60] flex flex-col bg-black/95" onClick={close}>
           <div className="flex items-center justify-between px-4 py-3 text-sm text-white/80">
             <span>{open + 1} / {n}</span>
-            <button type="button" onClick={close} className="rounded-full px-3 py-1.5 font-semibold text-white hover:bg-white/10" aria-label="Tutup">Tutup ✕</button>
+            <button type="button" onClick={close} className="rounded-full px-3 py-1.5 font-semibold text-white hover:bg-white/10" aria-label={t("Tutup")}>{t("Tutup")} ✕</button>
           </div>
           <div className="relative flex-1" onClick={(e) => e.stopPropagation()}
             onTouchStart={(e) => { (e.currentTarget as HTMLDivElement).dataset.x = String(e.touches[0].clientX); }}
@@ -105,15 +107,15 @@ export default function PhotoGallery({ photos, name, overlay, badge }: { photos:
             <FadeImage key={photos[open].id} src={photos[open].url} alt={`${name}, foto ${open + 1}`} fill sizes="100vw" className="object-contain" />
             {n > 1 && (
               <>
-                <button type="button" onClick={() => go(-1)} aria-label="Foto sebelumnya" className="absolute left-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/15 text-2xl text-white hover:bg-white/25 md:grid">‹</button>
-                <button type="button" onClick={() => go(1)} aria-label="Foto berikutnya" className="absolute right-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/15 text-2xl text-white hover:bg-white/25 md:grid">›</button>
+                <button type="button" onClick={() => go(-1)} aria-label={t("Foto sebelumnya")} className="absolute left-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/15 text-2xl text-white hover:bg-white/25 md:grid">‹</button>
+                <button type="button" onClick={() => go(1)} aria-label={t("Foto berikutnya")} className="absolute right-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/15 text-2xl text-white hover:bg-white/25 md:grid">›</button>
               </>
             )}
           </div>
           {n > 1 && (
             <div className="flex gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none]" onClick={(e) => e.stopPropagation()}>
               {photos.map((p, i) => (
-                <button key={p.id} type="button" onClick={() => setOpen(i)} aria-label={`Lihat foto ${i + 1}`}
+                <button key={p.id} type="button" onClick={() => setOpen(i)} aria-label={t("Lihat foto {i}", { i: i + 1 })}
                   className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-lg ${i === open ? "ring-2 ring-white" : "opacity-60 hover:opacity-100"}`}>
                   <FadeImage src={p.url} alt="" fill sizes="80px" className="object-cover" />
                 </button>

@@ -16,6 +16,7 @@ import { getSettings } from "@/lib/settings";
 import Icon from "@/components/Icon";
 import PhotoGallery from "@/components/PhotoGallery";
 import CafeScorecard from "@/components/CafeScorecard";
+import { translateContent } from "@/lib/i18n/content";
 import CafeComments from "@/components/CafeComments";
 import Avatar from "@/components/Avatar";
 import AuthorBadge from "@/components/AuthorBadge";
@@ -28,6 +29,7 @@ import ConditionCard from "@/components/ConditionCard";
 import { CROWD, reportAgo, summarize, type CafeReport } from "@/lib/reports";
 import type { Cafe, CafeDetails, MenuItem } from "@/lib/types";
 import { APP_NAME, CAFE_LIST_SELECT, DAYS, formatSlot, SITE_URL, coverUrl, isOpenNow, priceLabel, rupiah } from "@/lib/utils";
+import { getT } from "@/lib/i18n/server";
 
 type P = Promise<{ slug: string }>;
 
@@ -71,7 +73,7 @@ export async function generateMetadata({ params }: { params: P }): Promise<Metad
 export default async function CafeDetailPage({ params, searchParams }: { params: P; searchParams: Promise<{ diedit?: string }> }) {
   const [{ slug }, { diedit }] = await Promise.all([params, searchParams]);
   // Semua yang tidak saling bergantung diambil bersamaan (lebih sedikit bolak-balik ke database)
-  const [cafe, viewer, settings] = await Promise.all([getCafe(slug), getViewer(), getSettings()]);
+  const [cafe, viewer, settings, { t, locale, lang }] = await Promise.all([getCafe(slug), getViewer(), getSettings(), getT()]);
   if (!cafe) notFound();
 
   const supabase = await createClient();
@@ -127,8 +129,22 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
     };
   }
 
-  const d = details as CafeDetails | null;
-  const items = (menu as MenuItem[] | null) ?? [];
+  // Bahasa Inggris: ulasan, tips, catatan menu, dan catatan penilaian diterjemahkan (cache di database)
+  const tr = await translateContent(lang, [
+    { entity: "cafe", id: cafe.id, field: "short_review", text: cafe.short_review },
+    ...Object.entries(cafe.scores?.notes ?? {}).map(([k, v]) => ({ entity: "cafe", id: cafe.id, field: `note:${k}`, text: v })),
+    { entity: "cafe_detail", id: cafe.id, field: "full_review", text: (details as CafeDetails | null)?.full_review },
+    { entity: "cafe_detail", id: cafe.id, field: "tips", text: (details as CafeDetails | null)?.tips },
+    { entity: "cafe_detail", id: cafe.id, field: "best_time", text: (details as CafeDetails | null)?.best_time },
+    ...((menu as MenuItem[] | null) ?? []).map((m) => ({ entity: "menu_item", id: m.id, field: "note", text: m.note })),
+  ]);
+  const raw = details as CafeDetails | null;
+  const d = raw && { ...raw, full_review: tr("cafe_detail", cafe.id, "full_review", raw.full_review), tips: tr("cafe_detail", cafe.id, "tips", raw.tips), best_time: tr("cafe_detail", cafe.id, "best_time", raw.best_time) };
+  const items = ((menu as MenuItem[] | null) ?? []).map((m) => ({ ...m, note: tr("menu_item", m.id, "note", m.note) }));
+  const shortReview = tr("cafe", cafe.id, "short_review", cafe.short_review);
+  const scoresShown = cafe.scores?.notes
+    ? { ...cafe.scores, notes: Object.fromEntries(Object.entries(cafe.scores.notes).map(([k, v]) => [k, tr("cafe", cafe.id, `note:${k}`, v) ?? v])) }
+    : cafe.scores;
   const free = settings.free_mode;
   const unlocked = !!d || free;
   const overall = cafe.my_rating != null ? Number(cafe.my_rating) : averageScore(cafe.scores);
@@ -203,17 +219,17 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
     ]),
   ];
 
-  const shareText = `${cafe.name}${cafe.city?.name ? ` (${cafe.city.name})` : ""} enak buat kerja. Cek ulasan, colokan, dan menunya di WFC Hunters:`;
+  const shareText = `${cafe.name}${cafe.city?.name ? ` (${cafe.city.name})` : ""} ${t("enak buat kerja. Cek ulasan, colokan, dan menunya di WFC Hunters:")}`;
   const round = "glass-dark grid h-11 w-11 place-items-center rounded-full text-foam";
   const live = summarize(reports);
   const showMenu = unlocked && (items.length > 0 || !free);
   const tabs = [
-    filledAspects(cafe.scores).length || overall != null ? { id: "penilaian", label: "Penilaian" } : null,
-    unlocked && d?.full_review ? { id: "ulasan", label: "Ulasan" } : null,
-    showMenu ? { id: "menu", label: "Menu" } : null,
-    { id: "info", label: "Alamat & jam" },
-    { id: "komentar", label: "Komentar" },
-  ].filter((t): t is { id: string; label: string } => !!t);
+    filledAspects(cafe.scores).length || overall != null ? { id: "penilaian", label: t("Penilaian") } : null,
+    unlocked && d?.full_review ? { id: "ulasan", label: t("Ulasan") } : null,
+    showMenu ? { id: "menu", label: t("Menu") } : null,
+    { id: "info", label: t("Alamat & jam") },
+    { id: "komentar", label: t("Komentar") },
+  ].filter((x): x is { id: string; label: string } => !!x);
 
   const today = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Jakarta", weekday: "short" }).format(new Date()).toLowerCase().slice(0, 3);
 
@@ -231,7 +247,7 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
       </>} badge={live ? (
         <span className="glass-dark inline-flex max-w-full items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-foam">
           <span className={`h-2 w-2 shrink-0 rounded-full ${live.crowd === 1 ? "bg-[#6fd09a]" : live.crowd === 2 ? "bg-gold" : "bg-[#e07a5f]"}`} />
-          <span className="truncate">{CROWD[live.crowd].label}{live.download != null && ` · ${live.download} Mbps`} · {reportAgo(live.lastAt)}</span>
+          <span className="truncate">{t(CROWD[live.crowd].label)}{live.download != null && ` · ${live.download} Mbps`} · {reportAgo(live.lastAt, t, locale)}</span>
         </span>
       ) : undefined} />
 
@@ -258,30 +274,30 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
             {overall != null && (
               <a href="#penilaian" className="hidden items-center gap-1.5 font-semibold hover:text-brand md:flex">
                 <Icon name="star" filled className="h-4 w-4 text-gold" />
-                {overall.toFixed(1)} <span className="font-normal text-muted">{cafe.contributor_name ? `dari ${cafe.contributor_name.split(" ")[0]}` : "dari aku"}</span>
+                {overall.toFixed(1)} <span className="font-normal text-muted">{cafe.contributor_name ? t("dari {name}", { name: cafe.contributor_name.split(" ")[0] }) : t("dari aku")}</span>
               </a>
             )}
-            <span className="text-muted">{priceLabel(cafe.price_range)}</span>
+            <span className="text-muted">{t(priceLabel(cafe.price_range))}</span>
             {open !== null && (
               <span className="flex items-center gap-1.5 font-medium">
                 <span className={`h-2 w-2 rounded-full ${open ? "bg-ok" : "bg-mist"}`} />
-                {open ? "Sedang buka" : "Sedang tutup"}
+                {open ? t("Sedang buka") : t("Sedang tutup")}
               </span>
             )}
           </div>
 
-          {cafe.short_review && <p className="mt-5 max-w-2xl text-lg leading-relaxed md:mt-6 md:text-xl">{cafe.short_review}</p>}
+          {shortReview && <p className="mt-5 max-w-2xl text-lg leading-relaxed md:mt-6 md:text-xl">{shortReview}</p>}
 
           <ConditionCard cafe={{ id: cafe.id, slug: cafe.slug, name: cafe.name, lat: cafe.lat, lng: cafe.lng }} reports={reports}
             viewer={{ id: viewer.user?.id ?? null, isAdmin: viewer.isAdmin }} />
 
           {!!tags.length && (
             <div className="mt-5 flex flex-wrap gap-1.5">
-              {tags.map((t) => <span key={t.id} className="chip">{t.name}</span>)}
+              {tags.map((x) => <span key={x.id} className="chip">{t(x.name)}</span>)}
             </div>
           )}
 
-          {diedit && isAuthor && <p role="status" className="mt-6 rounded-xl bg-ok/10 px-4 py-3 text-sm text-[#2f7049]">Perubahan tersimpan dan sudah tampil di halaman ini.</p>}
+          {diedit && isAuthor && <p role="status" className="mt-6 rounded-xl bg-ok/10 px-4 py-3 text-sm text-[#2f7049]">{t("Perubahan tersimpan dan sudah tampil di halaman ini.")}</p>}
           <div className="mt-6 flex flex-wrap gap-2">
             {/* Simpan & Bagikan di HP sudah ada sebagai tombol bulat di atas foto */}
             <span className="hidden md:contents">
@@ -292,10 +308,10 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
               <span data-track="share" className="contents"><ShareButton url={`${SITE_URL}/kafe/${cafe.slug}`} title={cafe.name} text={shareText} storyUrl={`/kafe/${cafe.slug}/story`} /></span>
             </span>
             {cafe.menu_url && (
-              <a href={cafe.menu_url} target="_blank" rel="noopener" data-track="menu" className="btn-primary"><Icon name="book" className="h-4 w-4" />Lihat menu</a>
+              <a href={cafe.menu_url} target="_blank" rel="noopener" data-track="menu" className="btn-primary"><Icon name="book" className="h-4 w-4" />{t("Lihat menu")}</a>
             )}
-            <a href={mapsUrl} target="_blank" rel="noopener" data-track="maps" className="btn-ghost"><Icon name="external" className="h-4 w-4" />Buka di Google Maps</a>
-            {mySub && <Link href={`/kirim/${mySub.id}`} className="btn-ghost"><Icon name="edit" className="h-4 w-4" />Edit rekomendasimu</Link>}
+            <a href={mapsUrl} target="_blank" rel="noopener" data-track="maps" className="btn-ghost"><Icon name="external" className="h-4 w-4" />{t("Buka di Google Maps")}</a>
+            {mySub && <Link href={`/kirim/${mySub.id}`} className="btn-ghost"><Icon name="edit" className="h-4 w-4" />{t("Edit rekomendasimu")}</Link>}
             {cafe.instagram && (
               <a href={`https://instagram.com/${cafe.instagram.replace(/^@/, "")}`} target="_blank" rel="noopener" data-track="instagram" className="btn-ghost" aria-label={`Instagram ${cafe.name}`}>
                 <Icon name="instagram" className="h-4 w-4" />@{cafe.instagram.replace(/^@/, "")}
@@ -305,25 +321,25 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
 
           <SectionTabs tabs={tabs} />
 
-          <CafeScorecard scores={cafe.scores} amenities={cafe.amenities} overall={overall} visitedAt={cafe.visited_at} byContributor={cafe.contributor_name} />
+          <CafeScorecard scores={scoresShown} amenities={cafe.amenities} overall={overall} visitedAt={cafe.visited_at} byContributor={cafe.contributor_name} />
 
           {/* ===== Konten premium (terbuka untuk semua saat mode gratis) ===== */}
           {unlocked ? (
             <>
               {d?.full_review && (
                 <section id="ulasan" className="reveal mt-12 max-w-2xl scroll-mt-32">
-                  <h2 className="text-2xl font-bold">Ulasan lengkap</h2>
+                  <h2 className="text-2xl font-bold">{t("Ulasan lengkap")}</h2>
                   <p className="mt-3 whitespace-pre-line text-[1.05rem] leading-relaxed text-ink/85">{d.full_review}</p>
                 </section>
               )}
               {(d?.tips || d?.best_time) && (
                 <section className="mt-6 grid gap-3 sm:grid-cols-2">
-                  {d?.tips && <div className="rounded-2xl bg-brand-soft p-5"><p className="text-sm font-semibold text-brand">Tips duduk</p><p className="mt-1">{d.tips}</p></div>}
-                  {d?.best_time && <div className="rounded-2xl bg-brand-soft p-5"><p className="text-sm font-semibold text-brand">Waktu terbaik</p><p className="mt-1">{d.best_time}</p></div>}
+                  {d?.tips && <div className="rounded-2xl bg-brand-soft p-5"><p className="text-sm font-semibold text-brand">{t("Tips duduk")}</p><p className="mt-1">{d.tips}</p></div>}
+                  {d?.best_time && <div className="rounded-2xl bg-brand-soft p-5"><p className="text-sm font-semibold text-brand">{t("Waktu terbaik")}</p><p className="mt-1">{d.best_time}</p></div>}
                 </section>
               )}
               {showMenu && <section id="menu" className="reveal mt-12 scroll-mt-32">
-                <h2 className="text-2xl font-bold">Menu Rekomendasi</h2>
+                <h2 className="text-2xl font-bold">{t("Menu Rekomendasi")}</h2>
                 <ul className="mt-4 divide-y divide-line border-y border-line">
                   {items.map((m) => (
                     <li key={m.id} className="flex gap-4 py-4">
@@ -335,7 +351,7 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
                         <div className="flex items-baseline justify-between gap-3">
                           <h3 className="flex items-center gap-2 font-sans text-base font-semibold tracking-normal">
                             {m.name}
-                            {m.is_must_try && <span className="rounded-full bg-gold/20 px-2 py-0.5 text-[11px] font-semibold text-[#8a5a00]">Wajib coba</span>}
+                            {m.is_must_try && <span className="rounded-full bg-gold/20 px-2 py-0.5 text-[11px] font-semibold text-[#8a5a00]">{t("Wajib coba")}</span>}
                           </h3>
                           <span className="shrink-0 tabular-nums text-sm font-semibold">{rupiah(m.price)}</span>
                         </div>
@@ -343,26 +359,26 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
                       </div>
                     </li>
                   ))}
-                  {!items.length && <li className="py-4 text-muted">Menu belum ditambahkan.</li>}
+                  {!items.length && <li className="py-4 text-muted">{t("Menu belum ditambahkan.")}</li>}
                 </ul>
               </section>}
             </>
           ) : (
             <section className="mt-12 rounded-3xl bg-ink p-7 text-white md:p-9">
               <Icon name="lock" className="h-6 w-6 text-gold" />
-              <h2 className="mt-4 text-2xl font-bold md:text-3xl">Ulasan lengkap dan menu rekomendasi</h2>
+              <h2 className="mt-4 text-2xl font-bold md:text-3xl">{t("Ulasan lengkap dan menu rekomendasi")}</h2>
               <p className="mt-2 max-w-md text-white/70">
-                Termasuk meja terbaik untuk kerja dan jam paling sepi. {settings.trial_days > 0 && !viewer.user ? `Daftar sekarang dan coba gratis ${settings.trial_days} hari.` : `Member gratis bisa membuka ${settings.free_unlock_limit_per_month} kafe setiap bulan.`}
+                {t("Termasuk meja terbaik untuk kerja dan jam paling sepi.")} {settings.trial_days > 0 && !viewer.user ? t("Daftar sekarang dan coba gratis {n} hari.", { n: settings.trial_days }) : t("Member gratis bisa membuka {n} kafe setiap bulan.", { n: settings.free_unlock_limit_per_month })}
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
                 {!viewer.user ? (
-                  <Link href={`/masuk?daftar=1&next=/kafe/${cafe.slug}`} className="btn bg-white text-ink hover:bg-tint">{settings.trial_days > 0 ? `Coba gratis ${settings.trial_days} hari` : "Daftar untuk membuka"}</Link>
+                  <Link href={`/masuk?daftar=1&next=/kafe/${cafe.slug}`} className="btn bg-white text-ink hover:bg-tint">{settings.trial_days > 0 ? t("Coba gratis {n} hari", { n: settings.trial_days }) : t("Daftar untuk membuka")}</Link>
                 ) : (left.data as number) > 0 ? (
                   <UnlockButton cafeId={cafe.id} slug={cafe.slug} left={left.data as number} />
                 ) : (
-                  <span className="self-center text-sm text-white/60">Jatah gratis bulan ini sudah habis.</span>
+                  <span className="self-center text-sm text-white/60">{t("Jatah gratis bulan ini sudah habis.")}</span>
                 )}
-                <Link href="/harga" className="btn bg-gold text-ink hover:bg-[#e09c1c]">Berlangganan</Link>
+                <Link href="/harga" className="btn bg-gold text-ink hover:bg-[#e09c1c]">{t("Berlangganan")}</Link>
               </div>
             </section>
           )}
@@ -372,11 +388,11 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
         {/* Di HP alamat & jam tampil sebelum komentar; di layar lebar tetap kolom kanan yang menempel */}
         <aside id="info" className="mt-10 scroll-mt-32 space-y-6 md:sticky md:mt-0 md:top-24 md:col-start-2 md:row-span-2 md:row-start-1 md:self-start">
           <div>
-            <h2 className="flex items-center gap-2 font-sans text-sm font-semibold tracking-normal text-muted"><Icon name="pin" className="h-4 w-4" />Alamat</h2>
+            <h2 className="flex items-center gap-2 font-sans text-sm font-semibold tracking-normal text-muted"><Icon name="pin" className="h-4 w-4" />{t("Alamat")}</h2>
             <p className="mt-1.5">{cafe.address ?? "-"}</p>
           </div>
           <div>
-            <h2 className="flex items-center gap-2 font-sans text-sm font-semibold tracking-normal text-muted"><Icon name="clock" className="h-4 w-4" />Jam buka</h2>
+            <h2 className="flex items-center gap-2 font-sans text-sm font-semibold tracking-normal text-muted"><Icon name="clock" className="h-4 w-4" />{t("Jam buka")}</h2>
             <table className="mt-1.5 w-full text-sm">
               <tbody>
                 {DAYS.map(({ key, label }) => {
@@ -384,8 +400,8 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
                   const isToday = key === today;
                   return (
                     <tr key={key} className={isToday ? "font-semibold text-ink" : "text-muted"}>
-                      <td className="py-1">{label}{isToday && <span className="ml-1.5 text-xs font-medium text-brand">hari ini</span>}</td>
-                      <td className="py-1 text-right tabular-nums">{formatSlot(h)}</td>
+                      <td className="py-1">{t(label)}{isToday && <span className="ml-1.5 text-xs font-medium text-brand">{t("hari ini")}</span>}</td>
+                      <td className="py-1 text-right tabular-nums">{t(formatSlot(h))}</td>
                     </tr>
                   );
                 })}
@@ -397,7 +413,7 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
               <div className="flex items-center gap-3">
                 <Avatar url={author.avatar_url} name={author.name} className="h-11 w-11 text-base" />
                 <div className="min-w-0 text-sm">
-                  <p className="text-muted">Direkomendasikan oleh</p>
+                  <p className="text-muted">{t("Direkomendasikan oleh")}</p>
                   {author.href
                     ? <Link href={author.href} className="block truncate font-semibold hover:text-brand hover:underline">{author.name}</Link>
                     : <p className="truncate font-semibold">{author.name}</p>}
@@ -412,26 +428,26 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
               </div>
               {author.bio && <p className="mt-3 line-clamp-4 whitespace-pre-line text-sm leading-relaxed text-ink/80">{author.bio}</p>}
               {author.href && author.cafe_count! > 1 && (
-                <Link href={author.href} className="mt-3 inline-block text-sm font-semibold text-brand hover:underline">Lihat {author.cafe_count} kafe rekomendasinya →</Link>
+                <Link href={author.href} className="mt-3 inline-block text-sm font-semibold text-brand hover:underline">{t("Lihat {n} kafe rekomendasinya →", { n: author.cafe_count ?? 0 })}</Link>
               )}
             </div>
           )}
           {cafe.visited_at && (
             <p className="border-t border-line pt-4 text-sm text-muted">
-              {cafe.contributor_name ? "Terakhir dikunjungi" : "Terakhir aku datangi"} {new Date(cafe.visited_at).toLocaleDateString("id-ID", { month: "long", year: "numeric" })}.
+              {cafe.contributor_name ? t("Terakhir dikunjungi") : t("Terakhir aku datangi")} {new Date(cafe.visited_at).toLocaleDateString(locale, { month: "long", year: "numeric" })}.
             </p>
           )}
         </aside>
 
         <div className="min-w-0 md:col-start-1 md:-mt-10">
           {/* Komentar dimuat menyusul supaya halaman kafe tampil lebih dulu */}
-          <Suspense fallback={<div className="mt-12 h-40 animate-pulse rounded-2xl bg-tint" aria-label="Memuat komentar" />}>
+          <Suspense fallback={<div className="mt-12 h-40 animate-pulse rounded-2xl bg-tint" aria-label={t("Memuat komentar")} />}>
             <CafeComments cafeId={cafe.id} slug={cafe.slug} viewerId={viewer.user?.id ?? null} viewerIsAdmin={viewer.isAdmin} contributorId={cafe.contributor_id} />
           </Suspense>
 
           {!!articles.length && (
             <section className="mt-12">
-              <h2 className="text-2xl font-bold">Dibahas di artikel</h2>
+              <h2 className="text-2xl font-bold">{t("Dibahas di artikel")}</h2>
               <ul className="mt-2 space-y-1">
                 {articles.slice(0, 4).map((a) => <li key={a.id}><Link href={`/artikel/${a.slug}`} className="inline-flex min-h-11 items-center font-semibold text-brand hover:underline">{a.title}</Link></li>)}
               </ul>
@@ -441,10 +457,10 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
           {!!related.length && (
             <section className="mt-12">
               <div className="flex flex-wrap items-end justify-between gap-2">
-                <h2 className="text-2xl font-bold">Kafe lain di {sameArea.length && cafe.area ? cafe.area : cafe.city?.name}</h2>
+                <h2 className="text-2xl font-bold">{t("Kafe lain di {place}", { place: (sameArea.length && cafe.area ? cafe.area : cafe.city?.name) ?? "" })}</h2>
                 {areaPage
-                  ? <Link href={areaPage} className="py-2 text-sm font-semibold text-brand hover:underline">Semua kafe di {cafe.area}</Link>
-                  : cafe.city && <Link href={`/kota/${cafe.city.slug}`} className="py-2 text-sm font-semibold text-brand hover:underline">Semua kafe di {cafe.city.name}</Link>}
+                  ? <Link href={areaPage} className="py-2 text-sm font-semibold text-brand hover:underline">{t("Semua kafe di {place}", { place: cafe.area ?? "" })}</Link>
+                  : cafe.city && <Link href={`/kota/${cafe.city.slug}`} className="py-2 text-sm font-semibold text-brand hover:underline">{t("Semua kafe di {place}", { place: cafe.city.name })}</Link>}
               </div>
               <div className="mt-4 grid gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
                 {related.map((c) => <CafeCard key={c.id} cafe={c} />)}

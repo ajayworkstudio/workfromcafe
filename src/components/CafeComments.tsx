@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getT } from "@/lib/i18n/server";
 import AdminBadge from "@/components/AdminBadge";
 import { createClient } from "@/lib/supabase/server";
 import { deleteComment } from "@/app/kafe/[slug]/comments";
@@ -15,6 +16,7 @@ type Row = {
 export default async function CafeComments({
   cafeId, slug, viewerId, viewerIsAdmin, contributorId,
 }: { cafeId: string; slug: string; viewerId: string | null; viewerIsAdmin: boolean; contributorId?: string | null }) {
+  const { t, lang } = await getT();
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("cafe_comments_list", { p_cafe_id: cafeId });
   if (error) return null; // migrasi 0011 belum dijalankan
@@ -34,14 +36,14 @@ export default async function CafeComments({
         <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
           <span className="font-semibold">{r.author_name}</span>
           <Badge r={r} />
-          <time dateTime={r.created_at} className="text-xs text-muted">{timeAgo(r.created_at)}</time>
+          <time dateTime={r.created_at} className="text-xs text-muted">{timeAgo(r.created_at, lang)}</time>
         </p>
         <p className="mt-1 whitespace-pre-line break-words leading-relaxed text-ink/90">{r.body}</p>
         {(r.user_id === viewerId || viewerIsAdmin) && (
           <form action={deleteComment} className="mt-1 inline-block">
             <input type="hidden" name="id" value={r.id} />
             <input type="hidden" name="slug" value={slug} />
-            <button className="text-xs font-medium text-muted hover:text-[#b4533a]">Hapus</button>
+            <button className="text-xs font-medium text-muted hover:text-[#b4533a]">{t("Hapus")}</button>
           </form>
         )}
       </div>
@@ -51,17 +53,17 @@ export default async function CafeComments({
   return (
     <section id="komentar" className="mt-12 scroll-mt-32 md:scroll-mt-24">
       <h2 className="flex items-baseline gap-2 text-2xl font-bold">
-        Komentar <span className="text-base font-medium text-muted">{rows.length || ""}</span>
+        {t("Komentar")} <span className="text-base font-medium text-muted">{rows.length || ""}</span>
       </h2>
-      <p className="mt-1 text-sm text-muted">Pernah kerja di sini? Bagikan kondisi terbaru: wifi, keramaian, menu baru, atau tips tempat duduk.</p>
+      <p className="mt-1 text-sm text-muted">{t("Pernah kerja di sini? Bagikan kondisi terbaru: wifi, keramaian, menu baru, atau tips tempat duduk.")}</p>
 
       <div className="mt-5">
         {viewerId ? (
           <CommentForm cafeId={cafeId} slug={slug} />
         ) : (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed border-line p-5">
-            <p className="text-sm text-muted">Masuk untuk ikut berkomentar. Gratis.</p>
-            <Link href={`/masuk?next=${encodeURIComponent(`/kafe/${slug}#komentar`)}`} className="btn-dark !py-2 text-sm">Masuk untuk berkomentar</Link>
+            <p className="text-sm text-muted">{t("Masuk untuk ikut berkomentar. Gratis.")}</p>
+            <Link href={`/masuk?next=${encodeURIComponent(`/kafe/${slug}#komentar`)}`} className="btn-dark !py-2 text-sm">{t("Masuk untuk berkomentar")}</Link>
           </div>
         )}
       </div>
@@ -83,7 +85,7 @@ export default async function CafeComments({
           ))}
         </ul>
       ) : (
-        <p className="mt-6 flex items-center gap-2 text-sm text-muted"><Icon name="smile" className="h-4 w-4" />Belum ada komentar. Jadi yang pertama!</p>
+        <p className="mt-6 flex items-center gap-2 text-sm text-muted"><Icon name="smile" className="h-4 w-4" />{t("Belum ada komentar. Jadi yang pertama!")}</p>
       )}
     </section>
   );

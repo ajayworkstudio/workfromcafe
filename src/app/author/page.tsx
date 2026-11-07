@@ -5,6 +5,7 @@ import Avatar from "@/components/Avatar";
 import AuthorBadge from "@/components/AuthorBadge";
 import Icon from "@/components/Icon";
 import { authorHref, getAuthors, LEVELS } from "@/lib/author";
+import { getT } from "@/lib/i18n/server";
 
 export const metadata: Metadata = {
   title: "Para author",
@@ -13,22 +14,23 @@ export const metadata: Metadata = {
 };
 
 export default async function AuthorsPage() {
+  const { t } = await getT();
   const authors = await getAuthors();
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-extrabold md:text-5xl">Para author</h1>
-          <p className="mt-2 max-w-xl text-muted">Mereka yang berbagi kafe andalannya untuk kerja. Semakin banyak kafe yang tayang, semakin tinggi levelnya.</p>
+          <h1 className="text-4xl font-extrabold md:text-5xl">{t("Para author")}</h1>
+          <p className="mt-2 max-w-xl text-muted">{t("Mereka yang berbagi kafe andalannya untuk kerja. Semakin banyak kafe yang tayang, semakin tinggi levelnya.")}</p>
         </div>
-        <Link href="/kirim" className="btn-primary"><Icon name="send" className="h-4 w-4" />Jadi author</Link>
+        <Link href="/kirim" className="btn-primary"><Icon name="send" className="h-4 w-4" />{t("Jadi author")}</Link>
       </div>
 
       <div className="mt-6 flex flex-wrap gap-2 text-sm">
         {LEVELS.map((l) => (
           <span key={l.name} className="flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5">
-            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${l.className}`}><Icon name={l.icon} filled={l.icon === "star"} className="h-3 w-3" />{l.name}</span>
-            <span className="text-muted">{l.min}+ kafe</span>
+            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${l.className}`}><Icon name={l.icon} filled={l.icon === "star"} className="h-3 w-3" />{t(l.name)}</span>
+            <span className="text-muted">{t("{n}+ kafe", { n: l.min })}</span>
           </span>
         ))}
       </div>
@@ -46,7 +48,7 @@ export default async function AuthorsPage() {
                   <p className="flex min-w-0 items-center gap-1.5 font-bold"><span className="truncate">{a.name}</span>{a.is_admin && <AdminBadge />}</p>
                   <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
                     <AuthorBadge count={a.cafe_count} />
-                    <span>{a.cafe_count} kafe</span>
+                    <span>{t("{n} kafe", { n: a.cafe_count })}</span>
                   </div>
                   {a.bio && <p className="mt-2 line-clamp-2 text-sm text-ink/75">{a.bio}</p>}
                 </div>
@@ -56,8 +58,8 @@ export default async function AuthorsPage() {
         </ul>
       ) : (
         <div className="mt-8 rounded-2xl border border-dashed border-line p-10 text-center">
-          <p className="text-muted">Belum ada author. Jadilah yang pertama merekomendasikan kafe andalanmu.</p>
-          <Link href="/kirim" className="btn-dark mt-4">Kirim rekomendasi</Link>
+          <p className="text-muted">{t("Belum ada author. Jadilah yang pertama merekomendasikan kafe andalanmu.")}</p>
+          <Link href="/kirim" className="btn-dark mt-4">{t("Kirim rekomendasi")}</Link>
         </div>
       )}
     </div>

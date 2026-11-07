@@ -10,9 +10,11 @@ import Avatar from "./Avatar";
 import BottomNav from "./BottomNav";
 import NotifBell from "./NotifBell";
 import NavLink from "./NavLinks";
+import LangSwitch from "./LangSwitch";
+import { getT } from "@/lib/i18n/server";
 
 export default async function Header() {
-  const [v, settings] = await Promise.all([getViewer(), getSettings()]);
+  const [v, settings, { t }] = await Promise.all([getViewer(), getSettings(), getT()]);
   const free = settings.free_mode;
   // Titik di lonceng: ada notifikasi baru sejak terakhir membuka /notifikasi (0 kalau migrasi 0021 belum ada)
   let unread = 0;
@@ -25,34 +27,35 @@ export default async function Header() {
     <>
     <header className="vt-header sticky top-0 z-40 border-b border-line/80 bg-canvas/85 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 md:gap-6">
-        <Link href="/" className="flex items-center" aria-label="WFC Hunters, beranda">
+        <Link href="/" className="flex items-center" aria-label={t("WFC Hunters, beranda")}>
           <Wordmark className="!h-8 !w-auto md:!h-11" />
         </Link>
         <nav className="hidden items-center gap-1 text-sm font-medium text-muted md:flex">
-          <NavLink href="/kafe" match={["/kafe", "/kota"]}>Jelajah</NavLink>
-          <NavLink href="/peta">Peta</NavLink>
-          <NavLink href="/kirim">Kirim kafe</NavLink>
+          <NavLink href="/kafe" match={["/kafe", "/kota"]}>{t("Jelajah")}</NavLink>
+          <NavLink href="/peta">{t("Peta")}</NavLink>
+          <NavLink href="/kirim">{t("Kirim kafe")}</NavLink>
           <NavLink href="/event" className="flex items-center gap-1.5">
             Event
-            {!settings.events_public && <span className="rounded-full bg-gold/25 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#8a5a00]">Segera</span>}
+            {!settings.events_public && <span className="rounded-full bg-gold/25 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#8a5a00]">{t("Segera")}</span>}
           </NavLink>
           {settings.community_url && (
             <a href={settings.community_url} target="_blank" rel="noopener" className="flex items-center gap-1.5 rounded-full px-3 py-2 hover:bg-tint hover:text-ink">
-              <Icon name="whatsapp" className="h-4 w-4 text-[#128c4a]" />Komunitas
+              <Icon name="whatsapp" className="h-4 w-4 text-[#128c4a]" />{t("Komunitas")}
             </a>
           )}
           <a href={INSTAGRAM_URL} target="_blank" rel="noopener" aria-label="Instagram @wfchunters" title="@wfchunters"
             className="grid h-9 w-9 place-items-center rounded-full hover:bg-tint hover:text-ink">
             <Icon name="instagram" className="h-[18px] w-[18px] text-[#c13584]" />
           </a>
-          {!v.isPremium && !free && <Link href="/harga" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">Harga</Link>}
+          {!v.isPremium && !free && <Link href="/harga" className="rounded-full px-3 py-2 hover:bg-tint hover:text-ink">{t("Harga")}</Link>}
           {v.isAdmin && <NavLink href="/admin">Admin</NavLink>}
         </nav>
         <div className="ml-auto flex items-center gap-2">
-          <Link href="/event" aria-label={settings.events_public ? "Event" : "Event, segera hadir"}
+          <LangSwitch className="hidden lg:flex" />
+          <Link href="/event" aria-label={settings.events_public ? "Event" : t("Event, segera hadir")}
             className="flex shrink-0 items-center gap-1 rounded-full border border-line py-1 pl-2 pr-2.5 text-[11px] font-semibold text-muted md:hidden">
             <Icon name="calendar" className="h-3.5 w-3.5" />
-            {settings.events_public ? "Event" : <span className="text-[#8a5a00]">Segera</span>}
+            {settings.events_public ? "Event" : <span className="text-[#8a5a00]">{t("Segera")}</span>}
           </Link>
           {v.user && <NotifBell count={unread} />}
           {v.user ? (
@@ -61,11 +64,11 @@ export default async function Header() {
                 <Avatar url={v.avatarUrl} name={v.name ?? v.user.email} className="h-8 w-8 text-sm" />
                 {v.isPremium && !free && <span className="absolute -bottom-0.5 -right-0.5 grid h-4 w-4 place-items-center rounded-full bg-gold text-ink ring-2 ring-canvas"><Icon name="star" filled className="h-2.5 w-2.5" /></span>}
               </span>
-              <span className="hidden sm:inline">{v.name?.split(" ")[0] ?? "Akun"}</span>
+              <span className="hidden sm:inline">{v.name?.split(" ")[0] ?? t("Akun")}</span>
               {v.isAdmin && <span className="hidden sm:inline-flex"><AdminBadge /></span>}
             </Link>
           ) : (
-            <Link href="/masuk" className="btn-dark !py-2">Masuk</Link>
+            <Link href="/masuk" className="btn-dark !py-2">{t("Masuk")}</Link>
           )}
         </div>
       </div>

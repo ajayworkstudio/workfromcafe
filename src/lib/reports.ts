@@ -1,4 +1,7 @@
 /** Laporan kondisi hari ini: label, batas, dan ringkasan yang dipakai di halaman kafe & daftar kafe. */
+import { makeT, type T } from "./i18n/core";
+
+const ID_T = makeT("id", null);
 
 export const REPORT_FRESH_HOURS = 3;
 /** Pelapor harus berada sedekat ini dari titik kafe (meter), ditambah toleransi akurasi GPS. */
@@ -27,25 +30,25 @@ export type LiveSummary = { cafe_id: string; crowd: 1 | 2 | 3; plugs: 1 | 2 | 3 
 export const isFresh = (iso: string) => Date.now() - new Date(iso).getTime() < REPORT_FRESH_HOURS * 36e5;
 
 /** "20 mnt lalu", "2 jam lalu", "kemarin 16.20", "12 Okt" */
-export function reportAgo(iso: string) {
+export function reportAgo(iso: string, t: T = ID_T, locale = "id-ID") {
   const d = new Date(iso);
   const min = Math.max(0, Math.round((Date.now() - d.getTime()) / 6e4));
-  if (min < 1) return "baru saja";
-  if (min < 60) return `${min} mnt lalu`;
+  if (min < 1) return t("baru saja");
+  if (min < 60) return t("{n} mnt lalu", { n: min });
   const h = Math.floor(min / 60);
-  if (h < 24 && d.toDateString() === new Date().toDateString()) return `${h} jam lalu`;
-  const time = d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" });
+  if (h < 24 && d.toDateString() === new Date().toDateString()) return t("{n} jam lalu", { n: h });
+  const time = d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" });
   const y = new Date(Date.now() - 864e5);
-  if (d.toDateString() === y.toDateString()) return `kemarin ${time}`;
-  return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", timeZone: "Asia/Jakarta" });
+  if (d.toDateString() === y.toDateString()) return t("kemarin {time}", { time });
+  return d.toLocaleDateString(locale, { day: "numeric", month: "short", timeZone: "Asia/Jakarta" });
 }
 
 /** Wifi cukup untuk apa (dipakai di hasil tes) */
-export function wifiVerdict(mbps: number) {
-  if (mbps >= 25) return "Cukup untuk video call";
-  if (mbps >= 8) return "Cukup untuk kerja biasa & meeting audio";
-  if (mbps >= 2) return "Pelan, cukup untuk chat dan email";
-  return "Sangat pelan";
+export function wifiVerdict(mbps: number, t: T = ID_T) {
+  if (mbps >= 25) return t("Cukup untuk video call");
+  if (mbps >= 8) return t("Cukup untuk kerja biasa & meeting audio");
+  if (mbps >= 2) return t("Pelan, cukup untuk chat dan email");
+  return t("Sangat pelan");
 }
 
 /** Ringkasan dari laporan yang masih baru: keramaian & colokan dari laporan terbaru, wifi median. */

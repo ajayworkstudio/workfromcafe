@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useT } from "./I18nProvider";
 
 /** Pagi 04.00–10.59, siang 11.00–14.59, sore 15.00–17.59, malam 18.00–03.59. */
 function greeting(hour: number) {
@@ -13,6 +14,7 @@ function greeting(hour: number) {
 const wibHour = () => Number(new Date().toLocaleString("en-US", { hour: "numeric", hourCycle: "h23", timeZone: "Asia/Jakarta" }));
 
 export default function TimeGreeting({ name }: { name: string }) {
+  const { t } = useT();
   const [text, setText] = useState(() => greeting(wibHour()));
   useEffect(() => {
     const tick = () => setText(greeting(new Date().getHours()));
@@ -20,5 +22,5 @@ export default function TimeGreeting({ name }: { name: string }) {
     const t = setInterval(tick, 60_000);
     return () => clearInterval(t);
   }, []);
-  return <span suppressHydrationWarning>{text}, {name}</span>;
+  return <span suppressHydrationWarning>{t(text)}, {name}</span>;
 }

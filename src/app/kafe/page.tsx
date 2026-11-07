@@ -13,6 +13,7 @@ import type { Cafe, City, Tag } from "@/lib/types";
 import { CAFE_LIST_SELECT, PRICE_RANGES, isOpenNow } from "@/lib/utils";
 import type { LiveSummary } from "@/lib/reports";
 import { SEARCH_PLACEMENT, searchTarget } from "@/lib/ads";
+import { getT } from "@/lib/i18n/server";
 
 type SPMeta = Promise<Record<string, string | string[] | undefined>>;
 
@@ -32,6 +33,7 @@ type SP = Promise<{ q?: string; kota?: string; tag?: string | string[]; harga?: 
 
 export default async function CafesPage({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams;
+  const { t } = await getT();
   const selectedTags = ([] as string[]).concat(sp.tag ?? []);
   const supabase = await createClient();
 
@@ -86,31 +88,31 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
           </div>
 
           <div className="relative">
-          <h1 className="text-3xl font-extrabold md:text-5xl">Jelajah kafe</h1>
+          <h1 className="text-3xl font-extrabold md:text-5xl">{t("Jelajah kafe")}</h1>
 
           <div className="mt-4 flex max-w-2xl items-center gap-2">
             <label className="glass flex min-w-0 flex-1 items-center gap-2 rounded-full py-1.5 pl-4 pr-1.5 focus-within:ring-4 focus-within:ring-gold/40">
               <Icon name="search" className="h-5 w-5 shrink-0" />
-              <span className="sr-only">Cari kafe</span>
-              <input type="search" name="q" defaultValue={sp.q} enterKeyHint="search" placeholder="Nama kafe atau area"
+              <span className="sr-only">{t("Cari kafe")}</span>
+              <input type="search" name="q" defaultValue={sp.q} enterKeyHint="search" placeholder={t("Nama kafe atau area")}
                 className="min-h-10 min-w-0 flex-1 bg-transparent text-base text-foam outline-none placeholder:text-foam/75" />
             </label>
             <FilterSheet count={sheetCount} total={cafes.length} resetHref="/kafe">
-              <ChipGroup title="Kota" type="radio" name="kota"
-                options={[{ value: "", label: "Semua kota" }, ...cityList.map((c) => ({ value: c.slug, label: c.name }))]}
+              <ChipGroup title={t("Kota")} type="radio" name="kota"
+                options={[{ value: "", label: t("Semua kota") }, ...cityList.map((c) => ({ value: c.slug, label: c.name }))]}
                 selected={[sp.kota ?? ""]} />
-              <ChipGroup title="Kisaran harga" type="radio" name="harga"
-                options={[{ value: "", label: "Semua" }, ...PRICE_RANGES.map((r) => ({ value: String(r.value), label: r.label }))]}
+              <ChipGroup title={t("Kisaran harga")} type="radio" name="harga"
+                options={[{ value: "", label: t("Semua") }, ...PRICE_RANGES.map((r) => ({ value: String(r.value), label: t(r.label) }))]}
                 selected={[sp.harga ?? ""]} />
-              <ChipGroup title="Suasana" type="checkbox" name="tag" options={vibe.map((t) => ({ value: t.name, label: t.name }))} selected={selectedTags} />
-              <ChipGroup title="Fasilitas" type="checkbox" name="tag" options={facility.map((t) => ({ value: t.name, label: t.name }))} selected={selectedTags} />
+              <ChipGroup title={t("Suasana")} type="checkbox" name="tag" options={vibe.map((x) => ({ value: x.name, label: t(x.name) }))} selected={selectedTags} />
+              <ChipGroup title={t("Fasilitas")} type="checkbox" name="tag" options={facility.map((x) => ({ value: x.name, label: t(x.name) }))} selected={selectedTags} />
             </FilterSheet>
           </div>
 
           {/* Pilihan cepat: kondisi sekarang. Kota ada di lembar Filter. */}
           <div className="mt-4 flex flex-wrap gap-2">
-            <QuickChip type="checkbox" name="sepi" value="1" checked={sp.sepi === "1"} dot>Sepi sekarang</QuickChip>
-            <QuickChip type="checkbox" name="buka" value="1" checked={sp.buka === "1"}>Buka sekarang</QuickChip>
+            <QuickChip type="checkbox" name="sepi" value="1" checked={sp.sepi === "1"} dot>{t("Sepi sekarang")}</QuickChip>
+            <QuickChip type="checkbox" name="buka" value="1" checked={sp.buka === "1"}>{t("Buka sekarang")}</QuickChip>
           </div>
           </div>
         </section>
@@ -118,11 +120,11 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
 
       <section className="px-2 pt-6 md:px-0">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <p className="text-lg font-bold">{cafes.length} kafe cocok</p>
-          {anyFilter && <Link href="/kafe" className="py-2 text-sm font-semibold text-brand hover:underline">Hapus semua filter</Link>}
+          <p className="text-lg font-bold">{t("{n} kafe cocok", { n: cafes.length })}</p>
+          {anyFilter && <Link href="/kafe" className="py-2 text-sm font-semibold text-brand hover:underline">{t("Hapus semua filter")}</Link>}
         </div>
         {!!sponsored.length && (
-          <section aria-label="Kafe sponsored" className="mt-4">
+          <section aria-label={t("Kafe sponsored")} className="mt-4">
             {/* HP: digeser ke samping supaya hasil pencarian tetap terlihat; layar lebar: grid. Label ada di tiap kartu. */}
             <div className="-mx-2 flex snap-x snap-mandatory gap-4 overflow-x-auto px-2 pb-2 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:gap-5 md:overflow-visible md:px-0">
               {sponsored.map((s) => (
@@ -136,7 +138,7 @@ export default async function CafesPage({ searchParams }: { searchParams: SP }) 
         <NearbyGrid cafes={cafes} live={live} initialPage={Number(sp.hal) || 1} />
         {!cafes.length && (
           <p className="mt-6 rounded-2xl bg-tint p-8 text-center text-muted">
-            {sp.sepi === "1" ? "Belum ada kafe yang dilaporkan sepi dalam 3 jam terakhir. Coba matikan Sepi sekarang." : "Tidak ada kafe yang cocok. Coba kurangi filternya."}
+            {sp.sepi === "1" ? t("Belum ada kafe yang dilaporkan sepi dalam 3 jam terakhir. Coba matikan Sepi sekarang.") : t("Tidak ada kafe yang cocok. Coba kurangi filternya.")}
           </p>
         )}
       </section>

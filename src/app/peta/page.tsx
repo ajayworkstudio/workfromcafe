@@ -10,6 +10,7 @@ import type { Cafe } from "@/lib/types";
 import type { LiveSummary } from "@/lib/reports";
 import { CAFE_LIST_SELECT, coverThumb, priceLabel } from "@/lib/utils";
 import { averageScore } from "@/lib/review";
+import { getT } from "@/lib/i18n/server";
 
 export const metadata: Metadata = {
   title: "Peta kafe untuk kerja di Pulau Jawa",
@@ -18,6 +19,7 @@ export const metadata: Metadata = {
 };
 
 export default async function MapPage({ searchParams }: { searchParams: Promise<{ dekat?: string }> }) {
+  const { t } = await getT();
   const { dekat } = await searchParams;
   const [viewer, settings] = await Promise.all([getViewer(), getSettings()]);
 
@@ -25,9 +27,9 @@ export default async function MapPage({ searchParams }: { searchParams: Promise<
     return (
       <div className="mx-auto max-w-xl px-4 py-20 text-center">
         <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-brand-soft text-brand"><Icon duo name="map" className="h-7 w-7" /></div>
-        <h1 className="mt-5 font-display text-3xl font-bold">Peta semua kafe</h1>
-        <p className="mt-2 text-muted">Lihat sebaran semua kafe di Pulau Jawa dalam satu peta. Fitur khusus pelanggan premium.</p>
-        <Link href="/harga" className="btn-primary mt-6">Lihat paket langganan</Link>
+        <h1 className="mt-5 font-display text-3xl font-bold">{t("Peta semua kafe")}</h1>
+        <p className="mt-2 text-muted">{t("Lihat sebaran semua kafe di Pulau Jawa dalam satu peta. Fitur khusus pelanggan premium.")}</p>
+        <Link href="/harga" className="btn-primary mt-6">{t("Lihat paket langganan")}</Link>
       </div>
     );
   }
@@ -57,7 +59,7 @@ export default async function MapPage({ searchParams }: { searchParams: Promise<
 
   return (
     <div className="h-[calc(100dvh-4rem-5.5rem)] md:h-[calc(100dvh-4rem)]">
-      <h1 className="sr-only">Peta kafe</h1>
+      <h1 className="sr-only">{t("Peta kafe")}</h1>
       <CafeMapLoader cafes={cafes} autoLocate={dekat === "1"} />
     </div>
   );

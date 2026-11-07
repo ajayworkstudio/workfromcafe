@@ -4,12 +4,14 @@ import type { Cafe } from "@/lib/types";
 import { coverThumb, isOpenNow } from "@/lib/utils";
 import { averageScore } from "@/lib/review";
 import Icon from "./Icon";
+import { getT } from "@/lib/i18n/server";
 
 /**
  * Kartu foto tinggi untuk HP: foto kafe memenuhi kartu, nama dan rating di atas gradasi gelap,
  * lalu bilah "Lihat kafe" sebagai tanda kartu bisa diketuk. Dipakai di carousel beranda.
  */
-export default function CafePhotoCard({ cafe, priority = false }: { cafe: Cafe; priority?: boolean }) {
+export default async function CafePhotoCard({ cafe, priority = false }: { cafe: Cafe; priority?: boolean }) {
+  const { t } = await getT();
   const cover = coverThumb(cafe);
   const rating = cafe.my_rating != null ? Number(cafe.my_rating) : averageScore(cafe.scores);
   const open = isOpenNow(cafe.opening_hours);
@@ -26,7 +28,7 @@ export default function CafePhotoCard({ cafe, priority = false }: { cafe: Cafe; 
       {open !== null && (
         <span className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-surface/90 px-2.5 py-1 text-xs font-semibold text-ink backdrop-blur">
           <span className={`h-1.5 w-1.5 rounded-full ${open ? "bg-ok" : "bg-mist"}`} />
-          {open ? "Buka" : "Tutup"}
+          {open ? t("Buka") : t("Tutup")}
         </span>
       )}
 
@@ -39,7 +41,7 @@ export default function CafePhotoCard({ cafe, priority = false }: { cafe: Cafe; 
           </span>
         )}
         <span className="glass mt-4 flex h-14 items-center justify-between rounded-full pl-6 pr-1.5 font-semibold">
-          Lihat kafe
+          {t("Lihat kafe")}
           <span className="grid h-11 w-11 place-items-center rounded-full bg-surface text-ink transition-transform group-hover:translate-x-0.5">
             <Icon name="arrow" className="h-5 w-5" />
           </span>

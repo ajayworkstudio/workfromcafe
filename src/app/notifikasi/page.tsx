@@ -6,11 +6,13 @@ import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/auth";
 import NotificationSettings from "@/components/NotificationSettings";
 import NotificationList, { type NotifRow } from "@/components/NotificationList";
+import { getT } from "@/lib/i18n/server";
 
 export const metadata: Metadata = { title: "Notifikasi", robots: { index: false, follow: false } };
 
 
 export default async function NotificationsPage() {
+  const { t } = await getT();
   const viewer = await getViewer();
   if (!viewer.user) redirect("/masuk?next=/notifikasi");
   const supabase = await createClient();
@@ -32,15 +34,15 @@ export default async function NotificationsPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
-      <h1 className="text-4xl font-extrabold">Notifikasi</h1>
+      <h1 className="text-4xl font-extrabold">{t("Notifikasi")}</h1>
 
       <div className="mt-6">
         <NotificationSettings compact prefs={{ newCafe: prof?.notify_new_cafe ?? true, activity: prof?.notify_activity ?? true }} />
-        <Link href="/akun#notifikasi" className="mt-2 inline-block text-sm font-semibold text-brand hover:underline">Atur jenis notifikasi →</Link>
+        <Link href="/akun#notifikasi" className="mt-2 inline-block text-sm font-semibold text-brand hover:underline">{t("Atur jenis notifikasi →")}</Link>
       </div>
 
       {error
-        ? <p className="mt-8 rounded-2xl border border-dashed border-line p-6 text-muted">Notifikasi belum aktif. Admin perlu menjalankan migrasi 0021.</p>
+        ? <p className="mt-8 rounded-2xl border border-dashed border-line p-6 text-muted">{t("Notifikasi belum aktif. Admin perlu menjalankan migrasi 0021.")}</p>
         : <NotificationList rows={rows} seenAt={seenAt} />}
     </div>
   );

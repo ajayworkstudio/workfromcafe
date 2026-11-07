@@ -14,6 +14,7 @@ import CommunityCard from "@/components/CommunityCard";
 import type { Cafe } from "@/lib/types";
 import { CAFE_LIST_SELECT, SITE_URL, rupiah } from "@/lib/utils";
 import { PLAN_META, getSettings } from "@/lib/settings";
+import { getT } from "@/lib/i18n/server";
 
 export const metadata: Metadata = { title: "Akun saya", robots: { index: false, follow: false } };
 
@@ -26,6 +27,7 @@ async function logout() {
 
 export default async function AccountPage({ searchParams }: { searchParams: Promise<{ bayar?: string; terkonfirmasi?: string }> }) {
   const { bayar, terkonfirmasi } = await searchParams;
+  const { t, locale } = await getT();
   const [viewer, settings] = await Promise.all([getViewer(), getSettings()]);
   if (!viewer.user) redirect("/masuk?next=/akun");
   const supabase = await createClient();
@@ -64,18 +66,18 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
     <div className="mx-auto max-w-5xl px-4 py-10">
       {terkonfirmasi && (
         <p className="mb-6 rounded-xl bg-ok/10 p-4 text-sm text-ok">
-          Email berhasil dikonfirmasi dan kamu sudah otomatis masuk.{viewer.plan === "trial" ? " Selamat menjelajah." : ""}
+          {t("Email berhasil dikonfirmasi dan kamu sudah otomatis masuk.")}{viewer.plan === "trial" ? ` ${t("Selamat menjelajah.")}` : ""}
         </p>
       )}
       {bayar === "selesai" && (
         <p className="mb-6 rounded-xl bg-ok/10 p-4 text-sm text-ok">
-          Terima kasih! Pembayaran sedang dikonfirmasi. Status langganan akan aktif otomatis dalam beberapa saat. Muat ulang halaman ini.
+          {t("Terima kasih! Pembayaran sedang dikonfirmasi. Status langganan akan aktif otomatis dalam beberapa saat. Muat ulang halaman ini.")}
         </p>
       )}
       {viewer.isAdmin && (
         <Link href="/admin" className="card mb-3 flex items-center justify-between gap-3 p-4 transition-colors hover:border-brand">
-          <span className="flex items-center gap-2 text-sm"><AdminBadge className="!text-xs" />Akun ini pengelola WFC Hunters</span>
-          <span className="text-sm font-semibold text-brand">Buka panel admin →</span>
+          <span className="flex items-center gap-2 text-sm"><AdminBadge className="!text-xs" />{t("Akun ini pengelola WFC Hunters")}</span>
+          <span className="text-sm font-semibold text-brand">{t("Buka panel admin →")}</span>
         </Link>
       )}
       <ProfileEditor userId={viewer.user.id} email={viewer.user.email} profile={profile} ready={ready} usernameReady={usernameReady} siteUrl={SITE_URL} />
@@ -83,38 +85,38 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         <Link href={`${authorHref(myAuthor)}${myAuthor.cafe_count >= 5 ? "#kartu" : ""}`} className="card mt-3 flex flex-wrap items-center gap-3 p-4 transition-colors hover:border-brand">
           <AuthorBadge count={myAuthor.cafe_count} />
           <span className="flex-1 text-sm">
-            <b>{myAuthor.cafe_count} kafe</b> rekomendasimu sudah tayang.
-            {levelFor(myAuthor.cafe_count).next && <span className="text-muted"> {levelFor(myAuthor.cafe_count).toNext} lagi menuju {levelFor(myAuthor.cafe_count).next!.name}.</span>}
+            {t("{n} kafe rekomendasimu sudah tayang.", { n: myAuthor.cafe_count })}
+            {levelFor(myAuthor.cafe_count).next && <span className="text-muted"> {t("{n} lagi menuju {level}.", { n: levelFor(myAuthor.cafe_count).toNext, level: t(levelFor(myAuthor.cafe_count).next!.name) })}</span>}
           </span>
-          <span className="text-sm font-semibold text-brand">{myAuthor.cafe_count >= 5 ? "Bagikan kartu Kurator →" : "Lihat profil publik →"}</span>
+          <span className="text-sm font-semibold text-brand">{myAuthor.cafe_count >= 5 ? t("Bagikan kartu Kurator →") : t("Lihat profil publik →")}</span>
         </Link>
       )}
       <div className="mt-3 flex justify-end gap-2">
-        {viewer.isAdmin && <Link href="/admin" className="btn-primary">Panel admin</Link>}
-        <form action={logout}><button className="btn-ghost">Keluar</button></form>
+        {viewer.isAdmin && <Link href="/admin" className="btn-primary">{t("Panel admin")}</Link>}
+        <form action={logout}><button className="btn-ghost">{t("Keluar")}</button></form>
       </div>
 
       {!settings.free_mode && <div className="card mt-6 flex flex-wrap items-center gap-4 p-5">
         {viewer.isPremium ? (
           <>
             <div className="flex-1">
-              <p className="label">Status</p>
-              <p className="font-display text-xl font-bold text-brand">{viewer.plan === "trial" ? "Trial gratis" : "Pelanggan premium"}</p>
+              <p className="label">{t("Status")}</p>
+              <p className="font-display text-xl font-bold text-brand">{viewer.plan === "trial" ? t("Trial gratis") : t("Pelanggan premium")}</p>
               <p className="text-sm text-muted">
-                Aktif sampai {new Date(viewer.premiumUntil!).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
-                {viewer.plan === "trial" && ` (sisa ${Math.max(0, Math.ceil((new Date(viewer.premiumUntil!).getTime() - Date.now()) / 864e5))} hari)`}
+                {t("Aktif sampai {date}", { date: new Date(viewer.premiumUntil!).toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" }) })}
+                {viewer.plan === "trial" && ` ${t("(sisa {n} hari)", { n: Math.max(0, Math.ceil((new Date(viewer.premiumUntil!).getTime() - Date.now()) / 864e5)) })}`}
               </p>
             </div>
-            <Link href="/harga" className={viewer.plan === "trial" ? "btn-primary" : "btn-ghost"}>{viewer.plan === "trial" ? "Langganan sekarang" : "Perpanjang"}</Link>
+            <Link href="/harga" className={viewer.plan === "trial" ? "btn-primary" : "btn-ghost"}>{viewer.plan === "trial" ? t("Langganan sekarang") : t("Perpanjang")}</Link>
           </>
         ) : (
           <>
             <div className="flex-1">
-              <p className="label">Status</p>
-              <p className="font-display text-xl font-bold">Member gratis</p>
-              <p className="text-sm text-muted">Sisa buka kafe gratis bulan ini: {(left as number) ?? 0}</p>
+              <p className="label">{t("Status")}</p>
+              <p className="font-display text-xl font-bold">{t("Member gratis")}</p>
+              <p className="text-sm text-muted">{t("Sisa buka kafe gratis bulan ini: {n}", { n: (left as number) ?? 0 })}</p>
             </div>
-            <Link href="/harga" className="btn-primary">Upgrade ke premium</Link>
+            <Link href="/harga" className="btn-primary">{t("Upgrade ke premium")}</Link>
           </>
         )}
       </div>}
@@ -122,19 +124,19 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       <Link href="/kirim" className="card mt-6 flex items-center gap-4 p-5 transition-colors hover:border-brand">
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon duo name="send" className="h-5 w-5" /></span>
         <span className="flex-1">
-          <span className="block font-semibold">Rekomendasi kafe kamu</span>
-          <span className="block text-sm text-muted">Kirim kafe andalanmu dan pantau statusnya.</span>
+          <span className="block font-semibold">{t("Rekomendasi kafe kamu")}</span>
+          <span className="block text-sm text-muted">{t("Kirim kafe andalanmu dan pantau statusnya.")}</span>
         </span>
-        <span className="text-sm font-semibold text-brand">Buka →</span>
+        <span className="text-sm font-semibold text-brand">{t("Buka →")}</span>
       </Link>
 
       <Link href="/pemilik" className="card mt-3 flex items-center gap-4 p-5 transition-colors hover:border-brand">
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon duo name="cup" className="h-5 w-5" /></span>
         <span className="flex-1">
-          <span className="block font-semibold">Punya kafe?</span>
-          <span className="block text-sm text-muted">Klaim kafemu, pilih paket, dan atur iklan Sponsored.</span>
+          <span className="block font-semibold">{t("Punya kafe?")}</span>
+          <span className="block text-sm text-muted">{t("Klaim kafemu, pilih paket, dan atur iklan Sponsored.")}</span>
         </span>
-        <span className="text-sm font-semibold text-brand">Buka →</span>
+        <span className="text-sm font-semibold text-brand">{t("Buka →")}</span>
       </Link>
 
       {settings.community_url && <div className="mt-3"><CommunityCard url={settings.community_url} variant="compact" /></div>}
@@ -143,15 +145,15 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         <NotificationSettings prefs={{ newCafe: notifPrefs?.notify_new_cafe ?? true, activity: notifPrefs?.notify_activity ?? true }} />
       </div>
 
-      <h2 className="mt-10 font-display text-2xl font-bold">Kafe favorit</h2>
+      <h2 className="mt-10 font-display text-2xl font-bold">{t("Kafe favorit")}</h2>
       <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {favCafes.map((c) => <CafeCard key={c.id} cafe={c} />)}
       </div>
-      {!favCafes.length && <p className="mt-3 text-muted">Belum ada. Tekan Simpan di halaman kafe untuk menyimpannya di sini.</p>}
+      {!favCafes.length && <p className="mt-3 text-muted">{t("Belum ada. Tekan Simpan di halaman kafe untuk menyimpannya di sini.")}</p>}
 
       {!!savedArticles.length && (
         <>
-          <h2 className="mt-10 font-display text-2xl font-bold">Artikel tersimpan</h2>
+          <h2 className="mt-10 font-display text-2xl font-bold">{t("Artikel tersimpan")}</h2>
           <ul className="card mt-4 divide-y divide-line">
             {savedArticles.map((a) => (
               <li key={a.slug}>
@@ -167,14 +169,14 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
 
       {!!payments?.length && (
         <>
-          <h2 className="mt-10 font-display text-2xl font-bold">Riwayat pembayaran</h2>
+          <h2 className="mt-10 font-display text-2xl font-bold">{t("Riwayat pembayaran")}</h2>
           <div className="card mt-4 divide-y divide-ink/10">
             {payments.map((p) => (
               <div key={p.id} className="flex justify-between gap-3 p-4 text-sm">
-                <span>{PLAN_META[p.plan as keyof typeof PLAN_META]?.label}, {new Date(p.created_at).toLocaleDateString("id-ID")}</span>
+                <span>{t(PLAN_META[p.plan as keyof typeof PLAN_META]?.label ?? "")}, {new Date(p.created_at).toLocaleDateString(locale)}</span>
                 <span className="flex items-center gap-2 font-semibold">
-                  {rupiah(p.amount)} ({p.status === "pending" ? "menunggu" : p.status === "paid" ? "lunas" : p.status})
-                  {p.method === "manual" && p.status === "pending" && <Link href={`/bayar/${p.order_id}`} className="text-brand hover:underline">Lihat instruksi</Link>}
+                  {rupiah(p.amount)} ({p.status === "pending" ? t("menunggu") : p.status === "paid" ? t("lunas") : p.status})
+                  {p.method === "manual" && p.status === "pending" && <Link href={`/bayar/${p.order_id}`} className="text-brand hover:underline">{t("Lihat instruksi")}</Link>}
                 </span>
               </div>
             ))}

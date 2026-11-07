@@ -17,6 +17,7 @@ import { getAuthors, levelFor } from "@/lib/author";
 import { getViewer } from "@/lib/auth";
 import { CAFE_LIST_SELECT, SITE_URL } from "@/lib/utils";
 import type { Cafe } from "@/lib/types";
+import { getT } from "@/lib/i18n/server";
 
 type P = Promise<{ key: string }>;
 
@@ -41,6 +42,7 @@ export async function generateMetadata({ params }: { params: P }): Promise<Metad
 }
 
 export default async function AuthorPage({ params }: { params: P }) {
+  const { t, locale } = await getT();
   const a = await findAuthor((await params).key);
   if (!a) notFound();
   const supabase = await createClient();
@@ -85,8 +87,8 @@ export default async function AuthorPage({ params }: { params: P }) {
             <Avatar url={a.avatar_url} name={a.name} className="h-24 w-24 text-3xl ring-4 ring-surface md:h-28 md:w-28" />
             <div className="flex flex-wrap gap-2">
               <ShareButton align="right" className="btn-ghost !py-2 text-sm" url={profileUrl} title={`${a.name} di WFC Hunters`}
-                text={isMe ? `Ini ${a.cafe_count} kafe enak buat kerja yang aku rekomendasikan di WFC Hunters:` : `${a.cafe_count} kafe enak buat kerja rekomendasi ${a.name} di WFC Hunters:`} />
-              {isMe && <Link href="/akun" className="btn-ghost !py-2 text-sm"><Icon name="edit" className="h-4 w-4" />Edit profil</Link>}
+                text={isMe ? t("Ini {n} kafe enak buat kerja yang aku rekomendasikan di WFC Hunters:", { n: a.cafe_count }) : t("{n} kafe enak buat kerja rekomendasi {name} di WFC Hunters:", { n: a.cafe_count, name: a.name })} />
+              {isMe && <Link href="/akun" className="btn-ghost !py-2 text-sm"><Icon name="edit" className="h-4 w-4" />{t("Edit profil")}</Link>}
               {a.instagram && (
                 <a href={`https://instagram.com/${a.instagram}`} target="_blank" rel="noopener" className="btn-ghost !py-2 text-sm"><Icon name="instagram" className="h-4 w-4" />@{a.instagram}</a>
               )}
@@ -102,12 +104,12 @@ export default async function AuthorPage({ params }: { params: P }) {
           {/* Label pendek di HP supaya tiga kotak muat di layar sempit; label lengkap mulai layar sm */}
           <dl className="mt-6 grid max-w-2xl grid-cols-3 gap-2 sm:gap-3">
             {[
-              { v: String(a.cafe_count), short: "kafe", full: "kafe direkomendasikan" },
-              { v: String(cities.length), short: "kota", full: cities.length === 1 ? "kota" : "kota dijelajahi" },
+              { v: String(a.cafe_count), short: t("kafe"), full: t("kafe direkomendasikan") },
+              { v: String(cities.length), short: t("kota"), full: cities.length === 1 ? t("kota") : t("kota dijelajahi") },
               {
-                v: new Date(a.first_at).toLocaleDateString("id-ID", { year: "numeric" }),
-                short: `sejak ${new Date(a.first_at).toLocaleDateString("id-ID", { month: "short" })}`,
-                full: `author sejak ${new Date(a.first_at).toLocaleDateString("id-ID", { month: "long" })}`,
+                v: new Date(a.first_at).toLocaleDateString(locale, { year: "numeric" }),
+                short: t("sejak {m}", { m: new Date(a.first_at).toLocaleDateString(locale, { month: "short" }) }),
+                full: t("author sejak {m}", { m: new Date(a.first_at).toLocaleDateString(locale, { month: "long" }) }),
               },
             ].map((s) => (
               <div key={s.full} className="min-w-0 rounded-2xl bg-canvas px-3 py-3 sm:p-4">
@@ -121,8 +123,8 @@ export default async function AuthorPage({ params }: { params: P }) {
           {next && (
             <div className="mt-5 max-w-2xl">
               <div className="flex flex-wrap justify-between gap-x-3 text-xs text-muted">
-                <span>{current?.name}</span>
-                <span>{toNext} kafe lagi menuju <b className="text-ink">{next.name}</b></span>
+                <span>{current ? t(current.name) : ""}</span>
+                <span>{t("{n} kafe lagi menuju", { n: toNext })} <b className="text-ink">{t(next.name)}</b></span>
               </div>
               <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-tint"><div className="h-full rounded-full bg-gradient-to-r from-tan to-brand" style={{ width: `${progress}%` }} /></div>
             </div>
@@ -137,31 +139,31 @@ export default async function AuthorPage({ params }: { params: P }) {
         <div className="mt-8 flex flex-wrap items-center gap-4 rounded-3xl border border-dashed border-line p-6">
           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gold/20 text-[#8a5a00]"><Icon name="lock" className="h-5 w-5" /></span>
           <div className="flex-1">
-            <p className="font-bold">Kartu Kurator terbuka di 5 kafe</p>
-            <p className="text-sm text-muted">Tinggal {5 - a.cafe_count} kafe lagi. Begitu tembus, kamu dapat kartu khusus untuk dibagikan ke Instagram dan kabar lewat email.</p>
+            <p className="font-bold">{t("Kartu Kurator terbuka di 5 kafe")}</p>
+            <p className="text-sm text-muted">{t("Tinggal {n} kafe lagi. Begitu tembus, kamu dapat kartu khusus untuk dibagikan ke Instagram dan kabar lewat email.", { n: 5 - a.cafe_count })}</p>
           </div>
-          <Link href="/kirim/baru" className="btn-primary !py-2 text-sm">Kirim kafe</Link>
+          <Link href="/kirim/baru" className="btn-primary !py-2 text-sm">{t("Kirim kafe")}</Link>
         </div>
       )}
 
       <section className="mt-12">
         {cafes.length ? (
           <CafeSwipeStack centered allHref={null} cafes={cafes.map(toStackCafe)}
-            title={`Kafe rekomendasi ${a.name.split(" ")[0]}`} subtitle={cities.length > 1 ? cities.join(" · ") : undefined} />
+            title={t("Kafe rekomendasi {name}", { name: a.name.split(" ")[0] })} subtitle={cities.length > 1 ? cities.join(" · ") : undefined} />
         ) : (
           <>
             <h2 className="text-2xl font-bold">Kafe rekomendasi {a.name.split(" ")[0]}</h2>
-            <p className="mt-4 rounded-2xl border border-dashed border-line p-6 text-muted">Belum ada kafe rekomendasi yang tayang.</p>
+            <p className="mt-4 rounded-2xl border border-dashed border-line p-6 text-muted">{t("Belum ada kafe rekomendasi yang tayang.")}</p>
           </>
         )}
       </section>
 
       <div className="mt-14 flex flex-wrap items-center justify-between gap-4 rounded-3xl bg-brand-soft p-6 md:p-8">
         <div>
-          <p className="text-xl font-bold">Punya kafe andalan juga?</p>
-          <p className="text-muted">Kirim rekomendasimu dan dapatkan halaman author seperti ini.</p>
+          <p className="text-xl font-bold">{t("Punya kafe andalan juga?")}</p>
+          <p className="text-muted">{t("Kirim rekomendasimu dan dapatkan halaman author seperti ini.")}</p>
         </div>
-        <Link href="/kirim" className="btn-primary"><Icon name="send" className="h-4 w-4" />Jadi author</Link>
+        <Link href="/kirim" className="btn-primary"><Icon name="send" className="h-4 w-4" />{t("Jadi author")}</Link>
       </div>
     </div>
   );

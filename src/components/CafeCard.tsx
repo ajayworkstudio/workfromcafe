@@ -1,4 +1,6 @@
+"use client";
 import Link from "next/link";
+import { useT } from "./I18nProvider";
 import FadeImage from "./FadeImage";
 import type { Cafe } from "@/lib/types";
 import { coverThumb, isOpenNow, priceLabel } from "@/lib/utils";
@@ -15,6 +17,7 @@ export default function CafeCard({ cafe, live, adHref }: {
   /** Iklan Sponsored: link pencatat klik (/iklan/klik/...). Kartu diberi label dan tidak di-prefetch. */
   adHref?: string;
 }) {
+  const { t, locale } = useT();
   const cover = coverThumb(cafe);
   const open = isOpenNow(cafe.opening_hours);
   const tagNames = (cafe.tags ?? []).map((t) => t.tag?.name);
@@ -32,12 +35,12 @@ export default function CafeCard({ cafe, live, adHref }: {
           <div className="grid h-full place-items-center text-mist"><Icon name="cup" className="h-12 w-12" /></div>
         )}
         {adHref && (
-          <span className="absolute right-3 top-3 rounded-full bg-surface/90 px-2.5 py-1 text-xs font-semibold text-ink backdrop-blur">Sponsored</span>
+          <span className="absolute right-3 top-3 rounded-full bg-surface/90 px-2.5 py-1 text-xs font-semibold text-ink backdrop-blur">{t("Sponsored")}</span>
         )}
         {open !== null && (
           <span className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-surface/90 px-2.5 py-1 text-xs font-semibold backdrop-blur">
             <span className={`h-1.5 w-1.5 rounded-full ${open ? "bg-ok" : "bg-mist"}`} />
-            {open ? "Buka" : "Tutup"}
+            {open ? t("Buka") : t("Tutup")}
           </span>
         )}
       </div>
@@ -57,16 +60,16 @@ export default function CafeCard({ cafe, live, adHref }: {
         <p className="mt-1.5 flex items-center gap-1.5 text-sm font-semibold">
           <span className={`h-2 w-2 shrink-0 rounded-full ${LIVE_DOT[live.crowd]}`} />
           <span className="min-w-0 truncate">
-            {CROWD[live.crowd].label}{live.download_mbps != null && ` · ${Math.round(Number(live.download_mbps))} Mbps`}
-            <span className="font-normal text-muted" suppressHydrationWarning> · {reportAgo(live.last_at)}</span>
+            {t(CROWD[live.crowd].label)}{live.download_mbps != null && ` · ${Math.round(Number(live.download_mbps))} Mbps`}
+            <span className="font-normal text-muted" suppressHydrationWarning> · {reportAgo(live.last_at, t, locale)}</span>
           </span>
         </p>
       )}
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
-        <span className="chip">{priceLabel(cafe.price_range)}</span>
-        {vibe && <span className="chip">{vibe.name}</span>}
+        <span className="chip">{t(priceLabel(cafe.price_range))}</span>
+        {vibe && <span className="chip">{t(vibe.name)}</span>}
         {hasWifi && <span className="chip" title="Wifi"><Icon name="wifi" className="h-3.5 w-3.5" />Wifi</span>}
-        {hasPlug && <span className="chip" title="Colokan"><Icon name="plug" className="h-3.5 w-3.5" />Colokan</span>}
+        {hasPlug && <span className="chip" title={t("Colokan")}><Icon name="plug" className="h-3.5 w-3.5" />{t("Colokan")}</span>}
       </div>
     </>
   );

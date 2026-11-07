@@ -6,6 +6,7 @@ import { sendContact } from "@/app/kontak/actions";
 import { CONTACT_TOPICS, type ContactState } from "@/lib/contact";
 import { INSTAGRAM_URL } from "@/lib/utils";
 import Icon from "./Icon";
+import { useT } from "@/components/I18nProvider";
 
 type Props = {
   defaultName?: string | null;
@@ -19,6 +20,7 @@ type Props = {
 };
 
 export default function ContactBox({ defaultName, defaultEmail, communityUrl, defaultTopic, contactEmail, headingLevel = "h2" }: Props) {
+  const { t } = useT();
   const [state, action] = useActionState<ContactState, FormData>(sendContact, null);
   const [round, setRound] = useState(0); // kunci untuk mengosongkan form setelah "kirim pesan lain"
   const [startedAt, setStartedAt] = useState(0);
@@ -60,12 +62,12 @@ export default function ContactBox({ defaultName, defaultEmail, communityUrl, de
   return (
     <div className="grid gap-8 md:grid-cols-[0.9fr_1.1fr] md:gap-12">
       <div>
-        <H className="text-3xl font-extrabold leading-tight md:text-4xl">Kotak saran & kontak</H>
+        <H className="text-3xl font-extrabold leading-tight md:text-4xl">{t("Kotak saran & kontak")}</H>
         <p className="mt-3 max-w-md text-ink/75">
-          Ketemu bug, info kafe yang sudah berubah, ide fitur, atau saran dan kritik? Tulis di sini. Kirim lewat form ini, email, atau DM Instagram, pilih yang paling nyaman.
+          {t("Ketemu bug, info kafe yang sudah berubah, ide fitur, atau saran dan kritik? Tulis di sini. Kirim lewat form ini, email, atau DM Instagram, pilih yang paling nyaman.")}
         </p>
         <div className="mt-6 space-y-2 text-sm">
-          <p className="font-semibold">Lebih suka ngobrol langsung?</p>
+          <p className="font-semibold">{t("Lebih suka ngobrol langsung?")}</p>
           <a href={INSTAGRAM_URL} target="_blank" rel="noopener" className="flex min-h-11 items-center gap-2 text-ink/80 hover:text-brand">
             <Icon name="instagram" className="h-5 w-5" />DM Instagram @wfchunters
           </a>
@@ -85,9 +87,9 @@ export default function ContactBox({ defaultName, defaultEmail, communityUrl, de
       {sent ? (
         <div ref={successRef} tabIndex={-1} role="status" className="flex flex-col items-start justify-center rounded-2xl bg-brand-soft p-6 outline-none md:p-8">
           <span className="grid h-12 w-12 place-items-center rounded-full bg-ok text-white"><Icon name="check" className="h-6 w-6" /></span>
-          <p className="mt-4 text-xl font-bold">Terima kasih{state?.ok && state.name ? `, ${state.name}` : ""}. Pesanmu sudah masuk.</p>
-          <p className="mt-1 text-ink/75">Balasannya akan dikirim ke email yang kamu tulis tadi.</p>
-          <button type="button" onClick={() => setRound((r) => r + 1)} className="btn-ghost mt-5">Kirim pesan lain</button>
+          <p className="mt-4 text-xl font-bold">{t("Terima kasih")}{state?.ok && state.name ? `, ${state.name}` : ""}. {t("Pesanmu sudah masuk.")}</p>
+          <p className="mt-1 text-ink/75">{t("Balasannya akan dikirim ke email yang kamu tulis tadi.")}</p>
+          <button type="button" onClick={() => setRound((r) => r + 1)} className="btn-ghost mt-5">{t("Kirim pesan lain")}</button>
         </div>
       ) : (
         <form key={round} action={action} noValidate className="space-y-4">
@@ -100,56 +102,56 @@ export default function ContactBox({ defaultName, defaultEmail, communityUrl, de
           </div>
 
           <fieldset>
-            <legend className="label">Soal apa?</legend>
+            <legend className="label">{t("Soal apa?")}</legend>
             <div className="flex flex-wrap gap-2" aria-invalid={invalid("topic")}>
-              {CONTACT_TOPICS.map((t) => (
-                <label key={t.value} className="cursor-pointer">
-                  <input type="radio" name="topic" value={t.value} checked={topic === t.value} onChange={() => setTopic(t.value)} className="peer sr-only" />
+              {CONTACT_TOPICS.map((x) => (
+                <label key={x.value} className="cursor-pointer">
+                  <input type="radio" name="topic" value={x.value} checked={topic === x.value} onChange={() => setTopic(x.value)} className="peer sr-only" />
                   <span className="flex min-h-11 items-center rounded-xl border border-line bg-surface px-3.5 text-sm font-medium transition-colors hover:border-mist peer-checked:border-brand peer-checked:bg-brand peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand peer-focus-visible:ring-offset-2">
-                    {t.label}
+                    {t(x.label)}
                   </span>
                 </label>
               ))}
             </div>
-            {hint && <p className="mt-2 text-sm text-muted">{hint}</p>}
+            {hint && <p className="mt-2 text-sm text-muted">{t(hint)}</p>}
           </fieldset>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label htmlFor={`${id}-name`} className="label">Nama</label>
+              <label htmlFor={`${id}-name`} className="label">{t("Nama")}</label>
               <input id={`${id}-name`} name="name" required minLength={2} maxLength={80} autoComplete="name"
                 value={name} onChange={(e) => setName(e.target.value)} aria-invalid={invalid("name")} className="input min-h-11 aria-[invalid=true]:border-[#b4533a]" />
             </div>
             <div>
-              <label htmlFor={`${id}-email`} className="label">Email untuk balasan</label>
+              <label htmlFor={`${id}-email`} className="label">{t("Email untuk balasan")}</label>
               <input id={`${id}-email`} name="email" type="email" required maxLength={160} autoComplete="email" inputMode="email"
                 value={email} onChange={(e) => setEmail(e.target.value)} aria-invalid={invalid("email")} className="input min-h-11 aria-[invalid=true]:border-[#b4533a]" />
             </div>
           </div>
 
           <div>
-            <label htmlFor={`${id}-body`} className="label">Pesan</label>
+            <label htmlFor={`${id}-body`} className="label">{t("Pesan")}</label>
             <textarea id={`${id}-body`} name="body" required minLength={10} maxLength={2000} rows={5}
               value={body} onChange={(e) => setBody(e.target.value)} aria-invalid={invalid("body")}
-              placeholder={topic === "bug" ? "Halaman apa, apa yang kamu lakukan, dan apa yang terjadi. Sebutkan juga HP/laptop dan browsernya."
-                : topic === "koreksi" ? "Nama kafe dan info yang berubah, mis. jam buka sekarang 10.00–22.00."
-                : topic === "saran" ? "Nama kafe, kotanya, dan kenapa enak buat kerja (colokan, wifi, jam buka)."
-                : "Tulis pesanmu di sini."}
+              placeholder={topic === "bug" ? t("Halaman apa, apa yang kamu lakukan, dan apa yang terjadi. Sebutkan juga HP/laptop dan browsernya.")
+                : topic === "koreksi" ? t("Nama kafe dan info yang berubah, mis. jam buka sekarang 10.00–22.00.")
+                : topic === "saran" ? t("Nama kafe, kotanya, dan kenapa enak buat kerja (colokan, wifi, jam buka).")
+                : t("Tulis pesanmu di sini.")}
               className="input resize-y aria-[invalid=true]:border-[#b4533a]" />
             <p className={`mt-1 text-right text-xs tabular-nums ${body.length > 1800 ? "text-[#b4533a]" : "text-muted"}`}>{body.length}/2000</p>
           </div>
 
-          {err && <p role="alert" className="rounded-xl bg-[#b4533a]/10 px-3.5 py-2.5 text-sm text-[#8c3b25]">{err.error}</p>}
+          {err && <p role="alert" className="rounded-xl bg-[#b4533a]/10 px-3.5 py-2.5 text-sm text-[#8c3b25]">{t(err.error)}</p>}
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <Submit />
-            <span className="text-sm text-muted">atau kirim lewat</span>
+            <span className="text-sm text-muted">{t("atau kirim lewat")}</span>
             <div className="flex flex-wrap gap-2">
               {mailto && <a href={mailto} className="btn-ghost min-h-11"><Icon name="send" className="h-4 w-4" />Email</a>}
               <button type="button" onClick={openDm} className="btn-ghost min-h-11"><Icon name="instagram" className="h-4 w-4" />DM Instagram</button>
             </div>
           </div>
-          {copied && <p role="status" className="text-sm text-[#2f7049]">Pesanmu sudah disalin. Tempel di DM Instagram @wfchunters.</p>}
-          <p className="text-xs text-muted">Lewat form ini, nama dan email wajib diisi supaya bisa dibalas. Lewat email atau DM, cukup isi pesannya.</p>
+          {copied && <p role="status" className="text-sm text-[#2f7049]">{t("Pesanmu sudah disalin. Tempel di DM Instagram @wfchunters.")}</p>}
+          <p className="text-xs text-muted">{t("Lewat form ini, nama dan email wajib diisi supaya bisa dibalas. Lewat email atau DM, cukup isi pesannya.")}</p>
         </form>
       )}
     </div>
@@ -158,9 +160,10 @@ export default function ContactBox({ defaultName, defaultEmail, communityUrl, de
 
 function Submit() {
   const { pending } = useFormStatus();
+  const { t } = useT();
   return (
     <button disabled={pending} className="btn-primary min-h-11 w-full sm:w-auto">
-      <Icon name="send" className="h-4 w-4" />{pending ? "Mengirim…" : "Kirim pesan"}
+      <Icon name="send" className="h-4 w-4" />{pending ? t("Mengirim…") : t("Kirim pesan")}
     </button>
   );
 }

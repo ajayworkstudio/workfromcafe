@@ -6,6 +6,7 @@ import Icon from "./Icon";
 import { submitReport } from "@/app/kafe/[slug]/reports";
 import { PLUGS, REPORT_RADIUS_M, distanceM, wifiVerdict } from "@/lib/reports";
 import { onCellular, runSpeedTest, type SpeedPhase, type SpeedResult } from "@/lib/speedTest";
+import { useT } from "@/components/I18nProvider";
 
 type Props = {
   cafeId: string; slug: string; cafeName: string; loggedIn: boolean;
@@ -30,6 +31,7 @@ const fmtDist = (m: number) => (m >= 1000 ? `${(m / 1000).toFixed(1).replace("."
 /** Tombol "Lapor kondisi" + lembar 2 langkah: keramaian & colokan, lalu tes wifi dan kirim. */
 export default function ReportSheet({ cafeId, slug, cafeName, loggedIn, isAdmin = false, lat, lng, label, className }: Props) {
   const router = useRouter();
+  const { t } = useT();
   const titleId = useId();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -136,7 +138,7 @@ export default function ReportSheet({ cafeId, slug, cafeName, loggedIn, isAdmin 
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-end justify-center md:items-center md:p-6">
-          <button type="button" aria-label="Tutup" onClick={close} className="absolute inset-0 cursor-default bg-ink/55" />
+          <button type="button" aria-label={t("Tutup")} onClick={close} className="absolute inset-0 cursor-default bg-ink/55" />
           <div ref={panel} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby={titleId}
             className="relative flex max-h-[92dvh] w-full flex-col overflow-y-auto rounded-t-[2rem] bg-canvas px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-3 outline-none md:max-w-md md:rounded-[2rem] md:pb-6">
             <span className="mx-auto mb-4 block h-1 w-10 shrink-0 rounded-full bg-line md:hidden" aria-hidden />
@@ -145,11 +147,11 @@ export default function ReportSheet({ cafeId, slug, cafeName, loggedIn, isAdmin 
               <div className="min-w-0">
                 {step < 3 && <p className="truncate text-xs font-semibold text-muted">Langkah {step} dari 2 · {cafeName}</p>}
                 <h2 id={titleId} className="mt-0.5 text-[1.375rem] font-extrabold leading-tight">
-                  {step === 1 ? "Gimana kondisinya sekarang?" : step === 2 ? "Tes wifi kafe" : "Makasih, laporanmu tayang"}
+                  {step === 1 ? t("Gimana kondisinya sekarang?") : step === 2 ? t("Tes wifi kafe") : t("Makasih, laporanmu tayang")}
                 </h2>
-                {step === 2 && <p className="mt-1 text-sm text-muted">Pastikan HP tersambung ke wifi kafe, bukan data seluler.</p>}
+                {step === 2 && <p className="mt-1 text-sm text-muted">{t("Pastikan HP tersambung ke wifi kafe, bukan data seluler.")}</p>}
               </div>
-              <button type="button" onClick={step === 2 && !testing ? () => setStep(1) : close} aria-label={step === 2 && !testing ? "Kembali ke langkah 1" : "Tutup"}
+              <button type="button" onClick={step === 2 && !testing ? () => setStep(1) : close} aria-label={step === 2 && !testing ? t("Kembali ke langkah 1") : t("Tutup")}
                 className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-line bg-surface">
                 <Icon name={step === 2 && !testing ? "back" : "x"} className="h-[18px] w-[18px]" />
               </button>
@@ -159,7 +161,7 @@ export default function ReportSheet({ cafeId, slug, cafeName, loggedIn, isAdmin 
               <div className="mt-5 space-y-5">
                 {isAdmin && loc.state !== "near" && (
                   <p className="rounded-2xl bg-gold/15 px-3 py-2.5 text-sm font-semibold text-[#8a5a00]">
-                    Mode admin: lokasi tidak dicek. Tutup lembar ini setelah tes wifi kalau tidak ingin laporannya tersimpan.
+                    {t("Mode admin: lokasi tidak dicek. Tutup lembar ini setelah tes wifi kalau tidak ingin laporannya tersimpan.")}
                   </p>
                 )}
                 {hasCoords && !(isAdmin && loc.state !== "near") && (
@@ -168,20 +170,20 @@ export default function ReportSheet({ cafeId, slug, cafeName, loggedIn, isAdmin 
                   }`}>
                     <Icon name="pin" className="h-[18px] w-[18px] shrink-0" />
                     <span className="min-w-0 flex-1">
-                      {loc.state === "near" && "Kamu terdeteksi di dekat kafe ini"}
-                      {(loc.state === "checking" || loc.state === "idle") && "Mengecek lokasimu…"}
-                      {loc.state === "far" && `Kamu sekitar ${fmtDist(loc.distance)} dari kafe. Laporan hanya bisa dari dekat kafe.`}
-                      {loc.state === "denied" && "Izinkan akses lokasi di browser supaya bisa melapor."}
-                      {loc.state === "unavailable" && "Lokasi belum terbaca. Coba lagi di dekat jendela atau nyalakan GPS."}
+                      {loc.state === "near" && t("Kamu terdeteksi di dekat kafe ini")}
+                      {(loc.state === "checking" || loc.state === "idle") && t("Mengecek lokasimu…")}
+                      {loc.state === "far" && t("Kamu sekitar {d} dari kafe. Laporan hanya bisa dari dekat kafe.", { d: fmtDist(loc.distance) })}
+                      {loc.state === "denied" && t("Izinkan akses lokasi di browser supaya bisa melapor.")}
+                      {loc.state === "unavailable" && t("Lokasi belum terbaca. Coba lagi di dekat jendela atau nyalakan GPS.")}
                     </span>
                     {(loc.state === "far" || loc.state === "denied" || loc.state === "unavailable") && (
-                      <button type="button" onClick={checkLocation} className="min-h-11 shrink-0 rounded-full px-2 underline">Cek lagi</button>
+                      <button type="button" onClick={checkLocation} className="min-h-11 shrink-0 rounded-full px-2 underline">{t("Cek lagi")}</button>
                     )}
                   </div>
                 )}
 
                 <fieldset>
-                  <legend className="mb-2.5 font-bold">Seramai apa?</legend>
+                  <legend className="mb-2.5 font-bold">{t("Seramai apa?")}</legend>
                   <div className="grid grid-cols-3 gap-2">
                     {CROWD_OPTS.map((o) => {
                       const on = crowd === o.v;
@@ -192,7 +194,7 @@ export default function ReportSheet({ cafeId, slug, cafeName, loggedIn, isAdmin 
                               : "border border-line bg-surface hover:border-mist"
                           }`}>
                           <span className="flex">{Array.from({ length: o.v }).map((_, i) => <Icon key={i} name="user" className={`h-6 w-6 ${i ? "-ml-2.5" : ""}`} />)}</span>
-                          {o.label}
+                          {t(o.label)}
                         </button>
                       );
                     })}
@@ -200,28 +202,28 @@ export default function ReportSheet({ cafeId, slug, cafeName, loggedIn, isAdmin 
                 </fieldset>
 
                 <fieldset>
-                  <legend className="mb-2.5 font-bold">Colokan <span className="font-medium text-muted">(opsional)</span></legend>
+                  <legend className="mb-2.5 font-bold">{t("Colokan")} <span className="font-medium text-muted">{t("(opsional)")}</span></legend>
                   <div className="flex flex-wrap gap-2">
                     {([1, 2, 3] as const).map((v) => (
                       <button key={v} type="button" aria-pressed={plugs === v} onClick={() => setPlugs(plugs === v ? null : v)}
                         className={`min-h-11 rounded-full px-4 text-sm font-semibold ${plugs === v ? "bg-ink text-white" : "border border-line bg-surface"}`}>
-                        {PLUGS[v]}
+                        {t(PLUGS[v])}
                       </button>
                     ))}
                   </div>
                 </fieldset>
 
                 <div>
-                  <label htmlFor={`${titleId}-note`} className="mb-2 block font-bold">Catatan singkat <span className="font-medium text-muted">(opsional)</span></label>
+                  <label htmlFor={`${titleId}-note`} className="mb-2 block font-bold">{t("Catatan singkat")} <span className="font-medium text-muted">{t("(opsional)")}</span></label>
                   <input id={`${titleId}-note`} value={note} onChange={(e) => setNote(e.target.value)} maxLength={140}
-                    placeholder="Mis. lantai 2 sepi, AC dingin" className="input min-h-12" />
+                    placeholder={t("Mis. lantai 2 sepi, AC dingin")} className="input min-h-12" />
                 </div>
 
                 <button type="button" disabled={!crowd || locBlocked} onClick={() => { setStep(2); startTest(); }}
                   className="btn-primary min-h-[3.25rem] w-full disabled:opacity-50">
-                  Lanjut: tes wifi <Icon name="arrow" className="h-[18px] w-[18px]" />
+                  {t("Lanjut: tes wifi")} <Icon name="arrow" className="h-[18px] w-[18px]" />
                 </button>
-                {!crowd && !locBlocked && <p className="-mt-3 text-center text-xs text-muted">Pilih seramai apa dulu.</p>}
+                {!crowd && !locBlocked && <p className="-mt-3 text-center text-xs text-muted">{t("Pilih seramai apa dulu.")}</p>}
               </div>
             )}
 
@@ -237,7 +239,7 @@ export default function ReportSheet({ cafeId, slug, cafeName, loggedIn, isAdmin 
                     <div className="absolute inset-x-0 bottom-0 flex flex-col items-center" aria-live="polite">
                       <span className="text-[2.5rem] font-extrabold leading-none tabular-nums">{phase === "ping" ? "…" : Math.round(shown)}</span>
                       <span className="text-sm font-semibold text-muted">
-                        {phase === "ping" ? "Mengukur jeda" : phase === "upload" ? "Mbps unduh · mengukur unggah" : "Mbps unduh"}
+                        {phase === "ping" ? t("Mengukur jeda") : phase === "upload" ? t("Mbps unduh · mengukur unggah") : t("Mbps unduh")}
                       </span>
                     </div>
                   </div>
@@ -245,29 +247,29 @@ export default function ReportSheet({ cafeId, slug, cafeName, loggedIn, isAdmin 
                   {result && (
                     <>
                       <div className="grid w-full grid-cols-2 gap-2">
-                        <div className="rounded-2xl bg-canvas px-3 py-2.5"><p className="text-xs text-muted">Unggah</p><p className="font-extrabold">{result.upload != null ? `${Math.round(result.upload)} Mbps` : "-"}</p></div>
-                        <div className="rounded-2xl bg-canvas px-3 py-2.5"><p className="text-xs text-muted">Jeda (ping)</p><p className="font-extrabold">{result.ping} ms</p></div>
+                        <div className="rounded-2xl bg-canvas px-3 py-2.5"><p className="text-xs text-muted">{t("Unggah")}</p><p className="font-extrabold">{result.upload != null ? `${Math.round(result.upload)} Mbps` : "-"}</p></div>
+                        <div className="rounded-2xl bg-canvas px-3 py-2.5"><p className="text-xs text-muted">{t("Jeda (ping)")}</p><p className="font-extrabold">{result.ping} ms</p></div>
                       </div>
                       <p className={`flex w-full items-center gap-2 rounded-2xl px-3 py-2.5 text-sm font-semibold ${result.download >= 8 ? "bg-[#eef6f1] text-[#2f7049]" : "bg-gold/15 text-[#8a5a00]"}`}>
-                        <Icon name="check" className="h-[18px] w-[18px]" />{wifiVerdict(result.download)}
+                        <Icon name="check" className="h-[18px] w-[18px]" />{wifiVerdict(result.download, t)}
                       </p>
                     </>
                   )}
-                  {phase === "error" && <p role="alert" className="w-full rounded-2xl bg-[#b4533a]/10 px-3 py-2.5 text-sm text-[#8c3b25]">Tes wifi gagal. Coba tes ulang, atau kirim laporan tanpa tes.</p>}
+                  {phase === "error" && <p role="alert" className="w-full rounded-2xl bg-[#b4533a]/10 px-3 py-2.5 text-sm text-[#8c3b25]">{t("Tes wifi gagal. Coba tes ulang, atau kirim laporan tanpa tes.")}</p>}
                 </div>
 
-                {cellular && <p className="rounded-2xl bg-gold/15 px-3 py-2.5 text-sm text-[#8a5a00]">HP-mu sepertinya memakai data seluler. Sambungkan ke wifi kafe lalu tes ulang supaya hasilnya benar.</p>}
-                <p className="text-xs text-muted">Tes memakai sekitar 10 MB data dan selesai dalam beberapa detik.</p>
+                {cellular && <p className="rounded-2xl bg-gold/15 px-3 py-2.5 text-sm text-[#8a5a00]">{t("HP-mu sepertinya memakai data seluler. Sambungkan ke wifi kafe lalu tes ulang supaya hasilnya benar.")}</p>}
+                <p className="text-xs text-muted">{t("Tes memakai sekitar 10 MB data dan selesai dalam beberapa detik.")}</p>
 
-                {error && <p role="alert" className="rounded-2xl bg-[#b4533a]/10 px-3 py-2.5 text-sm text-[#8c3b25]">{error}</p>}
+                {error && <p role="alert" className="rounded-2xl bg-[#b4533a]/10 px-3 py-2.5 text-sm text-[#8c3b25]">{t(error)}</p>}
 
                 <div className="space-y-2.5 pt-1">
                   <button type="button" disabled={!result || pending || cellular} onClick={() => send(true)} className="btn-primary min-h-[3.25rem] w-full disabled:opacity-50">
-                    {pending ? "Mengirim…" : testing ? "Sedang tes…" : "Kirim laporan"}
+                    {pending ? t("Mengirim…") : testing ? t("Sedang tes…") : t("Kirim laporan")}
                   </button>
                   <div className="flex gap-2.5">
-                    <button type="button" disabled={testing || pending} onClick={startTest} className="btn-ghost min-h-12 flex-1 disabled:opacity-50">Tes ulang</button>
-                    <button type="button" disabled={pending} onClick={() => { abort.current?.abort(); send(false); }} className="min-h-12 flex-1 rounded-full text-sm font-semibold text-muted hover:text-ink disabled:opacity-50">Kirim tanpa tes</button>
+                    <button type="button" disabled={testing || pending} onClick={startTest} className="btn-ghost min-h-12 flex-1 disabled:opacity-50">{t("Tes ulang")}</button>
+                    <button type="button" disabled={pending} onClick={() => { abort.current?.abort(); send(false); }} className="min-h-12 flex-1 rounded-full text-sm font-semibold text-muted hover:text-ink disabled:opacity-50">{t("Kirim tanpa tes")}</button>
                   </div>
                 </div>
               </div>
@@ -275,8 +277,8 @@ export default function ReportSheet({ cafeId, slug, cafeName, loggedIn, isAdmin 
 
             {step === 3 && (
               <div className="mt-4 space-y-4">
-                <p className="text-ink/80">Laporanmu tampil di halaman kafe selama 3 jam supaya pengunjung lain tahu kondisi terbarunya.</p>
-                <button type="button" onClick={close} className="btn-primary min-h-12 w-full">Selesai</button>
+                <p className="text-ink/80">{t("Laporanmu tampil di halaman kafe selama 3 jam supaya pengunjung lain tahu kondisi terbarunya.")}</p>
+                <button type="button" onClick={close} className="btn-primary min-h-12 w-full">{t("Selesai")}</button>
               </div>
             )}
           </div>

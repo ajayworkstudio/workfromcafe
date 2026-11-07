@@ -9,6 +9,9 @@ import Footer from "@/components/Footer";
 import TrialBanner from "@/components/TrialBanner";
 import RegisterSW from "@/components/RegisterSW";
 import { APP_NAME, SITE_URL } from "@/lib/utils";
+import I18nProvider from "@/components/I18nProvider";
+import { getLang } from "@/lib/i18n/server";
+import { EN } from "@/lib/i18n/en";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -41,7 +44,7 @@ const REQUIRED_ENV = {
 
 const GA_ID = "G-C6BZEVYT6Z";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Kalau env belum diisi, tampilkan daftar yang kurang (hanya nama, tanpa nilai) alih-alih error kosong.
   const missing = Object.entries(REQUIRED_ENV).filter(([, v]) => !v?.trim()).map(([k]) => k);
   if (missing.length) {
@@ -56,9 +59,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </html>
     );
   }
+  const lang = await getLang();
   return (
-    <html lang="id">
+    <html lang={lang}>
       <body className="flex min-h-dvh flex-col antialiased">
+        <I18nProvider lang={lang} dict={lang === "en" ? EN : null}>
         {/* Google Analytics 4. Pindah halaman di dalam aplikasi tercatat otomatis lewat "Enhanced measurement" GA4. */}
         <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
         <Script id="ga4" strategy="afterInteractive">
@@ -70,6 +75,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Footer />
         <RegisterSW />
         <PageTransitions />
+        </I18nProvider>
       </body>
     </html>
   );

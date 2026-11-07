@@ -13,6 +13,8 @@ import { articleCovers, cafesBySlugs, embeddedSlugs, getManualArticles, type Man
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/auth";
 import { APP_NAME, SITE_URL, coverUrl } from "@/lib/utils";
+import { getT } from "@/lib/i18n/server";
+import { translateArticles } from "@/lib/i18n/content";
 
 type P = Promise<{ slug: string }>;
 
@@ -34,12 +36,14 @@ export async function generateMetadata({ params }: { params: P }): Promise<Metad
   };
 }
 
-const dateText = (d: string) => new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jakarta" });
+const dateText = (d: string, locale = "id-ID") => new Date(d).toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jakarta" });
 
 export default async function ArticlePage({ params }: { params: P }) {
+  const { t, locale, lang } = await getT();
   const { slug } = await params;
-  const [a, viewer, all] = await Promise.all([find(slug), getViewer(), getManualArticles()]);
-  if (!a) notFound();
+  const [found, viewer, all] = await Promise.all([find(slug), getViewer(), getManualArticles()]);
+  if (!found) notFound();
+  const [a] = await translateArticles(lang, [found], true);
   const url = `${SITE_URL}/artikel/${a.slug}`;
   const supabase = await createClient();
   const [cafes, liked, saved] = await Promise.all([
@@ -48,7 +52,7 @@ export default async function ArticlePage({ params }: { params: P }) {
     viewer.user ? supabase.from("article_saves").select("article_id").eq("article_id", a.id).eq("user_id", viewer.user.id).maybeSingle() : Promise.resolve({ data: null }),
   ]);
   // Artikel lain: yang sekota dulu, lalu yang terbaru
-  const others = all.filter((x) => x.id !== a.id).sort((x, y) => Number(y.city_id === a.city_id) - Number(x.city_id === a.city_id)).slice(0, 3);
+  const others = await translateArticles(lang, all.filter((x) => x.id !== a.id).sort((x, y) => Number(y.city_id === a.city_id) - Number(x.city_id === a.city_id)).slice(0, 3));
   const [covers, { data: city }] = await Promise.all([
     articleCovers([a, ...others]),
     a.city_id ? supabase.from("cities").select("name,slug").eq("id", a.city_id).maybeSingle() : Promise.resolve({ data: null }),
@@ -73,13 +77,13 @@ export default async function ArticlePage({ params }: { params: P }) {
         <span className="absolute inset-0 -z-10 bg-gradient-to-t from-espresso via-espresso/65 to-espresso/10" aria-hidden />
         <div className="absolute inset-x-4 top-4 flex items-center justify-between gap-2 md:inset-x-6 md:top-6">
           <BackButton fallback="/artikel" className="glass-dark grid h-11 w-11 place-items-center rounded-full text-foam" />
-          {viewer.isAdmin && <Link href={`/admin/artikel/${a.id}`} className="glass-dark inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold">Edit artikel</Link>}
+          {viewer.isAdmin && <Link href={`/admin/artikel/${a.id}`} className="glass-dark inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold">{t("Edit artikel")}</Link>}
         </div>
         <div className="max-w-3xl">
           {city ? (
             <Link href={`/kota/${city.slug}`} className="glass-dark inline-flex min-h-8 items-center rounded-full px-3 text-xs font-semibold hover:bg-foam hover:text-ink">{city.name}</Link>
           ) : (
-            <span className="glass-dark inline-flex min-h-8 items-center rounded-full px-3 text-xs font-semibold">Panduan</span>
+            <span className="glass-dark inline-flex min-h-8 items-center rounded-full px-3 text-xs font-semibold">{t("Panduan")}</span>
           )}
           <h1 className="mt-3 text-[clamp(2.1rem,7.5vw,3.75rem)] font-extrabold leading-[1.06] tracking-tight [text-shadow:0_2px_18px_rgb(0_0_0/0.35)]">{a.title}</h1>
           <div className="mt-5 flex items-end justify-between gap-4">
@@ -92,12 +96,12 @@ export default async function ArticlePage({ params }: { params: P }) {
 
       <div className="relative -mx-4 -mt-8 rounded-t-[2rem] bg-canvas px-4 pt-3 md:mx-auto md:mt-10 md:max-w-3xl md:rounded-none md:px-0 md:pt-0">
         <span className="mx-auto mb-5 block h-1 w-10 rounded-full bg-line md:hidden" aria-hidden />
-        {a.updated_at.slice(0, 10) !== (a.published_at ?? a.created_at).slice(0, 10) && <p className="text-sm text-muted">Diperbarui {dateText(a.updated_at)}</p>}
+        {a.updated_at.slice(0, 10) !== (a.published_at ?? a.created_at).slice(0, 10) && <p className="text-sm text-muted">{t("Diperbarui {date}", { date: dateText(a.updated_at, locale) })}</p>}
         {a.excerpt && <p className="mt-2 text-xl font-semibold leading-relaxed text-ink">{a.excerpt}</p>}
         <div className="mt-6"><ArticleBody body={a.body} cafes={cafes} line={asSpacing(a.line_spacing)} gap={asSpacing(a.paragraph_spacing)} /></div>
 
         <div className="mt-10 border-t border-line pt-5">
-          <p className="mb-3 font-semibold">Bermanfaat? Bagikan ke teman kerjamu.</p>
+          <p className="mb-3 font-semibold">{t("Bermanfaat? Bagikan ke teman kerjamu.")}</p>
           <ArticleActions track hideSave id={a.id} slug={a.slug} title={a.title} url={url} loggedIn={!!viewer.user}
             liked={!!liked.data} saved={!!saved.data} likes={a.like_count ?? 0} views={a.view_count ?? 0} />
         </div>
@@ -105,19 +109,20 @@ export default async function ArticlePage({ params }: { params: P }) {
         {!!others.length && <RelatedList items={others} covers={covers} />}
 
         <aside className="mt-12 rounded-[1.75rem] bg-brand p-6 text-white">
-          <p className="text-lg font-bold">Punya kafe yang ada di artikel ini?</p>
-          <p className="mt-1 text-white/85">Klaim halamannya, pantau berapa orang yang melihat kafemu, dan tampil di urutan atas pencarian.</p>
-          <Link href="/untuk-kafe" className="btn mt-4 min-h-11 bg-white text-brand hover:bg-foam">Untuk pemilik kafe</Link>
+          <p className="text-lg font-bold">{t("Punya kafe yang ada di artikel ini?")}</p>
+          <p className="mt-1 text-white/85">{t("Klaim halamannya, pantau berapa orang yang melihat kafemu, dan tampil di urutan atas pencarian.")}</p>
+          <Link href="/untuk-kafe" className="btn mt-4 min-h-11 bg-white text-brand hover:bg-foam">{t("Untuk pemilik kafe")}</Link>
         </aside>
       </div>
     </article>
   );
 }
 
-function RelatedList({ items, covers }: { items: ManualArticle[]; covers: Map<string, string | null> }) {
+async function RelatedList({ items, covers }: { items: ManualArticle[]; covers: Map<string, string | null> }) {
+  const { t } = await getT();
   return (
     <section className="mt-12">
-      <h2 className="text-xl font-bold">Baca juga</h2>
+      <h2 className="text-xl font-bold">{t("Baca juga")}</h2>
       <ul className="mt-2">
         {items.map((x) => {
           const c = covers.get(x.id);
