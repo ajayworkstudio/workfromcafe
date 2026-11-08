@@ -44,7 +44,7 @@ func run(log *slog.Logger) error {
 
 	api := &httpapi.Server{DB: db, AllowedOrigins: cfg.AllowedOrigins, Log: log}
 	srv := &http.Server{
-		Addr:              ":" + cfg.Port,
+		Addr:              cfg.Host + ":" + cfg.Port,
 		Handler:           api.Routes(),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
@@ -54,7 +54,7 @@ func run(log *slog.Logger) error {
 
 	errc := make(chan error, 1)
 	go func() {
-		log.Info("API jalan", "port", cfg.Port)
+		log.Info("API jalan", "addr", srv.Addr)
 		errc <- srv.ListenAndServe()
 	}()
 

@@ -7,6 +7,7 @@ import (
 )
 
 type Config struct {
+	Host           string // kosong = semua alamat; di VPS 127.0.0.1 supaya hanya bisa diakses lewat Caddy
 	Port           string
 	DatabaseURL    string // kosong = API jalan tanpa database (hanya untuk tes lokal)
 	AllowedOrigins []string
@@ -14,6 +15,7 @@ type Config struct {
 
 func Load() (Config, error) {
 	c := Config{
+		Host:        os.Getenv("HOST"),
 		Port:        getenv("PORT", "8080"),
 		DatabaseURL: os.Getenv("DATABASE_URL"),
 	}
