@@ -8,7 +8,7 @@ Belum ada yang diubah. Dokumen ini jadi daftar centang untuk step 5 sampai 9.
 | Bagian Supabase | Jumlah di kode | Ganti di Go |
 | --- | --- | --- |
 | File yang memanggil Supabase | 98 file | Panggilan ke API Go |
-| Tabel yang dipakai (`.from()`) | 37 tabel | Query `sqlc` per endpoint |
+| Tabel yang dipakai (`.from()`) | 37 tabel | Query `database/sql` per endpoint |
 | Fungsi SQL (`.rpc()`) | 20 fungsi dipanggil, 34 ada di migrasi | Tetap fungsi SQL, dipanggil dari Go |
 | Policy RLS | 104 policy | Middleware Go (cek login, peran, pemilik data) |
 | Trigger | 7 trigger | Tetap di database, kecuali yang bergantung pada `auth.users` |
