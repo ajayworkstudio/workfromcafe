@@ -23,7 +23,8 @@ const cafeJSON = `to_jsonb(c) || jsonb_build_object(
 
 // publicJSON menjalankan query yang menghasilkan satu nilai JSON sebagai peran anon,
 // jadi policy RLS berlaku sama seperti pengunjung yang belum login di Supabase.
-// Zona waktu UTC supaya format tanggal sama dengan Supabase (+00:00).
+// Zona waktu UTC dan extra_float_digits = 0 supaya format tanggal (+00:00) dan angka desimal
+// (15 digit, misalnya koordinat) sama persis dengan yang dikirim Supabase.
 func (s *Server) publicJSON(ctx context.Context, query string, args ...any) (json.RawMessage, error) {
 	if s.DB == nil {
 		return nil, errNoDB
@@ -35,7 +36,7 @@ func (s *Server) publicJSON(ctx context.Context, query string, args ...any) (jso
 		return nil, err
 	}
 	defer tx.Rollback() //nolint:errcheck // hanya baca, rollback cukup
-	if _, err := tx.ExecContext(ctx, "set local role anon; set local timezone = 'UTC'"); err != nil {
+	if _, err := tx.ExecContext(ctx, "set local role anon; set local timezone = 'UTC'; set local extra_float_digits = 0"); err != nil {
 		return nil, err
 	}
 	var out []byte

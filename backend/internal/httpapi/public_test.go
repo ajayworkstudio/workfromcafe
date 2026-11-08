@@ -41,9 +41,9 @@ func setupPublic(t *testing.T) (http.Handler, *sql.DB) {
 		insert into public.cities (id, name, slug, province, lat, lng, is_active)
 		  values ('`+citySemarang+`', 'Semarang', 'semarang', 'Jawa Tengah', -6.9932, 110.4203, true)
 		  on conflict (id) do nothing;
-		insert into public.cafes (id, name, slug, city_id, is_published, my_rating, area, short_review, price_range, created_at)
-		  values ('`+cafePublished+`', 'Kafe Uji Tayang', 'kafe-uji-tayang', '`+citySemarang+`', true, 4.5, 'Tembalang', 'Colokan banyak', 2, '2026-10-01 10:00:00+07'),
-		         ('`+cafeHidden+`', 'Kafe Uji Draf', 'kafe-uji-draf', '`+citySemarang+`', false, 4.9, 'Tembalang', 'Belum tayang', 2, '2026-10-01 10:00:00+07');
+		insert into public.cafes (id, name, slug, city_id, is_published, my_rating, area, short_review, price_range, created_at, lat)
+		  values ('`+cafePublished+`', 'Kafe Uji Tayang', 'kafe-uji-tayang', '`+citySemarang+`', true, 4.5, 'Tembalang', 'Colokan banyak', 2, '2026-10-01 10:00:00+07', -7.029209721367877),
+		         ('`+cafeHidden+`', 'Kafe Uji Draf', 'kafe-uji-draf', '`+citySemarang+`', false, 4.9, 'Tembalang', 'Belum tayang', 2, '2026-10-01 10:00:00+07', null);
 		insert into public.cafe_photos (cafe_id, url, is_cover, sort_order) values ('`+cafePublished+`', 'https://contoh.test/a.webp', true, 0);
 		insert into public.cafe_tags (cafe_id, tag_id) select '`+cafePublished+`', id from public.tags where name = 'WFC';
 		insert into public.cafe_details (cafe_id, full_review, tips) values ('`+cafePublished+`', 'Ulasan lengkap', 'Duduk dekat jendela'),
@@ -135,6 +135,10 @@ func TestListCafesShapeMatchesSupabase(t *testing.T) {
 	}
 	if !strings.HasSuffix(c.CreatedAt, "+00:00") {
 		t.Errorf("created_at = %s, mau zona UTC seperti Supabase", c.CreatedAt)
+	}
+	// Supabase mengirim angka desimal 15 digit; Postgres biasa menampilkan 17 digit
+	if !strings.Contains(string(body), `"lat": -7.02920972136788,`) {
+		t.Errorf("lat harus dibulatkan seperti Supabase: %s", body)
 	}
 }
 
