@@ -28,10 +28,14 @@ func (s *Server) Routes() http.Handler {
 
 	r.Get("/health", s.health)
 	r.Route("/v1", func(r chi.Router) {
+		r.Get("/stats", s.stats)
 		r.Get("/cities", s.listCities)
+		r.Get("/cities/{slug}", s.getCity)
 		r.Get("/tags", s.listTags)
 		r.Get("/cafes", s.listCafes)
 		r.Get("/cafes/{slug}", s.getCafe)
+		r.Get("/articles", s.listArticles)
+		r.Get("/articles/{slug}", s.getArticle)
 	})
 	return r
 }

@@ -50,9 +50,15 @@ func setupPublic(t *testing.T) (http.Handler, *sql.DB) {
 		                                                                  ('`+cafeHidden+`', 'Rahasia', null);
 		insert into public.menu_items (cafe_id, name, price, sort_order) values ('`+cafePublished+`', 'Es kopi susu', 22000, 1),
 		                                                                       ('`+cafePublished+`', 'Americano', 18000, 0);
+		update public.cafes set is_featured = true, visited_at = '2026-10-05' where id = '`+cafePublished+`';
+		delete from public.articles where slug like 'artikel-uji-%';
+		insert into public.articles (slug, title, body, is_published, published_at) values
+		  ('artikel-uji-tayang', 'Artikel Uji', 'Isi [[kafe:kafe-uji-tayang]]', true, '2026-11-01 08:00:00+07'),
+		  ('artikel-uji-draf', 'Draf Uji', 'Rahasia draf', false, null);
 		update public.app_settings set value = 'true' where key = 'free_mode';`)
 	t.Cleanup(func() {
-		mustExec(t, admin, `delete from public.cafes where id in ('`+cafePublished+`', '`+cafeHidden+`');
+		mustExec(t, admin, `delete from public.articles where slug like 'artikel-uji-%';
+			delete from public.cafes where id in ('`+cafePublished+`', '`+cafeHidden+`');
 			update public.app_settings set value = 'true' where key = 'free_mode';`)
 	})
 
@@ -215,5 +221,91 @@ func TestCitiesSortedAndActive(t *testing.T) {
 		if !c.IsActive || (i > 0 && list[i-1].Name > c.Name) {
 			t.Fatalf("urutan/aktif salah di %d: %+v", i, list)
 		}
+	}
+}
+
+func TestListCafesSelectors(t *testing.T) {
+	h, _ := setupPublic(t)
+	cases := map[string]bool{ // path -> kafe uji tayang harus ada
+		"/v1/cafes?slug=kafe-uji-tayang,kafe-lain":                        true,
+		"/v1/cafes?slug=kafe-uji-draf":                                    false, // draf tetap tersembunyi walau diminta
+		"/v1/cafes?id=" + cafePublished:                                   true,
+		"/v1/cafes?city_id=" + citySemarang:                               true,
+		"/v1/cafes?city_id=" + citySemarang + "&exclude=" + cafePublished: false,
+		"/v1/cafes?featured=1":                                            true,
+		"/v1/cafes?featured=1&sort=visited&limit=6":                       true,
+		"/v1/cafes?sort=created&limit=200":                                true,
+	}
+	for path, want := range cases {
+		code, body := get(t, h, path)
+		if code != 200 {
+			t.Errorf("%s: status %d %s", path, code, body)
+			continue
+		}
+		has := strings.Contains(strings.Join(slugs(t, body), ","), "kafe-uji-tayang")
+		if has != want {
+			t.Errorf("%s: ada kafe uji = %v, mau %v", path, has, want)
+		}
+	}
+	_, body := get(t, h, "/v1/cafes?limit=1")
+	if n := len(slugs(t, body)); n != 1 {
+		t.Errorf("limit=1 menghasilkan %d kafe", n)
+	}
+}
+
+func TestListCafesRejectsBadParams(t *testing.T) {
+	h, _ := setupPublic(t)
+	for _, path := range []string{
+		"/v1/cafes?id=1%27%20or%201=1--", // percobaan SQL injection
+		"/v1/cafes?city_id=semarang",
+		"/v1/cafes?exclude=x",
+		"/v1/cafes?sort=drop",
+		"/v1/cafes?limit=0",
+		"/v1/cafes?limit=5000",
+		"/v1/cafes?harga=abc",
+	} {
+		if code, body := get(t, h, path); code != 400 {
+			t.Errorf("%s: status %d, mau 400 (%s)", path, code, body)
+		}
+	}
+}
+
+func TestStatsCountsOnlyPublished(t *testing.T) {
+	h, admin := setupPublic(t)
+	var want int
+	if err := admin.QueryRow(`select count(*) from public.cafes where is_published`).Scan(&want); err != nil {
+		t.Fatal(err)
+	}
+	_, body := get(t, h, "/v1/stats")
+	var res struct {
+		Cafes int `json:"cafes"`
+	}
+	if err := json.Unmarshal(body, &res); err != nil || res.Cafes != want {
+		t.Fatalf("stats = %s, mau cafes=%d", body, want)
+	}
+}
+
+func TestArticles(t *testing.T) {
+	h, _ := setupPublic(t)
+	_, body := get(t, h, "/v1/articles")
+	if !strings.Contains(string(body), "artikel-uji-tayang") || strings.Contains(string(body), "Rahasia draf") {
+		t.Fatalf("daftar artikel harus tanpa draf: %s", body)
+	}
+	if code, _ := get(t, h, "/v1/articles/artikel-uji-tayang"); code != 200 {
+		t.Errorf("artikel tayang: status %d", code)
+	}
+	if code, _ := get(t, h, "/v1/articles/artikel-uji-draf"); code != 404 {
+		t.Errorf("artikel draf: status %d, mau 404", code)
+	}
+}
+
+func TestGetCity(t *testing.T) {
+	h, _ := setupPublic(t)
+	code, body := get(t, h, "/v1/cities/semarang")
+	if code != 200 || !strings.Contains(string(body), `"name": "Semarang"`) {
+		t.Fatalf("kota: %d %s", code, body)
+	}
+	if code, _ := get(t, h, "/v1/cities/tidak-ada"); code != 404 {
+		t.Errorf("kota tak ada: status %d, mau 404", code)
 	}
 }

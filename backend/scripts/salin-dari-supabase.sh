@@ -16,7 +16,14 @@
 # Jangan simpan kedua URL di file yang masuk Git.
 set -euo pipefail
 
-: "${SOURCE_DATABASE_URL:?isi SOURCE_DATABASE_URL dulu}"
+# Alamat Supabase boleh disimpan di file yang hanya bisa dibaca root (chmod 600), supaya salin ulang
+# tidak perlu mengetik password: lihat docs/migrasi-go/03-database.md
+SECRET_FILE=/root/.wfc-supabase-url
+if [ -z "${SOURCE_DATABASE_URL:-}" ] && [ -r "$SECRET_FILE" ]; then
+  SOURCE_DATABASE_URL=$(cat "$SECRET_FILE")
+fi
+TARGET_DATABASE_URL=${TARGET_DATABASE_URL:-postgres:///wfchunters?host=/var/run/postgresql}
+: "${SOURCE_DATABASE_URL:?isi SOURCE_DATABASE_URL dulu, atau simpan di $SECRET_FILE}"
 : "${TARGET_DATABASE_URL:?isi TARGET_DATABASE_URL dulu}"
 SRC=$SOURCE_DATABASE_URL
 DST=$TARGET_DATABASE_URL

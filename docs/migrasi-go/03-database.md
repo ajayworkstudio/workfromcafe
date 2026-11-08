@@ -47,3 +47,16 @@ Skrip mengambil angka terbaru saat dijalankan, jadi angka ini hanya untuk gambar
 
 Dijalankan dari VPS dengan `salin-dari-supabase.sh`: 41 tabel dan 34 akun, jumlah baris cocok.
 Ini salinan sesaat. Supabase tetap database utama sampai step 10; sebelum pindah total, data disalin ulang dengan `RESET=1`.
+
+## Salin ulang tanpa mengetik password
+
+Simpan alamat Supabase sekali di VPS, di file yang hanya bisa dibaca root:
+
+```sh
+read -rsp "Password database Supabase: " PW; echo
+printf '%s' "postgresql://postgres.glsqzpuewndbupblmqzm:$(python3 -c 'import sys,urllib.parse;print(urllib.parse.quote(sys.argv[1],safe=""))' "$PW")@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require" > /root/.wfc-supabase-url
+chmod 600 /root/.wfc-supabase-url; unset PW
+```
+
+Setelah itu salin ulang cukup: `RESET=1 bash /opt/wfc/src/backend/scripts/salin-dari-supabase.sh`.
+Hapus file itu di step 10 (`rm /root/.wfc-supabase-url`) setelah Supabase tidak dipakai lagi, atau kalau password diganti.

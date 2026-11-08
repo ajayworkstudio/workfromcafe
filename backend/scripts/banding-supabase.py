@@ -11,6 +11,7 @@ lalu jalankan skrip ini lagi kalau perlu.
 """
 import json
 import os
+import re
 import sys
 import urllib.parse
 import urllib.request
@@ -97,6 +98,16 @@ def compare_rows(name, a_rows, b_rows):
     report(f"{name} ({len(a_rows)} di Supabase, {len(b_rows)} di Go)", issues)
 
 
+def compare_limited(name, s_rows, g_rows, key):
+    """Untuk query dengan limit: kalau ada nilai seri di batas, isi bisa beda tapi urutan nilainya sama."""
+    if {r["id"] for r in s_rows} == {r["id"] for r in g_rows}:
+        compare_rows(name, s_rows, g_rows)
+    elif [r.get(key) for r in s_rows] == [r.get(key) for r in g_rows]:
+        report(f"{name} (beda kafe hanya karena nilai {key} seri, wajar)", [])
+    else:
+        compare_rows(name, s_rows, g_rows)
+
+
 def main():
     compare_rows("kota", supa("cities", select="*", is_active="eq.true", order="name"), api("/v1/cities"))
     compare_rows("tag", supa("tags", select="*", order="name"), api("/v1/tags"))
@@ -123,6 +134,43 @@ def main():
         detail_issues += [f"{c['slug']} details{d}" for d in diff(norm(s_det[0] if s_det else None), norm(g["details"]))]
         detail_issues += [f"{c['slug']} menu{d}" for d in diff(norm(s_menu), norm(g["menu"]))]
     report(f"detail, ulasan, dan menu ({len(s_cafes)} kafe)", detail_issues)
+
+    # Beranda
+    report("jumlah kafe", [] if api("/v1/stats")["cafes"] == len(s_cafes) else [f"Supabase={len(s_cafes)} Go={api('/v1/stats')['cafes']}"])
+    compare_limited("kafe unggulan beranda",
+                    supa("cafes", select=CAFE_SELECT, is_featured="eq.true", order="visited_at.desc", limit=6),
+                    api("/v1/cafes?featured=1&sort=visited&limit=6"), "visited_at")
+    compare_limited("kafe terbaru beranda",
+                    supa("cafes", select=CAFE_SELECT, order="created_at.desc", limit=6),
+                    api("/v1/cafes?sort=created&limit=6"), "created_at")
+
+    # Halaman kota: setiap kota, aktif atau tidak
+    city_issues = []
+    for c in supa("cities", select="*"):
+        city_issues += [f"{c['slug']}{d}" for d in diff(norm(c), norm(api(f"/v1/cities/{c['slug']}")))]
+    report("halaman kota (semua kota)", city_issues)
+
+    # Kafe lain sekota di halaman kafe
+    if s_cafes:
+        c = s_cafes[0]
+        compare_limited(f"kafe lain sekota dengan {c['slug']}",
+                        supa("cafes", select=CAFE_SELECT, city_id=f"eq.{c['city_id']}", is_published="eq.true",
+                             id=f"neq.{c['id']}", order="my_rating.desc.nullslast", limit=40),
+                        api(f"/v1/cafes?city_id={c['city_id']}&exclude={c['id']}&limit=40"), "my_rating")
+
+    # Artikel
+    s_articles = supa("articles", select="*", is_published="eq.true", order="published_at.desc")
+    compare_rows("artikel", s_articles, api("/v1/articles"))
+    art_issues, embedded = [], set()
+    for a in s_articles:
+        art_issues += [f"{a['slug']}{d}" for d in diff(norm(a), norm(api(f"/v1/articles/{urllib.parse.quote(a['slug'])}")))]
+        embedded |= set(re.findall(r"\[\[kafe:([\w-]+)\]\]", a["body"]))
+    report(f"detail artikel ({len(s_articles)} artikel)", art_issues)
+    if embedded:
+        lst = ",".join(sorted(embedded))
+        compare_rows(f"kafe yang disisipkan di artikel ({len(embedded)} slug)",
+                     supa("cafes", select=CAFE_SELECT, slug=f"in.({lst})", is_published="eq.true"),
+                     api(f"/v1/cafes?slug={lst}"))
 
     print()
     print("Semua cocok." if problems == 0 else f"Ada {problems} perbedaan.")
