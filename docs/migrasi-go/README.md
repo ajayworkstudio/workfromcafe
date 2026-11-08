@@ -14,7 +14,7 @@ disalin ulang sekali lagi, lalu situs dipindah lewat satu pengaturan env, dengan
 | 3 | Struktur database dan skrip salin data | Selesai, lihat `03-database.md` |
 | 4 | VPS Rumahweb, `api.wfchunters.com`, salin data asli | Selesai 9 Nov 2026: API jalan dengan HTTPS, data tersalin (41 tabel, 34 akun, cocok) |
 | 5 | Fitur baca publik lewat Go | Selesai 9 Nov 2026: kota, tag, kafe, artikel, beranda, halaman kota. 15 pemeriksaan cocok dengan Supabase |
-| 6 | Storage foto | Belum |
+| 6 | Storage foto | Skrip salin foto dan foto.wfchunters.com jadi, menunggu dijalankan di VPS (lihat `06-foto.md`) |
 | 7 | Aksi pengguna | Belum |
 | 8 | Admin dan pemilik kafe | Belum |
 | 9 | Auth | Belum |

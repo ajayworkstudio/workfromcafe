@@ -4,6 +4,7 @@
 # Berikutnya: ambil kode terbaru, build ulang, restart. Aman dijalankan berulang.
 set -euo pipefail
 DOMAIN=api.wfchunters.com
+FOTO_DOMAIN=foto.wfchunters.com
 REPO=git@github.com:ajayworkstudio/workfromcafe.git
 SRC=/opt/wfc/src
 BIN=/opt/wfc/bin/wfc-api
@@ -73,11 +74,26 @@ sleep 2
 systemctl is-active --quiet wfc-api || { journalctl -u wfc-api -n 20 --no-pager; exit 1; }
 
 echo "== 5/6 HTTPS lewat Caddy"
+install -d -m 755 /var/lib/wfc /var/lib/wfc/foto
 cat > /etc/caddy/Caddyfile <<EOF
 $DOMAIN {
 	encode zstd gzip
 	reverse_proxy 127.0.0.1:8080
 	header -Server
+}
+
+# Foto: susunan alamat sama dengan Supabase Storage, diisi oleh scripts/salin-foto.py
+$FOTO_DOMAIN {
+	root * /var/lib/wfc/foto
+	header -Server
+	handle /storage/v1/object/public/* {
+		header Cache-Control "public, max-age=86400"
+		header X-Content-Type-Options nosniff
+		file_server
+	}
+	handle {
+		respond 404
+	}
 }
 EOF
 caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null
