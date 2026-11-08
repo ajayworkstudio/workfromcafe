@@ -34,6 +34,9 @@ if [ "$tables" -eq 0 ]; then
 else
   echo "   sudah ada: $tables tabel, tidak diubah"
 fi
+PGOPTIONS='-c client_min_messages=warning' runuser -u postgres -- psql -d wfchunters -q -v ON_ERROR_STOP=1 \
+  < "$SRC/backend/db/01_grants.sql"
+echo "   hak akses peran diperbarui"
 
 echo "== 4/6 Layanan systemd"
 grep -q '^HOST=' /etc/wfc-api/env || sed -i '1i HOST=127.0.0.1' /etc/wfc-api/env
