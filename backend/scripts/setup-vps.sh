@@ -31,7 +31,7 @@ systemctl enable --now fail2ban >/dev/null
 echo "== 4/7 PostgreSQL 17 (hanya bisa diakses dari dalam server)"
 if ! command -v /usr/lib/postgresql/17/bin/postgres >/dev/null; then
   install -d /usr/share/postgresql-common/pgdg
-  curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+  curl -4 --retry 5 --retry-delay 3 -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
   echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main" \
     > /etc/apt/sources.list.d/pgdg.list
   apt-get update -q
@@ -40,8 +40,8 @@ fi
 
 echo "== 5/7 Caddy (HTTPS otomatis)"
 if ! command -v caddy >/dev/null; then
-  curl -fsSL https://dl.cloudsmith.io/public/caddy/stable/gpg.key | gpg --dearmor --yes -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-  curl -fsSL https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt -o /etc/apt/sources.list.d/caddy-stable.list
+  curl -4 --retry 5 --retry-delay 3 -fsSL https://dl.cloudsmith.io/public/caddy/stable/gpg.key | gpg --dearmor --yes -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+  curl -4 --retry 5 --retry-delay 3 -fsSL https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt -o /etc/apt/sources.list.d/caddy-stable.list
   apt-get update -q
   apt-get install -y -q caddy
 fi
@@ -49,7 +49,7 @@ fi
 echo "== 6/7 Go $GO_VERSION"
 if [ "$(/usr/local/go/bin/go version 2>/dev/null | awk '{print $3}')" != "go$GO_VERSION" ]; then
   rm -rf /usr/local/go
-  curl -fsSL "https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz" | tar -C /usr/local -xz
+  curl -4 --retry 5 --retry-delay 3 -fsSL "https://go.dev/dl/go$GO_VERSION.linux-amd64.tar.gz" | tar -C /usr/local -xz
 fi
 ln -sf /usr/local/go/bin/go /usr/local/bin/go
 
