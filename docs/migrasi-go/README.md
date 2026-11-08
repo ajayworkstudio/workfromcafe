@@ -13,7 +13,7 @@ disalin ulang sekali lagi, lalu situs dipindah lewat satu pengaturan env, dengan
 | 2 | Fondasi API Go di `backend/` | Selesai |
 | 3 | Struktur database dan skrip salin data | Selesai, lihat `03-database.md` |
 | 4 | VPS Rumahweb, `api.wfchunters.com`, salin data asli | Selesai 9 Nov 2026: API jalan dengan HTTPS, data tersalin (41 tabel, 34 akun, cocok) |
-| 5 | Fitur baca publik lewat Go | 5a selesai: kota, tag, daftar dan detail kafe, cocok dengan Supabase (9 Nov). 5b artikel, beranda, kota: endpoint jadi, menunggu dibandingkan |
+| 5 | Fitur baca publik lewat Go | Selesai 9 Nov 2026: kota, tag, kafe, artikel, beranda, halaman kota. 15 pemeriksaan cocok dengan Supabase |
 | 6 | Storage foto | Belum |
 | 7 | Aksi pengguna | Belum |
 | 8 | Admin dan pemilik kafe | Belum |
