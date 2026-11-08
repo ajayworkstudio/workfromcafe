@@ -18,10 +18,11 @@ if ! swapon --show | grep -q /swapfile; then
   grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
 fi
 
-echo "== 3/7 Firewall: hanya SSH, HTTP, HTTPS"
+echo "== 3/7 Firewall: hanya SSH (22 dan 2222), HTTP, HTTPS"
 ufw default deny incoming >/dev/null
 ufw default allow outgoing >/dev/null
 ufw allow OpenSSH >/dev/null
+ufw allow 2222/tcp >/dev/null   # port SSH cadangan, dipakai kalau jaringan memblokir port 22
 ufw allow 80/tcp >/dev/null
 ufw allow 443/tcp >/dev/null
 ufw --force enable >/dev/null
