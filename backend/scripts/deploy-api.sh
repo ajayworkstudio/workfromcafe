@@ -13,6 +13,7 @@ echo "== 1/6 Ambil kode (hanya folder backend)"
 if [ ! -d "$SRC/.git" ]; then
   git clone -q --filter=blob:none --sparse "$REPO" "$SRC"
   git -C "$SRC" sparse-checkout set backend
+  git -C "$SRC" config core.sshCommand "$GIT_SSH_COMMAND"
 else
   git -C "$SRC" pull -q --ff-only
 fi
@@ -26,8 +27,9 @@ mv "$BIN.new" "$BIN"
 echo "== 3/6 Struktur database"
 tables=$(runuser -u postgres -- psql -d wfchunters -tAc "select count(*) from pg_tables where schemaname = 'public'")
 if [ "$tables" -eq 0 ]; then
-  runuser -u postgres -- psql -d wfchunters -q -v ON_ERROR_STOP=1 \
-    -f "$SRC/backend/db/00_supabase_shim.sql" -f "$SRC/backend/db/schema.sql" >/dev/null
+  # Dibaca oleh root lalu dialirkan: user postgres tidak punya akses ke folder /opt/wfc.
+  cat "$SRC/backend/db/00_supabase_shim.sql" "$SRC/backend/db/schema.sql" \
+    | runuser -u postgres -- psql -d wfchunters -q -v ON_ERROR_STOP=1 >/dev/null
   echo "   dimuat: $(runuser -u postgres -- psql -d wfchunters -tAc "select count(*) from pg_tables where schemaname = 'public'") tabel"
 else
   echo "   sudah ada: $tables tabel, tidak diubah"
