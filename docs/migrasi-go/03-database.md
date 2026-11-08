@@ -42,3 +42,8 @@ Skrip mengambil angka terbaru saat dijalankan, jadi angka ini hanya untuk gambar
 - `sqlc` tidak dipakai. Query ditulis langsung dengan `database/sql` dan diuji ke PostgreSQL lokal.
 - Di VPS butuh `postgresql-client-17` (dari repo resmi PostgreSQL) karena Supabase memakai versi 17.
 - Hash password belum disalin. Itu bagian step 9.
+
+## Salinan pertama ke VPS (9 November 2026)
+
+Dijalankan dari VPS dengan `salin-dari-supabase.sh`: 41 tabel dan 34 akun, jumlah baris cocok.
+Ini salinan sesaat. Supabase tetap database utama sampai step 10; sebelum pindah total, data disalin ulang dengan `RESET=1`.
