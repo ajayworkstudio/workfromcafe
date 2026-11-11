@@ -41,11 +41,12 @@ export default async function Home() {
   const [{ data: featured }, { data: latest, error: latestErr }, { count }, { data: liveRows }] = await Promise.all([
     supabase.from("cafes").select(CAFE_LIST_SELECT).eq("is_featured", true).order("visited_at", { ascending: false }).limit(6),
     supabase.from("cafes").select(CAFE_LIST_SELECT).order("created_at", { ascending: false }).limit(6),
-    supabase.from("cafes").select("id", { count: "exact", head: true }),
+    supabase.from("cafes").select("id", { count: "exact", head: true }).eq("is_published", true),
     // Kondisi 3 jam terakhir dari laporan pengunjung (kosong kalau migrasi 0018 belum dijalankan)
     supabase.rpc("cafe_reports_live"),
   ]);
   // t("Lagi sepi sekarang") kalau ada kafe yang dilaporkan sepi; kalau tidak, kondisi terbaru apa pun
+  const curated = count ?? 0;
   const liveAll = ((liveRows as LiveSummary[] | null) ?? []).sort((a, b) => a.crowd - b.crowd || +new Date(b.last_at) - +new Date(a.last_at));
   const quiet = liveAll.filter((l) => l.crowd === 1);
   const livePick = (quiet.length ? quiet : liveAll).slice(0, 8);
@@ -102,11 +103,16 @@ export default async function Home() {
                 <TimeGreeting name={viewer.name.split(" ")[0]} />
               </p>
             )}
-            <h1 className="text-[clamp(2rem,7vw,5.2rem)] font-extrabold leading-[1.02] [text-shadow:0_2px_18px_rgb(0_0_0/0.35)] md:leading-[0.95]">
-              {t("Kerja dari kafe mana hari ini?")}
+            <h1 className="[text-shadow:0_2px_18px_rgb(0_0_0/0.35)]">
+              <span className="block text-[clamp(1.05rem,2.6vw,1.5rem)] font-bold leading-tight text-gold">{t("Rekomendasi WFC & nongkrong")}</span>
+              <span className="mt-2 block text-[clamp(2rem,6.4vw,4.6rem)] font-extrabold leading-[1.02] md:mt-3 md:leading-[0.95]">{t("Mana yang mau dikunjungi hari ini?")}</span>
             </h1>
-            <p className="mt-3 max-w-xl text-foam/85 md:mt-5 md:text-lg">
-              {t("{n} kafe di kota-kota besar Pulau Jawa yang sudah dicoba langsung. Lengkap dengan colokan, wifi, dan menu rekomendasi.", { n: count ?? 0 })}
+            <p className="mt-3 text-sm font-semibold text-foam/80 md:mt-5">{t("Rekomendasi ini hasil kurasi kurator WFC Hunters.")}</p>
+            <p className="mt-2 max-w-xl text-foam/85 md:text-lg">
+              {/* Dibulatkan ke bawah ke puluhan dari jumlah kafe tayang: 65 jadi "60+" */}
+              {curated >= 10
+                ? t("{n}+ kafe sudah dikurasi para WFC Hunters, sesuai pengalaman mereka sendiri.", { n: Math.floor(curated / 10) * 10 })
+                : t("{n} kafe sudah dikurasi para WFC Hunters, sesuai pengalaman mereka sendiri.", { n: curated })}
             </p>
             <form action="/kafe" className="glass mt-6 flex max-w-xl items-center gap-2 rounded-full p-1.5 pl-5 focus-within:ring-4 focus-within:ring-gold/40 md:mt-8">
               <Icon name="search" className="h-5 w-5 shrink-0 text-foam" />
