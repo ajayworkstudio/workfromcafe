@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/syarat" },
 };
 
-const UPDATED = "22 Oktober 2026";
+const UPDATED = "11 November 2026";
 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
@@ -76,6 +76,15 @@ export default function TermsPage() {
         <Section id="pelanggaran" title="Melaporkan pelanggaran">
           <p>
             Kalau kamu menemukan konten WFC Hunters dipakai tanpa izin, atau menurutmu ada konten di situs ini yang melanggar hak ciptamu, kirim link dan penjelasannya lewat <Link href="/kontak" className="font-semibold text-brand hover:underline">halaman kontak</Link>. Kami akan meninjau dan menindaklanjutinya.
+          </p>
+        </Section>
+
+        <Section id="aktivitas" title="Status online dan aktivitas">
+          <p>
+            Selama kamu membuka WFC Hunters, browser mengirim sinyal ringan tiap satu menit supaya admin tahu berapa orang yang sedang online. Kalau kamu login, admin bisa melihat nama akunmu, halaman yang sedang kamu buka, dan sejak kapan kamu online. Pengunjung tanpa login hanya dihitung jumlahnya, tanpa menyimpan alamat IP.
+          </p>
+          <p>
+            Data ini hanya bisa dilihat admin, tidak ditampilkan ke pengguna lain, dan dihapus otomatis setelah satu hari.
           </p>
         </Section>
 

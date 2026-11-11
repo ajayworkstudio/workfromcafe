@@ -10,6 +10,7 @@ import TrialBanner from "@/components/TrialBanner";
 import RegisterSW from "@/components/RegisterSW";
 import { APP_NAME, SITE_URL } from "@/lib/utils";
 import I18nProvider from "@/components/I18nProvider";
+import PresencePing from "@/components/PresencePing";
 import { getLang } from "@/lib/i18n/server";
 import { EN } from "@/lib/i18n/en";
 
@@ -74,6 +75,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <main className="flex-1">{children}</main>
         <Footer />
         <RegisterSW />
+        <PresencePing />
         <PageTransitions />
         </I18nProvider>
       </body>

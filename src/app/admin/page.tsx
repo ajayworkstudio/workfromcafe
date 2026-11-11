@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import PageHeader from "@/components/admin/PageHeader";
 import Icon from "@/components/Icon";
 import { rupiah } from "@/lib/utils";
+import AdminOnline from "@/components/admin/AdminOnline";
 
 type Stats = { cafes: number; cafes_draft: number; users: number; active_subs: number; revenue_month: number; revenue_total: number; expiring_7d: number };
 
@@ -53,6 +54,8 @@ export default async function AdminHome() {
         <Stat label="Kafe" value={s.cafes} note={s.cafes_draft ? `${s.cafes_draft} masih draf` : "Semua sudah tayang"} href="/admin/kafe" />
         <Stat label="Pengguna terdaftar" value={s.users} note="Lihat daftar pengguna" href="/admin/pengguna" />
       </div>
+
+      <AdminOnline />
 
       <div className="mt-10 flex items-baseline justify-between">
         <h2 className="text-xl font-bold">Transaksi terbaru</h2>

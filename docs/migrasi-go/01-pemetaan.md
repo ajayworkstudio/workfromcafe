@@ -58,6 +58,9 @@ Belum ada yang diubah. Dokumen ini jadi daftar centang untuk step 5 sampai 9.
 | rpc `admin_stats`, `admin_usage_counts`, `admin_wallet_adjust`, `cafe_stats`, `owner_messages_mark_read` | Statistik admin dan pemilik |
 | Route `api/midtrans`, `api/cron/reminder`, `api/cron/backup-drive` | Webhook bayar, cron harian |
 
+Tambahan setelah pemetaan: status online admin (migrasi 0032, 11 Nov 2026). Tabel `presence`, rpc `presence_ping`
+(dari route `api/online`, service role) dan `admin_online` (kartu "Sedang online" di dashboard admin). Ikut dipindah di step 8.
+
 ### Step 9: auth (risiko tertinggi, paling akhir)
 
 - 8 jenis panggilan auth di atas, plus `getUser` (12) dan `getClaims` (7) untuk cek siapa yang login.
