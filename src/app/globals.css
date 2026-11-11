@@ -89,7 +89,13 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; }
 
 /* Peta: ubin OSM dibuat lebih pucat & hangat supaya pin dan kartu yang menonjol */
 .peta .leaflet-tile-pane { filter: saturate(.45) sepia(.12) brightness(1.04) contrast(.92); }
-.peta .leaflet-bottom { bottom: 10.25rem; }
+@media (max-width: 1023px) { .peta .leaflet-bottom { bottom: 10.25rem; } } /* di HP atribusi naik di atas kartu kafe */
+/* Gelembung kota saat peta diperkecil: jumlah kafe + nama kota, diketuk untuk masuk ke kota itu */
+.peta-kota { display: inline-flex; transform: translate(-50%, -50%); align-items: center; gap: .4rem; white-space: nowrap;
+  border-radius: 999px; border: 2px solid #fff; background: #160f0c; padding: .3rem .8rem .3rem .3rem; color: #fff7f0;
+  font: 700 13px/1 var(--font-sans, inherit); box-shadow: 0 4px 14px rgb(22 15 12 / .35); cursor: pointer; }
+.peta-kota b { display: grid; min-width: 1.75rem; height: 1.75rem; place-items: center; border-radius: 999px; background: #e0a045; padding: 0 .35rem; color: #160f0c; font-weight: 800; }
+.peta-kota:hover { background: #6b4226; }
 .peta .leaflet-control-attribution { border-radius: 999px 0 0 999px; font-size: 10px; }
 .peta-me { position: relative; display: grid; width: 56px; height: 56px; place-items: center; border-radius: 999px; background: rgb(224 160 69 / .22); }
 .peta-me i { width: 16px; height: 16px; border-radius: 999px; background: #e0a045; border: 3px solid #fff; box-shadow: 0 1px 4px rgb(22 15 12 / .4); }

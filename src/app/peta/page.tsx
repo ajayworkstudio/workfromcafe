@@ -18,9 +18,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/peta" },
 };
 
-export default async function MapPage({ searchParams }: { searchParams: Promise<{ dekat?: string }> }) {
+export default async function MapPage({ searchParams }: { searchParams: Promise<{ dekat?: string; kota?: string }> }) {
   const { t } = await getT();
-  const { dekat } = await searchParams;
+  const { dekat, kota } = await searchParams;
   const [viewer, settings] = await Promise.all([getViewer(), getSettings()]);
 
   if (!settings.free_mode && !viewer.isPremium && !viewer.isAdmin) {
@@ -48,7 +48,7 @@ export default async function MapPage({ searchParams }: { searchParams: Promise<
     const l = live.get(c.id);
     return {
       slug: c.slug, name: c.name, lat: Number(c.lat), lng: Number(c.lng),
-      area: c.area ?? null, city: c.city?.name ?? "",
+      area: c.area ?? null, city: c.city?.name ?? "", citySlug: c.city?.slug ?? "",
       rating: c.my_rating != null ? Number(c.my_rating) : averageScore(c.scores),
       price: priceLabel(c.price_range), cover: coverThumb(c), hours: c.opening_hours ?? null,
       wifi: names.includes("Wifi") || c.amenities?.wifi === true,
@@ -60,7 +60,7 @@ export default async function MapPage({ searchParams }: { searchParams: Promise<
   return (
     <div className="h-[calc(100dvh-4rem-5.5rem)] md:h-[calc(100dvh-4rem)]">
       <h1 className="sr-only">{t("Peta kafe")}</h1>
-      <CafeMapLoader cafes={cafes} autoLocate={dekat === "1"} />
+      <CafeMapLoader cafes={cafes} autoLocate={dekat === "1"} initialCity={kota} />
     </div>
   );
 }
