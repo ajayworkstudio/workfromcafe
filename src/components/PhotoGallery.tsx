@@ -12,8 +12,9 @@ type P = { id: string; url: string; thumb_url?: string | null };
  * - Layar lebar: 1 foto besar + 2 kecil (atau 1 besar + 1 kecil untuk 2 foto), tombol "Lihat semua foto".
  * - Klik foto mana pun membuka tampilan layar penuh dengan navigasi panah/geser/keyboard.
  */
-export default function PhotoGallery({ photos, name, overlay, badge }: { photos: P[]; name: string; /** Tombol bulat di atas foto (HP) */ overlay?: ReactNode; /** Label kaca di kiri bawah foto (HP), mis. kondisi live */ badge?: ReactNode }) {
+export default function PhotoGallery({ photos, name, altName, overlay, badge }: { photos: P[]; name: string; /** Teks alt foto yang lebih deskriptif, mis. "Suasana X di Tembalang, Semarang" */ altName?: string; /** Tombol bulat di atas foto (HP) */ overlay?: ReactNode; /** Label kaca di kiri bawah foto (HP), mis. kondisi live */ badge?: ReactNode }) {
   const { t } = useT();
+  const alt = altName ?? name;
   const [open, setOpen] = useState<number | null>(null);
   const [slide, setSlide] = useState(0);
   const track = useRef<HTMLDivElement>(null);
@@ -53,7 +54,7 @@ export default function PhotoGallery({ photos, name, overlay, badge }: { photos:
           onScroll={(e) => { const el = e.currentTarget; setSlide(Math.round(el.scrollLeft / el.clientWidth)); }}>
           {photos.map((p, i) => (
             <button key={p.id} type="button" onClick={() => setOpen(i)} className={`relative aspect-[4/3.6] w-full shrink-0 snap-center overflow-hidden bg-tint ${i === 0 ? "vt-cafe-photo" : ""}`} aria-label={t("Foto {i} dari {n}", { i: i + 1, n })}>
-              <FadeImage src={p.url} alt={`${name}, foto ${i + 1}`} fill priority={i === 0} sizes="100vw" lowSrc={i === 0 ? p.thumb_url : null} className="object-cover" />
+              <FadeImage src={p.url} alt={`${alt}, foto ${i + 1}`} fill priority={i === 0} sizes="100vw" lowSrc={i === 0 ? p.thumb_url : null} className="object-cover" />
             </button>
           ))}
         </div>
@@ -72,13 +73,13 @@ export default function PhotoGallery({ photos, name, overlay, badge }: { photos:
       {/* Layar lebar: grid */}
       <div className={`relative hidden gap-2 md:grid ${n >= 2 ? "md:grid-cols-[2fr_1fr]" : ""}`}>
         <button type="button" onClick={() => setOpen(0)} className="vt-cafe-photo group relative h-[420px] overflow-hidden rounded-[var(--radius-photo)] bg-tint">
-          <FadeImage src={photos[0].url} alt={name} fill priority sizes="66vw" lowSrc={photos[0].thumb_url} className="object-cover transition duration-500 group-hover:scale-[1.02]" />
+          <FadeImage src={photos[0].url} alt={alt} fill priority sizes="66vw" lowSrc={photos[0].thumb_url} className="object-cover transition duration-500 group-hover:scale-[1.02]" />
         </button>
         {n >= 2 && (
           <div className={`grid gap-2 ${side.length === 2 ? "grid-rows-2" : ""}`}>
             {side.map((p, i) => (
               <button key={p.id} type="button" onClick={() => setOpen(i + 1)} className="group relative overflow-hidden rounded-[var(--radius-photo)] bg-tint">
-                <FadeImage src={p.url} alt={`${name}, foto ${i + 2}`} fill sizes="33vw" className="object-cover transition duration-500 group-hover:scale-[1.03]" />
+                <FadeImage src={p.url} alt={`${alt}, foto ${i + 2}`} fill sizes="33vw" className="object-cover transition duration-500 group-hover:scale-[1.03]" />
               </button>
             ))}
           </div>
@@ -104,7 +105,7 @@ export default function PhotoGallery({ photos, name, overlay, badge }: { photos:
               const dx = e.changedTouches[0].clientX - x0;
               if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
             }}>
-            <FadeImage key={photos[open].id} src={photos[open].url} alt={`${name}, foto ${open + 1}`} fill sizes="100vw" className="object-contain" />
+            <FadeImage key={photos[open].id} src={photos[open].url} alt={`${alt}, foto ${open + 1}`} fill sizes="100vw" className="object-contain" />
             {n > 1 && (
               <>
                 <button type="button" onClick={() => go(-1)} aria-label={t("Foto sebelumnya")} className="absolute left-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/15 text-2xl text-white hover:bg-white/25 md:grid">‹</button>

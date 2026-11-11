@@ -12,6 +12,8 @@ import { getManualArticles } from "@/lib/articles";
 import { areasOf } from "@/lib/areas";
 import type { Cafe, City } from "@/lib/types";
 import { CAFE_LIST_SELECT, coverUrl } from "@/lib/utils";
+import { cityFaqs } from "@/lib/cityFaq";
+import Icon from "@/components/Icon";
 
 type P = Promise<{ slug: string }>;
 
@@ -32,14 +34,15 @@ export async function generateMetadata({ params }: { params: P }): Promise<Metad
   if (!res) notFound();
   const { city, cafes } = res;
   const n = cafes.length;
-  const title = `Kafe untuk kerja & nugas di ${city.name}${n ? ` (${n} rekomendasi)` : ""}`;
+  // Orang mengetik "cafe wfc semarang", "cafe untuk kerja di semarang": pakai ejaan "cafe" seperti pencariannya
+  const title = n ? `Cafe WFC & nugas di ${city.name}: ${n} rekomendasi kurator` : `Cafe WFC & nugas di ${city.name}`;
   const top = cafes.slice(0, 3).map((c) => c.name).join(", ");
   const description = clip(
-    `${n || "Daftar"} kafe di ${city.name}${city.province ? `, ${city.province}` : ""} yang nyaman untuk kerja (WFC) dan nugas: wifi, colokan, ketenangan, jam buka, dan menu rekomendasi.${top ? ` Termasuk ${top}.` : ""}`,
+    `${n || "Daftar"} cafe di ${city.name}${city.province ? `, ${city.province}` : ""} yang nyaman untuk WFC, nugas, dan nongkrong, dikurasi langsung oleh kurator WFC Hunters: wifi, colokan, ketenangan, harga, dan menu.${top ? ` Termasuk ${top}.` : ""}`,
   );
   const cover = cafes.map((c) => coverUrl(c)).find(Boolean);
   return {
-    title,
+    title: `${title} | WFC Hunters`.length > 65 ? { absolute: title } : title,
     description,
     alternates: { canonical: `/kota/${city.slug}` },
     // Kota tanpa kafe jangan diindeks (konten tipis)
@@ -49,9 +52,10 @@ export async function generateMetadata({ params }: { params: P }): Promise<Metad
 }
 
 export default async function CityPage({ params }: { params: P }) {
-  const [res, { t, lang }] = await Promise.all([getCity((await params).slug), getT()]);
+  const [res, { t, lang, locale }] = await Promise.all([getCity((await params).slug), getT()]);
   if (!res) notFound();
   const { city, cafes } = res;
+  const faqs = cityFaqs(city.name, cafes, t, locale);
   const articles = await translateArticles(lang, (await getManualArticles()).filter((a) => a.city_id === city.id));
   const areas = areasOf(cafes.filter((c) => c.is_published));
 
@@ -66,11 +70,16 @@ export default async function CityPage({ params }: { params: P }) {
           numberOfItems: cafes.length,
           itemListElement: cafes.map((c, i) => ({ "@type": "ListItem", position: i + 1, url: abs(`/kafe/${c.slug}`), name: c.name })),
         },
+        ...(faqs.length ? [{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+        }] : []),
       ]} />
       <nav aria-label="Breadcrumb" className="text-sm text-muted">
         <Link href="/" className="hover:text-brand">{t("Beranda")}</Link> <span aria-hidden>/</span> <span>{city.name}</span>
       </nav>
-      <h1 className="mt-2 text-4xl font-extrabold md:text-5xl">{t("Kafe untuk kerja di {place}", { place: city.name })}</h1>
+      <h1 className="mt-2 text-4xl font-extrabold md:text-5xl">{t("Cafe WFC & tempat nugas di {place}", { place: city.name })}</h1>
       <p className="mt-2 max-w-2xl text-muted">
         {cafes.length ? t("{n} kafe di {place}", { n: cafes.length, place: `${city.name}, ${city.province}` }) : t("Kafe di {place}", { place: `${city.name}, ${city.province}` })} {t("yang sudah dicoba langsung untuk kerja dan nugas, lengkap dengan penilaian wifi, colokan, ketenangan, dan menu rekomendasi.")}
       </p>
@@ -97,6 +106,29 @@ export default async function CityPage({ params }: { params: P }) {
       <div className="mt-4 grid gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
         {cafes.map((c) => <CafeCard key={c.id} cafe={c} />)}
       </div>
+      {!!faqs.length && (
+        <section aria-labelledby="faq" className="mt-14 max-w-3xl">
+          <h2 id="faq" className="text-2xl font-bold">{t("Pertanyaan soal cafe WFC di {place}", { place: city.name })}</h2>
+          <div className="mt-4 divide-y divide-line rounded-3xl border border-line bg-surface">
+            {faqs.map((f, i) => (
+              <details key={f.q} open={i === 0} className="group px-5">
+                <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-3 font-bold [&::-webkit-details-marker]:hidden">
+                  {f.q}
+                  <Icon name="chevronDown" className="h-5 w-5 shrink-0 text-muted transition-transform group-open:rotate-180" />
+                </summary>
+                <p className="pb-4 text-ink/80">{f.a}</p>
+                {!!f.cafes.length && (
+                  <div className="-mt-1 flex flex-wrap gap-2 pb-5">
+                    {f.cafes.map((c) => (
+                      <Link key={c.slug} href={`/kafe/${c.slug}`} className="flex min-h-11 items-center rounded-full border border-line px-4 text-sm font-semibold hover:border-brand hover:text-brand">{c.name}</Link>
+                    ))}
+                  </div>
+                )}
+              </details>
+            ))}
+          </div>
+        </section>
+      )}
       {!cafes.length && (
         <div className="mt-6 rounded-2xl bg-tint p-8 text-center text-muted">
           {t("Belum ada kafe di kota ini.")} <Link href="/kirim" className="font-semibold text-brand hover:underline">{t("Punya rekomendasi? Kirim di sini.")}</Link>

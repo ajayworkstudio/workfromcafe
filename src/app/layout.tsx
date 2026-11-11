@@ -15,9 +15,9 @@ import { EN } from "@/lib/i18n/en";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: `${APP_NAME}: Kafe untuk WFC & nugas di Pulau Jawa`, template: `%s | ${APP_NAME}` },
+  title: { default: `${APP_NAME}: Rekomendasi cafe WFC & nongkrong di Pulau Jawa`, template: `%s | ${APP_NAME}` },
   description:
-    "Cari kafe untuk WFC dan nugas di Semarang, Jakarta, Bandung, Yogyakarta, dan kota lain di Pulau Jawa. Lengkap dengan info wifi, colokan, suasana, dan menu.",
+    "Rekomendasi cafe untuk WFC, nugas, dan nongkrong di Semarang, Jakarta, Bandung, Yogyakarta, dan kota lain di Pulau Jawa, dikurasi langsung oleh kurator WFC Hunters. Lengkap dengan wifi, colokan, harga, dan menu.",
   applicationName: APP_NAME,
   creator: APP_NAME,
   publisher: APP_NAME,

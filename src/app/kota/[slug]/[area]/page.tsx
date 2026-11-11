@@ -45,8 +45,8 @@ export async function generateMetadata({ params }: { params: P }): Promise<Metad
   const r = await getArea(slug, area);
   if (!r) notFound();
   const f = facts(r.cafes);
-  const title = `Kafe WFC & nugas di ${r.area.name}, ${r.city.name}`;
-  const description = clip(`${r.cafes.length} kafe di ${r.area.name}, ${r.city.name} yang nyaman buat kerja dan nugas${f.wifi ? `, ${f.wifi} dengan wifi` : ""}${f.plug ? `, ${f.plug} dengan colokan` : ""}. Termasuk ${r.cafes.slice(0, 3).map((c) => c.name).join(", ")}.`);
+  const title = `Cafe WFC & nugas di ${r.area.name}, ${r.city.name}`;
+  const description = clip(`${r.cafes.length} cafe di ${r.area.name}, ${r.city.name} yang nyaman buat kerja dan nugas${f.wifi ? `, ${f.wifi} dengan wifi` : ""}${f.plug ? `, ${f.plug} dengan colokan` : ""}. Termasuk ${r.cafes.slice(0, 3).map((c) => c.name).join(", ")}.`);
   const cover = r.cafes.map((c) => coverUrl(c)).find(Boolean);
   const path = `/kota/${r.city.slug}/${r.area.slug}`;
   return {

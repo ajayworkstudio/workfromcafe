@@ -10,7 +10,7 @@ import { breadcrumb, clip } from "@/lib/seo";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createPublicClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
 import Icon from "@/components/Icon";
@@ -28,6 +28,7 @@ import SectionTabs from "@/components/SectionTabs";
 import ConditionCard from "@/components/ConditionCard";
 import { CROWD, reportAgo, summarize, type CafeReport } from "@/lib/reports";
 import type { Cafe, CafeDetails, MenuItem } from "@/lib/types";
+import { cafeTitle, cafeWithCity, describeCafe, type MenuPick } from "@/lib/cafeSeo";
 import { APP_NAME, CAFE_LIST_SELECT, DAYS, formatSlot, SITE_URL, coverUrl, isOpenNow, priceLabel, rupiah } from "@/lib/utils";
 import { getT } from "@/lib/i18n/server";
 
@@ -41,16 +42,12 @@ const getCafe = cache(async (slug: string) => {
 });
 
 /** Deskripsi untuk Google: ulasan singkat, kalau kosong dirangkai dari penilaian & fasilitas. */
-function describeCafe(cafe: Cafe) {
-  const where = [cafe.area, cafe.city?.name].filter(Boolean).join(", ");
-  const facts = filledAspects(cafe.scores)
-    .filter((a) => ["internet", "colokan", "ketenangan"].includes(a.key))
-    .map((a) => `${a.label.toLowerCase()} ${levelOf(a, a.score)[0].toLowerCase()}`);
-  const base = cafe.short_review?.trim() || `Review ${cafe.name} di ${where} sebagai tempat kerja dan nugas.`;
-  const factText = facts.join(", ");
-  const extra = factText ? ` ${factText.charAt(0).toUpperCase()}${factText.slice(1)}.` : "";
-  return clip(`${base}${extra} Harga ${priceLabel(cafe.price_range)}, jam buka & menu rekomendasi.`);
-}
+// Menu untuk judul & deskripsi Google: dibaca sebagai pengunjung tanpa login, sama seperti Googlebot
+const getMenuPublic = cache(async (cafeId: string) => {
+  const { data } = await createPublicClient().from("menu_items")
+    .select("name,price,is_must_try,sort_order").eq("cafe_id", cafeId).order("sort_order").limit(20);
+  return (data as MenuPick[] | null) ?? [];
+});
 
 export async function generateMetadata({ params }: { params: P }): Promise<Metadata> {
   const { slug } = await params;
@@ -58,14 +55,15 @@ export async function generateMetadata({ params }: { params: P }): Promise<Metad
   // notFound di metadata: status 404 dikirim sebelum streaming (loading.tsx) mulai, jadi bukan soft 404
   if (!cafe) notFound();
   const cover = coverUrl(cafe);
-  const title = `${cafe.name} ${cafe.city?.name ?? ""}: tempat WFC, wifi & colokan`;
-  const description = describeCafe(cafe);
+  const menu = await getMenuPublic(cafe.id);
+  const title = cafeTitle(cafe, menu);
+  const description = describeCafe(cafe, menu);
   return {
     // Nama kafe panjang: lepas akhiran merek supaya bagian penting tidak terpotong di hasil Google
     title: `${title} | ${APP_NAME}`.length > 65 ? { absolute: title } : title,
     description,
     alternates: { canonical: `/kafe/${cafe.slug}` },
-    openGraph: { type: "article", title, description, url: `/kafe/${cafe.slug}`, images: cover ? [{ url: cover, alt: cafe.name }] : undefined },
+    openGraph: { type: "article", title, description, url: `/kafe/${cafe.slug}`, images: cover ? [{ url: cover, alt: `Suasana ${cafeWithCity(cafe)}` }] : undefined },
     twitter: { card: "summary_large_image", title, description, images: cover ? [cover] : undefined },
   };
 }
@@ -238,7 +236,7 @@ export default async function CafeDetailPage({ params, searchParams }: { params:
       <JsonLd data={jsonLd} />
       <CafeTracker cafeId={cafe.id} />
 
-      <PhotoGallery photos={photos.map((p) => ({ id: p.id, url: p.url, thumb_url: p.thumb_url }))} name={cafe.name} overlay={<>
+      <PhotoGallery photos={photos.map((p) => ({ id: p.id, url: p.url, thumb_url: p.thumb_url }))} name={cafe.name} altName={`Suasana ${cafe.name}${cafe.area || cafe.city ? ` di ${[cafe.area, cafe.city?.name].filter(Boolean).join(", ")}` : ""}`} overlay={<>
         <BackButton fallback={cafe.city ? `/kota/${cafe.city.slug}` : "/kafe"} className={round} />
         <span className="flex gap-2">
           <span data-track="share" className="contents"><ShareButton url={`${SITE_URL}/kafe/${cafe.slug}`} title={cafe.name} text={shareText} storyUrl={`/kafe/${cafe.slug}/story`} iconOnly className={round} /></span>
