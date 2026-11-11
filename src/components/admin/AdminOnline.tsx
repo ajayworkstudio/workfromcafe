@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import Icon from "@/components/Icon";
@@ -13,10 +14,16 @@ const since = (iso: string) => {
   return m < 1 ? "baru saja" : m < 60 ? `${m} menit` : `${Math.floor(m / 60)} jam ${m % 60} menit`;
 };
 
-/** Kartu "Sedang online" di dashboard admin. Diperbarui tiap 30 detik selama halaman terbuka. */
+const ONLINE_EVERY = 15_000; // kartu online
+const PAGE_EVERY = 60_000; // angka lain di dashboard (rekomendasi, pesan, pembayaran)
+
+/** Kartu "Sedang online" di dashboard admin. Diperbarui sendiri selama halaman terbuka, tanpa reload. */
 export default function AdminOnline() {
+  const router = useRouter();
   const [data, setData] = useState<Online | null>(null);
   const [error, setError] = useState(false);
+  const [updatedAt, setUpdatedAt] = useState<number | null>(null);
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     const supabase = createClient();
@@ -26,13 +33,21 @@ export default function AdminOnline() {
       const { data: d, error: e } = await supabase.rpc("admin_online");
       if (!alive) return;
       if (e) setError(true);
-      else { setError(false); setData(d as Online | null); }
+      else { setError(false); setData(d as Online | null); setUpdatedAt(Date.now()); }
     };
     load();
-    const id = window.setInterval(load, 30_000);
+    const id = window.setInterval(load, ONLINE_EVERY);
+    // Data server di halaman ini (kotak statistik dan pemberitahuan) ikut disegarkan tanpa reload
+    const page = window.setInterval(() => { if (document.visibilityState === "visible") router.refresh(); }, PAGE_EVERY);
+    const tick = window.setInterval(() => setNow(Date.now()), 1000);
     document.addEventListener("visibilitychange", load);
-    return () => { alive = false; window.clearInterval(id); document.removeEventListener("visibilitychange", load); };
-  }, []);
+    return () => {
+      alive = false;
+      window.clearInterval(id); window.clearInterval(page); window.clearInterval(tick);
+      document.removeEventListener("visibilitychange", load);
+    };
+  }, [router]);
+  const ago = updatedAt == null ? null : Math.max(0, Math.round((now - updatedAt) / 1000));
 
   const users = data?.users ?? [];
   const guests = Math.max(0, (data?.visitors ?? 0) - users.length);
@@ -44,7 +59,9 @@ export default function AdminOnline() {
           <span className="relative flex h-2.5 w-2.5" aria-hidden><span className="absolute inset-0 rounded-full bg-ok" /></span>
           Sedang online
         </h2>
-        <p className="text-sm text-muted">Aktif dalam 2 menit terakhir · diperbarui tiap 30 detik</p>
+        <p className="text-sm text-muted" aria-live="off">
+          Aktif dalam 2 menit terakhir · {ago == null ? "memuat" : ago < 3 ? "baru diperbarui" : `diperbarui ${ago} detik lalu`}
+        </p>
       </div>
 
       {error ? (
