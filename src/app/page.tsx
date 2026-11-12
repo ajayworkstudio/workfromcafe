@@ -7,6 +7,8 @@ import CafePhotoCard from "@/components/CafePhotoCard";
 import LiveCafeCard from "@/components/LiveCafeCard";
 import type { LiveSummary } from "@/lib/reports";
 import CafeShowcase from "@/components/CafeShowcase";
+import CategoryTabs from "@/components/CategoryTabs";
+import { homeCategories } from "@/lib/homeCategories";
 import SuggestionBox from "@/components/SuggestionBox";
 import { toStackCafe } from "@/lib/stackCafe";
 import HomeMotion from "@/components/HomeMotion";
@@ -38,12 +40,14 @@ export default async function Home() {
   const free = settings.free_mode;
   const featuredAuthor = pickFeatured(await getAuthors(), settings.featured_author);
   const showTrial = !free && !viewer.user && settings.trial_days > 0;
-  const [{ data: featured }, { data: latest, error: latestErr }, { count }, { data: liveRows }] = await Promise.all([
+  const [{ data: featured }, { data: latest, error: latestErr }, { count }, { data: liveRows }, { data: published }] = await Promise.all([
     supabase.from("cafes").select(CAFE_LIST_SELECT).eq("is_featured", true).order("visited_at", { ascending: false }).limit(6),
     supabase.from("cafes").select(CAFE_LIST_SELECT).order("created_at", { ascending: false }).limit(6),
     supabase.from("cafes").select("id", { count: "exact", head: true }).eq("is_published", true),
     // Kondisi 3 jam terakhir dari laporan pengunjung (kosong kalau migrasi 0018 belum dijalankan)
     supabase.rpc("cafe_reports_live"),
+    // Bahan "Cocok untuk": semua kafe tayang, dipilah per tag WFC / Nongkrong di homeCategories
+    supabase.from("cafes").select(CAFE_LIST_SELECT).eq("is_published", true),
   ]);
   // t("Lagi sepi sekarang") kalau ada kafe yang dilaporkan sepi; kalau tidak, kondisi terbaru apa pun
   const curated = count ?? 0;
@@ -59,6 +63,26 @@ export default async function Home() {
     .filter((x): x is { live: LiveSummary; cafe: Cafe } => !!x.cafe);
   const latestList = (latest as Cafe[] | null) ?? [];
   const stackCafes = latestList.map(toStackCafe);
+  const cats = homeCategories((published as Cafe[] | null) ?? []);
+  const catPanel = (list: Cafe[]) => (
+    <>
+      {/* HP: kartu foto digeser ke samping, kartu berikutnya mengintip. Layar lebar: tiga kolom. */}
+      <div className="-mx-4 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:hidden">
+        {list.map((c) => (
+          <div key={c.id} className="w-[84%] shrink-0 snap-center"><CafePhotoCard cafe={c} /></div>
+        ))}
+      </div>
+      <div className="mt-6 hidden gap-x-5 gap-y-9 sm:grid sm:grid-cols-2 lg:grid-cols-3">
+        {list.map((c) => <CafeCard key={c.id} cafe={c} />)}
+      </div>
+    </>
+  );
+  const catTabs = [
+    { key: "wfc", label: t("WFC"), icon: "desk", list: cats.wfc, href: "/kafe?tag=WFC", allLabel: t("Semua kafe WFC"),
+      note: t("Diurutkan dari nilai internet, colokan, dan ketenangan.") },
+    { key: "nongkrong", label: t("Nongkrong"), icon: "users", list: cats.nongkrong, href: "/kafe?tag=Nongkrong", allLabel: t("Semua kafe nongkrong"),
+      note: t("Diurutkan dari nilai kurator. Kafe yang sudah ada di WFC tidak diulang.") },
+  ].filter((x) => x.list.length).map(({ list, ...x }) => ({ ...x, panel: catPanel(list) }));
 
   return (
     <>
@@ -189,6 +213,12 @@ export default async function Home() {
           </>
         )}
       </section>
+
+      {!!catTabs.length && (
+        <section className="mx-auto max-w-6xl px-4 pt-16">
+          <CategoryTabs title={t("Cocok untuk")} tabs={catTabs} />
+        </section>
+      )}
 
       {!!articles.length && (
         <section className="reveal mx-auto max-w-6xl px-4 pt-16">
